@@ -103,7 +103,7 @@ The first implementation pass should update:
 - `GEMINI.md`
 - `docs/workflow_overview.md`
 - `docs/workflow_diagrams.md`
-- `docs/harness_evaluation_scenarios.md`
+- `docs/harness/harness_evaluation_scenarios.md`
 
 `AGENTS.md` and `GEMINI.md` must remain synchronized.
 

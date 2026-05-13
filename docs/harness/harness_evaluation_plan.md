@@ -22,7 +22,7 @@ Evaluate whether the physics research harness will actually shape research behav
 | Structure | Are required files present? | `scripts/run_baseline_validation.py` |
 | Scenario behavior | Do realistic tasks map to the right skills and logs? | `scripts/evaluate_harness.py` |
 | Usability | Is the workflow too heavy or vague? | Researcher review of scenario results |
-| Pilot | Does the harness help in an actual session? | `docs/harness_pilot_protocol.md` |
+| Pilot | Does the harness help in an actual session? | `docs/harness/harness_pilot_protocol.md` |
 
 ## Pass Criteria
 

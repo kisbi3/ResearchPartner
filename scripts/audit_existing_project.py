@@ -46,8 +46,8 @@ HARNESS_PATHS = [
     "PHYSICS.md",
     "skills/baseline-validation/SKILL.md",
     "docs/baseline_registry.md",
-    "docs/existing_project_intake.md",
-    "docs/retrofit_validation_plan.md",
+    "docs/adoption/existing_project_intake.md",
+    "docs/adoption/retrofit_validation_plan.md",
 ]
 
 BANNED_MATPLOTLIB_SHOW = "plt." + "show("

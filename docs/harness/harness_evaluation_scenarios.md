@@ -214,10 +214,10 @@ Expected skills:
 
 Expected docs:
 
-- `docs/existing_project_intake.md`
-- `docs/existing_results_inventory.md`
-- `docs/retrofit_validation_plan.md`
-- `docs/adoption_log.md`
+- `docs/adoption/existing_project_intake.md`
+- `docs/adoption/existing_results_inventory.md`
+- `docs/adoption/retrofit_validation_plan.md`
+- `docs/adoption/adoption_log.md`
 
 Expected blocked behavior:
 
@@ -267,8 +267,8 @@ Expected skills:
 
 Expected docs:
 
-- `docs/anomaly_log.md`
-- `docs/negative_results.md`
+- `docs/logs/anomaly_log.md`
+- `docs/logs/negative_results.md`
 - `docs/validation_log.md`
 
 Expected blocked behavior:
@@ -320,9 +320,9 @@ Expected docs:
 
 - `docs/research_retrospective.md`
 - `docs/research_state.md`
-- `docs/hypothesis_log.md`
+- `docs/logs/hypothesis_log.md`
 - `docs/lineage/`
-- `docs/open_questions.md`
+- `docs/logs/open_questions.md`
 
 Expected blocked behavior:
 

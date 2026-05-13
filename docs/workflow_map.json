@@ -14,8 +14,8 @@
           "summary": "Decide whether this is a new project or an existing research retrofit.",
           "responsible": [
             {"label": "Existing research onboarding", "path": "skills/existing-research-onboarding/SKILL.md"},
-            {"label": "Project intake", "path": "docs/existing_project_intake.md"},
-            {"label": "Adoption log", "path": "docs/adoption_log.md"},
+            {"label": "Project intake", "path": "docs/adoption/existing_project_intake.md"},
+            {"label": "Adoption log", "path": "docs/adoption/adoption_log.md"},
             {"label": "Audit existing project script", "path": "scripts/audit_existing_project.py"}
           ],
           "checks": [
@@ -87,8 +87,8 @@
           "responsible": [
             {"label": "Baseline validation", "path": "skills/baseline-validation/SKILL.md"},
             {"label": "Baseline registry", "path": "docs/baseline_registry.md"},
-            {"label": "Toy model log", "path": "docs/toy_model_log.md"},
-            {"label": "Reproduction log", "path": "docs/reproduction_log.md"}
+            {"label": "Toy model log", "path": "docs/logs/toy_model_log.md"},
+            {"label": "Reproduction log", "path": "docs/logs/reproduction_log.md"}
           ],
           "checks": [
             "Do not proceed to full-scale interpretation without pass or explicit waiver.",
@@ -123,8 +123,8 @@
           "summary": "If behavior is surprising, classify and reproduce the anomaly before patching.",
           "responsible": [
             {"label": "Anomaly debugging", "path": "skills/anomaly-debugging/SKILL.md"},
-            {"label": "Anomaly log", "path": "docs/anomaly_log.md"},
-            {"label": "Negative results", "path": "docs/negative_results.md"}
+            {"label": "Anomaly log", "path": "docs/logs/anomaly_log.md"},
+            {"label": "Negative results", "path": "docs/logs/negative_results.md"}
           ],
           "checks": [
             "State expected behavior and observed behavior.",
@@ -179,7 +179,7 @@
             {"label": "Research retrospective", "path": "skills/research-retrospective/SKILL.md"},
             {"label": "Research retrospective log", "path": "docs/research_retrospective.md"},
             {"label": "Lineage template", "path": "docs/lineage/iteration_template.md"},
-            {"label": "Tacit patterns", "path": "docs/tacit_patterns.md"}
+            {"label": "Tacit patterns", "path": "docs/logs/tacit_patterns.md"}
           ],
           "checks": [
             "Every iteration should leave a reusable artifact or explain why not.",
@@ -221,7 +221,7 @@
           "summary": "State the precise physical question the paper can answer.",
           "responsible": [
             {"label": "Research plan", "path": "docs/research_plan.md"},
-            {"label": "Open questions", "path": "docs/open_questions.md"}
+            {"label": "Open questions", "path": "docs/logs/open_questions.md"}
           ],
           "checks": ["Question is answerable by the model and data."],
           "edges": ["paper_gap"]
@@ -308,9 +308,9 @@
           "y": 300,
           "summary": "State what the model, data, and validation do not justify.",
           "responsible": [
-            {"label": "Negative results", "path": "docs/negative_results.md"},
-            {"label": "Anomaly log", "path": "docs/anomaly_log.md"},
-            {"label": "Open questions", "path": "docs/open_questions.md"}
+            {"label": "Negative results", "path": "docs/logs/negative_results.md"},
+            {"label": "Anomaly log", "path": "docs/logs/anomaly_log.md"},
+            {"label": "Open questions", "path": "docs/logs/open_questions.md"}
           ],
           "checks": ["Limitations include failed or partial validation where relevant."],
           "edges": ["paper_conclusion"]

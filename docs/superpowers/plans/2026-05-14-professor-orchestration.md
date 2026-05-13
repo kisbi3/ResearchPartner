@@ -16,7 +16,7 @@
 - Modify `GEMINI.md`: add identical text to keep it synchronized with `AGENTS.md`.
 - Modify `docs/workflow_overview.md`: explain the professor-led operating loop and the final all-agent completion meeting.
 - Modify `docs/workflow_diagrams.md`: add Mermaid diagrams for the orchestration hierarchy, evolutionary loop, and completion conference.
-- Modify `docs/harness_evaluation_scenarios.md`: add realistic evaluation scenarios for the new protocol.
+- Modify `docs/harness/harness_evaluation_scenarios.md`: add realistic evaluation scenarios for the new protocol.
 - Modify `scripts/evaluate_harness.py`: add machine-checkable scenarios and rule terms.
 - Modify `tests/test_evaluate_harness.py`: update expected scenario coverage and count.
 
@@ -241,7 +241,7 @@ Expected: no output.
 **Files:**
 - Modify: `docs/workflow_overview.md`
 - Modify: `docs/workflow_diagrams.md`
-- Modify: `docs/harness_evaluation_scenarios.md`
+- Modify: `docs/harness/harness_evaluation_scenarios.md`
 
 - [ ] **Step 1: Update workflow overview**
 

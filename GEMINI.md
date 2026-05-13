@@ -129,7 +129,7 @@ Before trusting a new model, solver, analysis pipeline, or figure workflow:
 
 1. Identify the baseline validation target.
 2. Prefer a toy model, known analytical limit, reproduced result, previous validated output, conservation-law test, or dimensional sanity case.
-3. Record the baseline status in `docs/baseline_registry.md`, `docs/toy_model_log.md`, or `docs/reproduction_log.md` when those files exist.
+3. Record the baseline status in `docs/baseline_registry.md`, `docs/logs/toy_model_log.md`, or `docs/logs/reproduction_log.md` when those files exist.
 4. Present the result to the researcher in a reviewable form.
 5. Continue to full-scale work only after the next action is agreed, unless the researcher explicitly waives this gate.
 
@@ -142,7 +142,7 @@ If a research project already has code, data, figures, results, notes, or manusc
 3. Mark validation status honestly as pass, fail, partial, unknown, or not yet checked.
 4. Treat existing claims as provisional until they are mapped to evidence.
 5. Choose a minimal first retrofit target, such as one figure, one toy model, one reproduction, or one simulation pipeline.
-6. Record adoption decisions in `docs/adoption_log.md` and validation gaps in `docs/retrofit_validation_plan.md` when those files exist.
+6. Record adoption decisions in `docs/adoption/adoption_log.md` and validation gaps in `docs/adoption/retrofit_validation_plan.md` when those files exist.
 
 ## Required Research Discipline
 
@@ -178,7 +178,7 @@ When a result is anomalous, surprising, unstable, or contradictory:
 2. State expected behavior and observed behavior.
 3. Classify the anomaly as physical, model, approximation, dimensional, numerical, implementation, data, plotting, stochastic, interpretation, or unknown.
 4. Reproduce it with the smallest command, derivation, or data slice.
-5. Record important unresolved anomalies in `docs/anomaly_log.md` when that file exists.
+5. Record important unresolved anomalies in `docs/logs/anomaly_log.md` when that file exists.
 
 When a research iteration ends:
 

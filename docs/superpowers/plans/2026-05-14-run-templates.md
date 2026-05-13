@@ -16,7 +16,7 @@
 - Create `docs/run_templates/research_run_packet_template.md`: Professor-owned packet covering Interview, Seed, Execute, Evaluate, Completion Conference, User Report, and Retrospective.
 - Modify `docs/workflow_overview.md`: mention the templates in live tracking and completion conference sections.
 - Modify `docs/workflow_code_map.md`: map workflow visualization and retrospective/review areas to the templates.
-- Modify `docs/harness_evaluation_scenarios.md`: add templates to expected docs for live workflow and completion conference scenarios.
+- Modify `docs/harness/harness_evaluation_scenarios.md`: add templates to expected docs for live workflow and completion conference scenarios.
 - Modify `scripts/evaluate_harness.py`: add templates to scenario docs.
 - Modify `tests/test_evaluate_harness.py`: assert evaluator scenarios require the templates.
 
@@ -38,7 +38,7 @@
 
 - [ ] Update `docs/workflow_overview.md`.
 - [ ] Update `docs/workflow_code_map.md`.
-- [ ] Update `docs/harness_evaluation_scenarios.md`.
+- [ ] Update `docs/harness/harness_evaluation_scenarios.md`.
 - [ ] Update `scripts/evaluate_harness.py`.
 
 ### Task 4: Validate

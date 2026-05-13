@@ -56,4 +56,4 @@ A pilot passes when:
 
 ## Record Results
 
-Summarize each pilot in `docs/harness_evaluation_log.md`.
+Summarize each pilot in `docs/harness/harness_evaluation_log.md`.

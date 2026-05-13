@@ -38,7 +38,7 @@ Classify the issue as one or more of:
 5. Isolate one variable at a time.
 6. Test a simpler limit, toy model, or known benchmark.
 7. Decide whether the anomaly is physical, numerical, implementation-related, data-related, or unresolved.
-8. Record unresolved or important anomalies in `docs/anomaly_log.md` when it exists.
+8. Record unresolved or important anomalies in `docs/logs/anomaly_log.md` when it exists.
 
 ## Minimal Tests
 
