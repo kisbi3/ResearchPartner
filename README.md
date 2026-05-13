@@ -1,217 +1,80 @@
-# Physics Research Harness
+# Research Partner: AI-Assisted Physics Research Harness
 
-A lightweight harness for physics research workflows with AI assistants.
+Research Partner is a discipline-first harness designed to ensure scientific rigor when collaborating with AI assistants on physics research. It bridges the gap between AI's creative speed and the slow, methodical discipline required for physical discovery.
 
-The goal is to make the assistant preserve scientific discipline across the whole chain:
+## 🚀 Key Features
 
-physical question -> assumptions -> model -> equations -> dimensional check -> baseline validation -> numerical implementation -> validation -> researcher review -> figures -> manuscript claims.
+### 1. The Scientific Chain of Integrity
+Never lose track of your reasoning. Research Partner enforces a strict, traceable path from the initial physical question to the final manuscript claim.
 
-It also borrows three process ideas:
-
-- Superpowers-style gates: use the relevant skill before acting, and verify before claiming.
-- Ouroboros-style memory: keep research state, hypotheses, anomalies, and lineage in files rather than relying on chat history.
-- Compound engineering: each iteration should leave behind a reusable check, benchmark, template, log, or rule.
-
-## What This Harness Enforces
-
-- Physical assumptions must be explicit.
-- Equations and parameters should be dimensionally checked.
-- New models, solvers, analysis pipelines, and figure workflows should pass a toy-model, known-limit, benchmark, or reproduction check before full-scale interpretation.
-- Intermediate results should be shown to the researcher in reviewable iterations.
-- Existing research projects can adopt the harness through a non-destructive intake and retrofit workflow.
-- Scientific claims should not be strengthened without fresh or recorded evidence.
-- Anomalies should be classified before being patched.
-- Research iterations should leave reusable artifacts that make later work easier.
-- Figures and manuscript claims must be traceable to code, data, logs, derivations, or citations.
-- `plt.show()` should not be used; save figures to files instead.
-
-## Structure
-
-```text
-physics-research-harness/
-├── AGENTS.md
-├── GEMINI.md
-├── PHYSICS.md
-├── README.md
-├── skills/
-│   ├── anomaly-debugging/
-│   ├── baseline-validation/
-│   ├── claim-to-evidence/
-│   ├── dimensional-analysis/
-│   ├── existing-research-onboarding/
-│   ├── harness-evaluation/
-│   ├── model-specification/
-│   ├── numerical-validation/
-│   ├── research-plan-review/
-│   ├── research-retrospective/
-│   ├── researcher-review-loop/
-│   └── scientific-verification-before-claim/
-├── docs/
-│   ├── adoption_log.md
-│   ├── anomaly_log.md
-│   ├── assumptions.md
-│   ├── baseline_registry.md
-│   ├── decision_log.md
-│   ├── existing_project_intake.md
-│   ├── existing_results_inventory.md
-│   ├── harness_evaluation_log.md
-│   ├── harness_evaluation_plan.md
-│   ├── harness_evaluation_scenarios.md
-│   ├── hypothesis_log.md
-│   ├── lineage/
-│   ├── negative_results.md
-│   ├── open_questions.md
-│   ├── reproduction_log.md
-│   ├── research_plan.md
-│   ├── research_retrospective.md
-│   ├── research_state.md
-│   ├── researcher_review_log.md
-│   ├── retrofit_validation_plan.md
-│   ├── tacit_patterns.md
-│   ├── toy_model_log.md
-│   └── validation_log.md
-└── scripts/
-    ├── audit_existing_project.py
-    ├── evaluate_harness.py
-    └── run_baseline_validation.py
+```mermaid
+flowchart LR
+    A["Question"] --> B["Assumptions"] --> C["Model"] --> D["Equations"] --> E["Units Check"] --> F["Baseline Gate"] --> G["Simulation"] --> H["Review"] --> I["Claims"]
 ```
 
-## Recommended Research Loop
+### 2. Automated Discipline Gates (Skills)
+Instead of vague instructions, the harness uses **specialized skills** that act like TDD for research:
+- **`model-specification`**: Forces explicit definitions of variables, domains, and validity regimes.
+- **`dimensional-analysis`**: Automatically flags unit inconsistencies before you waste hours on a simulation.
+- **`baseline-validation`**: A mandatory gate that requires your model to pass a "toy model" or "analytical limit" test before interpreting real results.
 
-1. Define the physical question and model.
-2. Record assumptions in `docs/assumptions.md`.
-3. Specify at least one baseline in `docs/baseline_registry.md`.
-4. Validate with a toy model, analytical limit, reproduction target, conservation check, or dimensional sanity case.
-5. Record validation in `docs/validation_log.md`, `docs/toy_model_log.md`, or `docs/reproduction_log.md`.
-6. Present intermediate results using `skills/researcher-review-loop/SKILL.md`.
-7. Record decisions in `docs/decision_log.md`.
-8. Before strengthening claims, use `skills/scientific-verification-before-claim/SKILL.md`.
-9. After each iteration, update research memory and lineage.
-10. Only then expand to full-scale runs, production figures, or manuscript-level claims.
+### 3. Visual Workflow Navigation
+The harness generates an **Interactive Workflow Map** (`docs/workflow_map.html`). It provides a real-time dashboard showing:
+- Which step you are currently on.
+- The "gates" you have passed (or are currently blocked by).
+- Direct links to the relevant logs, figures, and evidence.
 
-## Core Skills
+---
 
-- `model-specification`: define physical systems, variables, equations, assumptions, parameters, and validity regimes.
-- `dimensional-analysis`: check units, dimensions, nondimensionalization, and dimensionless groups.
-- `baseline-validation`: require toy-model, known-limit, benchmark, or reproduction checks before trusting new workflows.
-- `existing-research-onboarding`: attach the harness to already-running research without rewriting history or overvalidating old results.
-- `numerical-validation`: check reproducibility, convergence, stability, conservation laws, and known limits.
-- `claim-to-evidence`: map scientific claims to derivations, simulations, figures, data, tables, or citations.
-- `researcher-review-loop`: package intermediate results for human scientific review and decision logging.
-- `scientific-verification-before-claim`: require evidence before strengthening physics claims.
-- `anomaly-debugging`: classify surprising or unstable results before patching symptoms.
-- `research-plan-review`: check assumptions, baselines, units, validation, and claim paths before substantial work.
-- `research-retrospective`: preserve lessons, lineage, and reusable artifacts after each iteration.
-- `harness-evaluation`: evaluate whether the harness is actually useful across realistic research scenarios.
+## 🛠 Usage by Platform
 
-## Evaluating the Harness
+Research Partner is designed to work seamlessly across major AI CLI environments. The AI will automatically pick up rules from the project root.
 
-Run:
+| Platform | Skill Invocation | Rule Discovery File |
+|---|---|---|
+| **Gemini CLI** | `activate_skill(name="...")` | `GEMINI.md` |
+| **Claude Code** | `Skill(name="...")` | `CLAUDE.md` / `AGENTS.md` |
+| **Copilot CLI / Codex** | `skill(name="...")` | `AGENTS.md` |
 
-```bash
-python scripts/evaluate_harness.py
-```
+### Step-by-Step Setup
 
-This checks scenario coverage for:
+1. **Initialization**: Copy the `skills/`, `docs/`, and `scripts/` directories along with `AGENTS.md`/`GEMINI.md` into your research project root.
+2. **Launch CLI**: Open your preferred terminal and launch the AI CLI (e.g., `gemini`, `claude`, or `gh copilot`).
+3. **Trigger the Workflow**:
+   - **Gemini CLI**: Simply state your goal: *"I want to analyze the stability of [Model Name]."* The AI will see `GEMINI.md` and should automatically call `activate_skill(name="model-specification")`.
+   - **Claude Code**: Ask: *"Use the model-specification skill to define my new system."* Claude will use its `Skill` tool to load the instructions.
+   - **Copilot CLI**: The assistant will leverage `AGENTS.md` to guide its behavior and will invoke `skill` as needed.
+4. **Follow the Gates**: The AI will guide you through recording assumptions in `docs/assumptions.md` and checking baselines before running any code.
 
-- pre-run workflow navigation
-- new model without baseline
-- existing project with old figures
-- manuscript overclaim
-- anomalous simulation
-- numerical code change
-- end-of-iteration retrospective
+---
 
-Record evaluations in `docs/harness_evaluation_log.md`. Use `docs/harness_evaluation_scenarios.md` to add pressure tests when researchers find ways the workflow is skipped or too heavy.
+## 🛠 How to Utilize Research Partner
 
-Automated evaluation is only a coverage check. Before relying on the harness for a real manuscript or major simulation campaign, run one pilot task using `docs/harness_pilot_protocol.md`.
+### Scenario A: Starting a New Discovery
+1. **Brainstorm & Plan**: Use the `research-plan-review` skill to audit your initial idea for unit consistency and baseline targets.
+2. **Execute & Validate**: Run small, verifiable iterations. The harness will block you from making "big claims" until the `claim-to-evidence` map is filled.
+3. **Reflect**: Every iteration ends with a `research-retrospective`, leaving behind a reusable benchmark or a "lesson learned" log.
 
-## Research Memory
+### Scenario B: Retrofitting an Existing Project
+1. **Inventory**: Run `python scripts/audit_existing_project.py` to map your current figures and scripts.
+2. **Validate Gaps**: Identify which previous results are "unvalidated" and create a `retrofit_validation_plan`.
+3. **Safe Evolution**: Start applying the discipline gates to *new* changes while gradually bringing old results into the "Chain of Integrity."
 
-Use these files to keep the project state independent of chat history:
+---
 
-- `docs/research_state.md`: compact current state for session start.
-- `docs/research_plan.md`: plan before substantial research work.
-- `docs/hypothesis_log.md`: hypotheses with predictions and outcomes.
-- `docs/open_questions.md`: questions that should not be lost.
-- `docs/negative_results.md`: failed or interpretation-changing results.
-- `docs/anomaly_log.md`: surprising, unstable, or contradictory behavior.
-- `docs/tacit_patterns.md`: recurring lessons that may become checks or skill rules.
-- `docs/lineage/`: iteration-by-iteration research path.
+## 📊 Visualizing Success
 
-The default discipline is:
+When you use Research Partner, your research output isn't just a paper—it's a **reproducible lineage**.
 
-```text
-plan -> baseline -> execute -> verify -> review with researcher -> record lineage -> improve the harness
-```
+- **Workflow Maps**: Run `python scripts/generate_workflow_map.py` and open `docs/workflow_map.html` to see the logic flow of your research.
+- **Claim-to-Evidence Maps**: Hover over a sentence in your draft and see exactly which simulation run and which equation supports it.
+- **Baseline Registry**: A library of "sanity checks" that ensure your future models don't drift from physical reality.
 
-## Workflow Visualization
+---
 
-Before substantial research work, inspect:
+## 🔭 The Vision
 
-- `docs/workflow_overview.md`: step-by-step research workflow.
-- `docs/workflow_diagrams.md`: Mermaid diagrams for the research workflow.
-- `docs/paper_logic_diagram.md`: manuscript logic structure when results may become a paper.
-- `docs/workflow_map.html`: interactive workflow map with links to responsible skills, docs, and scripts.
-- `docs/workflow_code_map.md`: static responsibility map.
+Research Partner isn't about replacing the researcher; it's about **augmenting human judgment with machine-enforced discipline**. It ensures that the AI stays focused on the physics, while you stay focused on the discovery.
 
-Regenerate the interactive map after editing `docs/workflow_map.json`:
-
-```bash
-python scripts/generate_workflow_map.py
-python scripts/validate_workflow_links.py
-```
-
-## Adding the Harness to Existing Research
-
-When a project already has results, start with intake instead of cleanup.
-
-1. Run a lightweight inventory:
-
-```bash
-python scripts/audit_existing_project.py path/to/project
-```
-
-2. Fill out `docs/existing_project_intake.md`.
-3. Record prior outputs in `docs/existing_results_inventory.md`.
-4. Mark validation status honestly as `validated`, `partial`, `unknown`, `failed`, `waived`, or `deprecated`.
-5. Pick one first retrofit target in `docs/retrofit_validation_plan.md`.
-6. Prefer reproducing one existing figure, checking one toy model, auditing one simulation pipeline, or mapping one manuscript section to evidence.
-
-Do not reorganize or reinterpret old results before this intake is complete.
-
-## Quick Check
-
-Run:
-
-```bash
-python scripts/run_baseline_validation.py
-```
-
-This checks that the harness files exist and scans common code directories for direct `plt.show()` usage.
-
-To audit an already-running research project:
-
-```bash
-python scripts/audit_existing_project.py path/to/project --output existing-project-audit.md
-```
-
-## Adapting to a Research Repository
-
-Copy the harness files into a physics project:
-
-```text
-my-physics-project/
-├── AGENTS.md
-├── GEMINI.md
-├── PHYSICS.md
-├── skills/
-├── docs/
-├── src/
-├── scripts/
-├── data/
-├── results/
-└── manuscript/
-```
-
-Project-specific scientific questions belong in a separate project research note. General physics discipline belongs in `PHYSICS.md`.
+---
+*Ready to start? Begin by inspecting `GEMINI.md` to see the AI's operating instructions.*
