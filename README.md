@@ -114,6 +114,7 @@ python scripts/evaluate_harness.py
 
 This checks scenario coverage for:
 
+- pre-run workflow navigation
 - new model without baseline
 - existing project with old figures
 - manuscript overclaim
@@ -142,6 +143,23 @@ The default discipline is:
 
 ```text
 plan -> baseline -> execute -> verify -> review with researcher -> record lineage -> improve the harness
+```
+
+## Workflow Visualization
+
+Before substantial research work, inspect:
+
+- `docs/workflow_overview.md`: step-by-step research workflow.
+- `docs/workflow_diagrams.md`: Mermaid diagrams for the research workflow.
+- `docs/paper_logic_diagram.md`: manuscript logic structure when results may become a paper.
+- `docs/workflow_map.html`: interactive workflow map with links to responsible skills, docs, and scripts.
+- `docs/workflow_code_map.md`: static responsibility map.
+
+Regenerate the interactive map after editing `docs/workflow_map.json`:
+
+```bash
+python scripts/generate_workflow_map.py
+python scripts/validate_workflow_links.py
 ```
 
 ## Adding the Harness to Existing Research

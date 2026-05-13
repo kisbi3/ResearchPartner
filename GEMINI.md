@@ -29,6 +29,7 @@ physical assumptions -> model definition -> analytical checks -> numerical imple
 Classify the task as one or more of:
 
 - Baseline validation
+- Workflow visualization
 - Research plan review
 - Model specification
 - Dimensional analysis
@@ -69,10 +70,17 @@ Evaluate not only whether files exist, but whether realistic research scenarios 
 
 Before substantial simulations, analyses, figure sets, reproduction attempts, or manuscript claim strategies:
 
-1. Record the plan in `docs/research_plan.md` when that file exists.
-2. Check that the plan has assumptions, units, baseline validation, observables, failure criteria, and a claim-to-evidence path.
-3. Identify the first researcher review checkpoint.
-4. Prefer the smallest iteration that can change scientific interpretation.
+1. Inspect `docs/workflow_overview.md`, `docs/workflow_diagrams.md`, and `docs/workflow_map.html` when those files exist.
+2. Record the plan in `docs/research_plan.md` when that file exists.
+3. Check that the plan has assumptions, units, baseline validation, observables, failure criteria, and a claim-to-evidence path.
+4. Identify the first researcher review checkpoint.
+5. Prefer the smallest iteration that can change scientific interpretation.
+
+When the work may become a paper:
+
+1. Inspect `docs/paper_logic_diagram.md` when it exists.
+2. Map each planned result to its manuscript logic role: question, gap, model, method, result, claim, limitation, or conclusion.
+3. Do not draft paper logic stronger than the evidence chain.
 
 ## Before Full-Scale Work
 

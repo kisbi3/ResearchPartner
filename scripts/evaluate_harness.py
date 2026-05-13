@@ -22,6 +22,22 @@ class Scenario:
 
 SCENARIOS = [
     Scenario(
+        name="pre_run_workflow_navigation",
+        skills=(
+            "skills/research-plan-review/SKILL.md",
+            "skills/scientific-verification-before-claim/SKILL.md",
+        ),
+        docs=(
+            "docs/workflow_overview.md",
+            "docs/workflow_diagrams.md",
+            "docs/paper_logic_diagram.md",
+            "docs/workflow_map.json",
+            "docs/workflow_map.html",
+            "docs/workflow_code_map.md",
+        ),
+        rule_terms=("Workflow Visualization", "workflow_map.html", "paper_logic_diagram"),
+    ),
+    Scenario(
         name="new_model_without_baseline",
         skills=(
             "skills/research-plan-review/SKILL.md",

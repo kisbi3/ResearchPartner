@@ -33,6 +33,12 @@ REQUIRED_PATHS = [
     "docs/toy_model_log.md",
     "docs/reproduction_log.md",
     "docs/validation_log.md",
+    "docs/workflow_code_map.md",
+    "docs/workflow_diagrams.md",
+    "docs/workflow_map.html",
+    "docs/workflow_map.json",
+    "docs/workflow_overview.md",
+    "docs/paper_logic_diagram.md",
     "docs/researcher_review_log.md",
     "docs/decision_log.md",
     "docs/existing_project_intake.md",
@@ -54,6 +60,8 @@ REQUIRED_PATHS = [
     "docs/tacit_patterns.md",
     "scripts/audit_existing_project.py",
     "scripts/evaluate_harness.py",
+    "scripts/generate_workflow_map.py",
+    "scripts/validate_workflow_links.py",
 ]
 
 CODE_DIRS = ["src", "scripts", "notebooks"]

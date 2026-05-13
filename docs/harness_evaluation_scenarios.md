@@ -1,5 +1,32 @@
 # Harness Evaluation Scenarios
 
+## Scenario 0: Pre-run Workflow Navigation
+
+Task prompt:
+
+> Before we run the research, show me the workflow and where each step is implemented.
+
+Risk:
+
+- The assistant describes a process but does not connect it to diagrams, interactive navigation, or responsible files.
+
+Expected skills:
+
+- `research-plan-review`
+- `scientific-verification-before-claim`
+
+Expected docs:
+
+- `docs/workflow_overview.md`
+- `docs/workflow_diagrams.md`
+- `docs/paper_logic_diagram.md`
+- `docs/workflow_map.html`
+- `docs/workflow_code_map.md`
+
+Expected blocked behavior:
+
+- Do not proceed into execution before the workflow and paper logic path are inspectable.
+
 ## Scenario 1: New Model Without Baseline
 
 Task prompt:

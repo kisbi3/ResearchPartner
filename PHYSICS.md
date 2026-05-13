@@ -150,6 +150,19 @@ Maintain compact records of:
 
 Each iteration should record the starting state, hypothesis or objective, prediction, method, result, validation status, researcher feedback, reflection, reusable artifact, and next action.
 
+## Workflow Visibility
+
+Before executing substantial research, the intended workflow should be visible to the researcher.
+
+Use:
+
+- workflow overview for the step-by-step process
+- workflow diagrams for the research path
+- interactive workflow map for navigation to responsible skills, docs, and scripts
+- paper logic diagram when results may become a manuscript
+
+The workflow map should connect each step to the code or document that owns the responsibility.
+
 ## Compound Research Discipline
 
 Every research iteration should make later iterations easier.

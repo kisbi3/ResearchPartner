@@ -1,0 +1,335 @@
+{
+  "maps": [
+    {
+      "id": "research_workflow",
+      "title": "Physics Research Workflow",
+      "description": "Pre-run and iterative workflow for physics research with baseline gates, validation, researcher review, and lineage.",
+      "nodes": [
+        {
+          "id": "intake",
+          "title": "1. Intake",
+          "phase": "setup",
+          "x": 80,
+          "y": 80,
+          "summary": "Decide whether this is a new project or an existing research retrofit.",
+          "responsible": [
+            {"label": "Existing research onboarding", "path": "skills/existing-research-onboarding/SKILL.md"},
+            {"label": "Project intake", "path": "docs/existing_project_intake.md"},
+            {"label": "Adoption log", "path": "docs/adoption_log.md"},
+            {"label": "Audit existing project script", "path": "scripts/audit_existing_project.py"}
+          ],
+          "checks": [
+            "Do not reorganize old artifacts before inventory.",
+            "Mark existing validation status honestly."
+          ],
+          "edges": ["plan"]
+        },
+        {
+          "id": "plan",
+          "title": "2. Plan",
+          "phase": "planning",
+          "x": 340,
+          "y": 80,
+          "summary": "Define research question, model scope, assumptions, expected observables, and failure criteria.",
+          "responsible": [
+            {"label": "Research plan review", "path": "skills/research-plan-review/SKILL.md"},
+            {"label": "Research plan", "path": "docs/research_plan.md"},
+            {"label": "Research state", "path": "docs/research_state.md"}
+          ],
+          "checks": [
+            "Assumptions and units are explicit.",
+            "Baseline and review checkpoint are identified."
+          ],
+          "edges": ["model"]
+        },
+        {
+          "id": "model",
+          "title": "3. Specify Model",
+          "phase": "model",
+          "x": 600,
+          "y": 80,
+          "summary": "Make physical system, degrees of freedom, equations, parameters, and validity regime explicit.",
+          "responsible": [
+            {"label": "Model specification", "path": "skills/model-specification/SKILL.md"},
+            {"label": "Assumptions log", "path": "docs/assumptions.md"},
+            {"label": "General physics rules", "path": "PHYSICS.md"}
+          ],
+          "checks": [
+            "Variables and parameters are defined.",
+            "Initial and boundary conditions are not silent."
+          ],
+          "edges": ["dimensions"]
+        },
+        {
+          "id": "dimensions",
+          "title": "4. Check Dimensions",
+          "phase": "model",
+          "x": 860,
+          "y": 80,
+          "summary": "Check units, dimensions, constants set to one, and nondimensionalization.",
+          "responsible": [
+            {"label": "Dimensional analysis", "path": "skills/dimensional-analysis/SKILL.md"},
+            {"label": "PHYSICS equation discipline", "path": "PHYSICS.md"}
+          ],
+          "checks": [
+            "Do not patch missing dimensions by guessing.",
+            "Record ambiguous nondimensionalization."
+          ],
+          "edges": ["baseline"]
+        },
+        {
+          "id": "baseline",
+          "title": "5. Baseline Gate",
+          "phase": "validation",
+          "x": 860,
+          "y": 260,
+          "summary": "Validate a toy model, known limit, reproduction target, conservation case, or dimensional sanity case.",
+          "responsible": [
+            {"label": "Baseline validation", "path": "skills/baseline-validation/SKILL.md"},
+            {"label": "Baseline registry", "path": "docs/baseline_registry.md"},
+            {"label": "Toy model log", "path": "docs/toy_model_log.md"},
+            {"label": "Reproduction log", "path": "docs/reproduction_log.md"}
+          ],
+          "checks": [
+            "Do not proceed to full-scale interpretation without pass or explicit waiver.",
+            "Record what this baseline does not justify."
+          ],
+          "edges": ["execute"]
+        },
+        {
+          "id": "execute",
+          "title": "6. Execute Small Iteration",
+          "phase": "execution",
+          "x": 600,
+          "y": 260,
+          "summary": "Run or derive the smallest meaningful result before expanding scope.",
+          "responsible": [
+            {"label": "Numerical validation", "path": "skills/numerical-validation/SKILL.md"},
+            {"label": "Validation log", "path": "docs/validation_log.md"},
+            {"label": "Research state", "path": "docs/research_state.md"}
+          ],
+          "checks": [
+            "Record commands, parameters, seeds, and outputs.",
+            "Run smallest relevant validation first."
+          ],
+          "edges": ["anomaly", "review"]
+        },
+        {
+          "id": "anomaly",
+          "title": "7. Anomaly Branch",
+          "phase": "debugging",
+          "x": 340,
+          "y": 260,
+          "summary": "If behavior is surprising, classify and reproduce the anomaly before patching.",
+          "responsible": [
+            {"label": "Anomaly debugging", "path": "skills/anomaly-debugging/SKILL.md"},
+            {"label": "Anomaly log", "path": "docs/anomaly_log.md"},
+            {"label": "Negative results", "path": "docs/negative_results.md"}
+          ],
+          "checks": [
+            "State expected behavior and observed behavior.",
+            "Classify physical, model, numerical, implementation, data, plotting, or unknown."
+          ],
+          "edges": ["execute", "review"]
+        },
+        {
+          "id": "review",
+          "title": "8. Researcher Review",
+          "phase": "review",
+          "x": 80,
+          "y": 260,
+          "summary": "Package results for researcher judgment and record decisions.",
+          "responsible": [
+            {"label": "Researcher review loop", "path": "skills/researcher-review-loop/SKILL.md"},
+            {"label": "Researcher review log", "path": "docs/researcher_review_log.md"},
+            {"label": "Decision log", "path": "docs/decision_log.md"}
+          ],
+          "checks": [
+            "Separate observations, interpretation, and speculation.",
+            "State what the researcher needs to confirm."
+          ],
+          "edges": ["claim"]
+        },
+        {
+          "id": "claim",
+          "title": "9. Claim Gate",
+          "phase": "claim",
+          "x": 340,
+          "y": 440,
+          "summary": "Before strengthening a claim, map evidence and choose safe wording.",
+          "responsible": [
+            {"label": "Scientific verification before claim", "path": "skills/scientific-verification-before-claim/SKILL.md"},
+            {"label": "Claim to evidence", "path": "skills/claim-to-evidence/SKILL.md"},
+            {"label": "Decision log", "path": "docs/decision_log.md"}
+          ],
+          "checks": [
+            "Use the weakest wording supported by evidence.",
+            "Do not infer mechanism or universality without support."
+          ],
+          "edges": ["retrospective", "paper_question"]
+        },
+        {
+          "id": "retrospective",
+          "title": "10. Retrospective",
+          "phase": "memory",
+          "x": 600,
+          "y": 440,
+          "summary": "Record what changed, evidence delta, reusable artifact, and next smallest iteration.",
+          "responsible": [
+            {"label": "Research retrospective", "path": "skills/research-retrospective/SKILL.md"},
+            {"label": "Research retrospective log", "path": "docs/research_retrospective.md"},
+            {"label": "Lineage template", "path": "docs/lineage/iteration_template.md"},
+            {"label": "Tacit patterns", "path": "docs/tacit_patterns.md"}
+          ],
+          "checks": [
+            "Every iteration should leave a reusable artifact or explain why not.",
+            "Update research state for the next session."
+          ],
+          "edges": ["plan"]
+        },
+        {
+          "id": "paper_question",
+          "title": "Paper Path?",
+          "phase": "paper",
+          "x": 860,
+          "y": 440,
+          "summary": "If the result may become a paper, move into the paper logic map before drafting strong claims.",
+          "responsible": [
+            {"label": "Paper logic diagram", "path": "docs/paper_logic_diagram.md"},
+            {"label": "Workflow diagrams", "path": "docs/workflow_diagrams.md"},
+            {"label": "Scientific verification before claim", "path": "skills/scientific-verification-before-claim/SKILL.md"}
+          ],
+          "checks": [
+            "Do not draft manuscript logic stronger than the evidence chain.",
+            "Map each result to a claim role."
+          ],
+          "edges": []
+        }
+      ]
+    },
+    {
+      "id": "paper_logic",
+      "title": "Paper Logic Structure",
+      "description": "Logical path from research question to manuscript claims, including evidence gates and limitation handling.",
+      "nodes": [
+        {
+          "id": "paper_question",
+          "title": "1. Research Question",
+          "phase": "paper",
+          "x": 80,
+          "y": 90,
+          "summary": "State the precise physical question the paper can answer.",
+          "responsible": [
+            {"label": "Research plan", "path": "docs/research_plan.md"},
+            {"label": "Open questions", "path": "docs/open_questions.md"}
+          ],
+          "checks": ["Question is answerable by the model and data."],
+          "edges": ["paper_gap"]
+        },
+        {
+          "id": "paper_gap",
+          "title": "2. Literature Gap",
+          "phase": "paper",
+          "x": 320,
+          "y": 90,
+          "summary": "State what is missing in prior work without inventing novelty.",
+          "responsible": [
+            {"label": "Claim to evidence", "path": "skills/claim-to-evidence/SKILL.md"},
+            {"label": "Scientific verification before claim", "path": "skills/scientific-verification-before-claim/SKILL.md"}
+          ],
+          "checks": ["Novelty claims need citation support."],
+          "edges": ["paper_model"]
+        },
+        {
+          "id": "paper_model",
+          "title": "3. Model and Assumptions",
+          "phase": "paper",
+          "x": 560,
+          "y": 90,
+          "summary": "Introduce the model only as far as needed to support the paper question.",
+          "responsible": [
+            {"label": "Model specification", "path": "skills/model-specification/SKILL.md"},
+            {"label": "Assumptions log", "path": "docs/assumptions.md"},
+            {"label": "PHYSICS", "path": "PHYSICS.md"}
+          ],
+          "checks": ["Assumptions and validity regime are visible."],
+          "edges": ["paper_methods"]
+        },
+        {
+          "id": "paper_methods",
+          "title": "4. Methods and Validation",
+          "phase": "paper",
+          "x": 800,
+          "y": 90,
+          "summary": "Show how analytical, numerical, or empirical methods were validated.",
+          "responsible": [
+            {"label": "Baseline validation", "path": "skills/baseline-validation/SKILL.md"},
+            {"label": "Numerical validation", "path": "skills/numerical-validation/SKILL.md"},
+            {"label": "Validation log", "path": "docs/validation_log.md"}
+          ],
+          "checks": ["Validation is adequate for the intended claim level."],
+          "edges": ["paper_result"]
+        },
+        {
+          "id": "paper_result",
+          "title": "5. Result",
+          "phase": "paper",
+          "x": 800,
+          "y": 300,
+          "summary": "Present the core result with uncertainty, regime, and provenance.",
+          "responsible": [
+            {"label": "Researcher review loop", "path": "skills/researcher-review-loop/SKILL.md"},
+            {"label": "Research state", "path": "docs/research_state.md"},
+            {"label": "Lineage", "path": "docs/lineage/README.md"}
+          ],
+          "checks": ["Result links back to scripts, data, equations, or logs."],
+          "edges": ["paper_claim"]
+        },
+        {
+          "id": "paper_claim",
+          "title": "6. Claim",
+          "phase": "paper",
+          "x": 560,
+          "y": 300,
+          "summary": "Translate result into the strongest safe manuscript claim.",
+          "responsible": [
+            {"label": "Scientific verification before claim", "path": "skills/scientific-verification-before-claim/SKILL.md"},
+            {"label": "Claim to evidence", "path": "skills/claim-to-evidence/SKILL.md"},
+            {"label": "Decision log", "path": "docs/decision_log.md"}
+          ],
+          "checks": ["Claim language matches evidence level."],
+          "edges": ["paper_limits"]
+        },
+        {
+          "id": "paper_limits",
+          "title": "7. Limitations",
+          "phase": "paper",
+          "x": 320,
+          "y": 300,
+          "summary": "State what the model, data, and validation do not justify.",
+          "responsible": [
+            {"label": "Negative results", "path": "docs/negative_results.md"},
+            {"label": "Anomaly log", "path": "docs/anomaly_log.md"},
+            {"label": "Open questions", "path": "docs/open_questions.md"}
+          ],
+          "checks": ["Limitations include failed or partial validation where relevant."],
+          "edges": ["paper_conclusion"]
+        },
+        {
+          "id": "paper_conclusion",
+          "title": "8. Conclusion",
+          "phase": "paper",
+          "x": 80,
+          "y": 300,
+          "summary": "Return to the research question and state only what is now supported.",
+          "responsible": [
+            {"label": "Research retrospective", "path": "skills/research-retrospective/SKILL.md"},
+            {"label": "Researcher review log", "path": "docs/researcher_review_log.md"}
+          ],
+          "checks": ["Conclusion does not exceed claim gate."],
+          "edges": []
+        }
+      ]
+    }
+  ]
+}

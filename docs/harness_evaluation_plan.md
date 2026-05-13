@@ -12,7 +12,8 @@ Evaluate whether the physics research harness will actually shape research behav
 4. Does it handle already-running research without rewriting history?
 5. Does it preserve anomalies, negative results, and open questions?
 6. Does each iteration leave a reusable artifact?
-7. Is the required workflow lightweight enough to be used?
+7. Can the researcher inspect the workflow and paper logic before execution?
+8. Is the required workflow lightweight enough to be used?
 
 ## Evaluation Layers
 
