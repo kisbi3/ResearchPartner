@@ -13,6 +13,23 @@ A result should be interpreted according to the strongest support available:
 
 Do not present a lower-level result as if it had higher-level support.
 
+## Evidence Before Claim
+
+No scientific claim should be strengthened without fresh or recorded evidence.
+
+Before using strong language, check whether the claim is supported by:
+
+- exact derivation
+- controlled approximation
+- validated numerical result
+- empirical data with uncertainty
+- reproduced benchmark
+- figure or table with clear provenance
+- citation
+- explicit assumption
+
+Use the weakest language that the evidence supports.
+
 ## Equation Discipline
 
 For every important equation, check:
@@ -116,6 +133,47 @@ When attaching this harness to a project that already has results:
 - Prefer reproducing one existing figure or toy result before changing the research direction.
 
 The first retrofit goal is not to judge the whole project. It is to make the current scientific state visible enough that a researcher can decide what to validate next.
+
+## Research Memory and Lineage
+
+The research state should be recoverable from files, not from conversation history.
+
+Maintain compact records of:
+
+- current research state
+- hypotheses and predictions
+- open questions
+- negative results
+- anomalies
+- tacit patterns
+- iteration lineage
+
+Each iteration should record the starting state, hypothesis or objective, prediction, method, result, validation status, researcher feedback, reflection, reusable artifact, and next action.
+
+## Compound Research Discipline
+
+Every research iteration should make later iterations easier.
+
+Prefer leaving behind:
+
+- reusable baseline
+- benchmark script
+- validation command
+- toy model
+- reproduction recipe
+- anomaly diagnosis
+- claim-to-evidence map
+- decision record
+- tacit pattern
+- improved skill rule
+
+If an iteration leaves no reusable artifact, record why.
+
+## Anomaly Discipline
+
+When a result behaves unexpectedly, classify the anomaly before fixing it.
+
+Possible classes include physical effect, model misspecification, invalid approximation, dimensional error, boundary or initial condition issue, numerical instability, convergence failure, implementation bug, data preprocessing error, plotting error, stochastic fluctuation, interpretation overreach, and unknown.
 
 ## Conservation Laws
 

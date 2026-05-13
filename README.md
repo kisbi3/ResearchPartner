@@ -6,6 +6,12 @@ The goal is to make the assistant preserve scientific discipline across the whol
 
 physical question -> assumptions -> model -> equations -> dimensional check -> baseline validation -> numerical implementation -> validation -> researcher review -> figures -> manuscript claims.
 
+It also borrows three process ideas:
+
+- Superpowers-style gates: use the relevant skill before acting, and verify before claiming.
+- Ouroboros-style memory: keep research state, hypotheses, anomalies, and lineage in files rather than relying on chat history.
+- Compound engineering: each iteration should leave behind a reusable check, benchmark, template, log, or rule.
+
 ## What This Harness Enforces
 
 - Physical assumptions must be explicit.
@@ -13,6 +19,9 @@ physical question -> assumptions -> model -> equations -> dimensional check -> b
 - New models, solvers, analysis pipelines, and figure workflows should pass a toy-model, known-limit, benchmark, or reproduction check before full-scale interpretation.
 - Intermediate results should be shown to the researcher in reviewable iterations.
 - Existing research projects can adopt the harness through a non-destructive intake and retrofit workflow.
+- Scientific claims should not be strengthened without fresh or recorded evidence.
+- Anomalies should be classified before being patched.
+- Research iterations should leave reusable artifacts that make later work easier.
 - Figures and manuscript claims must be traceable to code, data, logs, derivations, or citations.
 - `plt.show()` should not be used; save figures to files instead.
 
@@ -25,23 +34,36 @@ physics-research-harness/
 ├── PHYSICS.md
 ├── README.md
 ├── skills/
+│   ├── anomaly-debugging/
 │   ├── baseline-validation/
 │   ├── claim-to-evidence/
 │   ├── dimensional-analysis/
 │   ├── existing-research-onboarding/
 │   ├── model-specification/
 │   ├── numerical-validation/
-│   └── researcher-review-loop/
+│   ├── research-plan-review/
+│   ├── research-retrospective/
+│   ├── researcher-review-loop/
+│   └── scientific-verification-before-claim/
 ├── docs/
 │   ├── adoption_log.md
+│   ├── anomaly_log.md
 │   ├── assumptions.md
 │   ├── baseline_registry.md
 │   ├── decision_log.md
 │   ├── existing_project_intake.md
 │   ├── existing_results_inventory.md
+│   ├── hypothesis_log.md
+│   ├── lineage/
+│   ├── negative_results.md
+│   ├── open_questions.md
 │   ├── reproduction_log.md
+│   ├── research_plan.md
+│   ├── research_retrospective.md
+│   ├── research_state.md
 │   ├── researcher_review_log.md
 │   ├── retrofit_validation_plan.md
+│   ├── tacit_patterns.md
 │   ├── toy_model_log.md
 │   └── validation_log.md
 └── scripts/
@@ -58,7 +80,9 @@ physics-research-harness/
 5. Record validation in `docs/validation_log.md`, `docs/toy_model_log.md`, or `docs/reproduction_log.md`.
 6. Present intermediate results using `skills/researcher-review-loop/SKILL.md`.
 7. Record decisions in `docs/decision_log.md`.
-8. Only then expand to full-scale runs, production figures, or manuscript-level claims.
+8. Before strengthening claims, use `skills/scientific-verification-before-claim/SKILL.md`.
+9. After each iteration, update research memory and lineage.
+10. Only then expand to full-scale runs, production figures, or manuscript-level claims.
 
 ## Core Skills
 
@@ -69,6 +93,29 @@ physics-research-harness/
 - `numerical-validation`: check reproducibility, convergence, stability, conservation laws, and known limits.
 - `claim-to-evidence`: map scientific claims to derivations, simulations, figures, data, tables, or citations.
 - `researcher-review-loop`: package intermediate results for human scientific review and decision logging.
+- `scientific-verification-before-claim`: require evidence before strengthening physics claims.
+- `anomaly-debugging`: classify surprising or unstable results before patching symptoms.
+- `research-plan-review`: check assumptions, baselines, units, validation, and claim paths before substantial work.
+- `research-retrospective`: preserve lessons, lineage, and reusable artifacts after each iteration.
+
+## Research Memory
+
+Use these files to keep the project state independent of chat history:
+
+- `docs/research_state.md`: compact current state for session start.
+- `docs/research_plan.md`: plan before substantial research work.
+- `docs/hypothesis_log.md`: hypotheses with predictions and outcomes.
+- `docs/open_questions.md`: questions that should not be lost.
+- `docs/negative_results.md`: failed or interpretation-changing results.
+- `docs/anomaly_log.md`: surprising, unstable, or contradictory behavior.
+- `docs/tacit_patterns.md`: recurring lessons that may become checks or skill rules.
+- `docs/lineage/`: iteration-by-iteration research path.
+
+The default discipline is:
+
+```text
+plan -> baseline -> execute -> verify -> review with researcher -> record lineage -> improve the harness
+```
 
 ## Adding the Harness to Existing Research
 

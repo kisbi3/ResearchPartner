@@ -21,12 +21,15 @@ physical assumptions -> model definition -> analytical checks -> numerical imple
 5. Do not infer physical mechanisms beyond what the model or data supports.
 6. Keep all results reproducible from scripts, parameters, and data.
 7. Every figure, table, and manuscript claim must be traceable to code, data, logs, equations, or citations.
+8. No scientific claim should be strengthened without fresh or recorded evidence.
+9. Every research iteration should leave behind a reusable artifact, check, benchmark, log entry, template, or decision record.
 
 ## Before Starting Any Task
 
 Classify the task as one or more of:
 
 - Baseline validation
+- Research plan review
 - Model specification
 - Dimensional analysis
 - Analytical derivation
@@ -38,12 +41,24 @@ Classify the task as one or more of:
 - Literature review
 - Manuscript writing
 - Manuscript criticism
+- Scientific claim verification
+- Anomaly debugging
+- Research retrospective
 - Researcher review
 - Existing research onboarding
 - Reproducibility check
 - Code maintenance
 
 Then read the relevant skill file in `skills/`.
+
+## Before Executing a Research Plan
+
+Before substantial simulations, analyses, figure sets, reproduction attempts, or manuscript claim strategies:
+
+1. Record the plan in `docs/research_plan.md` when that file exists.
+2. Check that the plan has assumptions, units, baseline validation, observables, failure criteria, and a claim-to-evidence path.
+3. Identify the first researcher review checkpoint.
+4. Prefer the smallest iteration that can change scientific interpretation.
 
 ## Before Full-Scale Work
 
@@ -94,6 +109,21 @@ When reporting intermediate research results:
 3. State what the researcher needs to confirm.
 4. Record decisions in `docs/decision_log.md` when that file exists.
 
+When a result is anomalous, surprising, unstable, or contradictory:
+
+1. Do not patch the symptom first.
+2. State expected and observed behavior.
+3. Classify the anomaly as physical, model, approximation, dimensional, numerical, implementation, data, plotting, stochastic, interpretation, or unknown.
+4. Reproduce it with the smallest command, derivation, or data slice.
+5. Record important unresolved anomalies in `docs/anomaly_log.md` when that file exists.
+
+When a research iteration ends:
+
+1. Record the outcome in `docs/research_retrospective.md` or `docs/lineage/` when those files exist.
+2. Update `docs/research_state.md` with the current compact state.
+3. Add hypotheses, negative results, open questions, and recurring tacit patterns to their logs when applicable.
+4. Convert recurring lessons into checks, templates, or skill rules when useful.
+
 ## Git Checkpoint Discipline
 
 When Git is available, commit after coherent milestones such as:
@@ -116,6 +146,7 @@ When modifying manuscript text:
 2. Mark speculative interpretations explicitly.
 3. Avoid causal or mechanistic claims unless the model identifies the mechanism.
 4. Avoid novelty claims unless the literature review supports them.
+5. Use the weakest claim language supported by the available evidence.
 
 ## Prohibited Behavior
 
