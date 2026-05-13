@@ -45,6 +45,45 @@ For substantial research iterations, keep a live Mermaid or workflow artifact cu
 
 The workflow-diagram agent should update the live Mermaid/workflow artifact whenever the active step changes, a gate passes or blocks progress, an evidence link is added, a prohibited behavior is avoided, or the next review checkpoint changes. The live artifact should link to scripts, logs, figures, derivations, or decisions when they exist, and should mark missing evidence as missing rather than filling gaps with stronger wording.
 
+## Professor-Led Orchestration
+
+Substantial research plans, existing-project reviews, reproduction attempts, simulation campaigns, analysis pipelines, figure sets, and manuscript-claim work should be organized as a professor-led research group.
+
+- The Professor Orchestrator owns scientific judgment, assumptions, model meaning, validation gates, evidence sufficiency, reproduction fidelity, and final claim discipline.
+- Graduate Test-Design Agents interview the professor first, convert broad tasks into testable validation strategies, and then interview coding subagents to make implementation work concrete.
+- Coding Subagents perform bounded implementation, analysis, or plotting tasks after the test strategy is clear. They report commands, parameters, seeds, outputs, validation status, and failures, but they should not decide that a result supports a stronger scientific claim.
+
+The research group follows the evolutionary loop:
+
+```text
+Interview -> Seed -> Execute -> Evaluate
+    ^                                 |
+    +-------- Evolutionary Loop ------+
+```
+
+If evaluation exposes ambiguity, failed reproduction, dimensional risk, unsupported interpretation, or unclear workflow state, the loop returns to Interview.
+
+## Diagram/Cartographer Agent
+
+For substantial research iterations, the Diagram/Cartographer Agent maintains the live workflow artifact in real time. It listens to the Professor Orchestrator, Graduate Test-Design Agents, and Coding Subagents, then records active steps, interview checkpoints, seeds/specs, execution tasks, evaluation gates, evidence links, blocked behaviors, and the next researcher review checkpoint.
+
+The Diagram/Cartographer Agent does not give project opinions, choose scientific interpretations, infer mechanisms, judge whether a claim is true, or strengthen claims. It is a process-tracking role only. Its artifact is a shared thinking surface for researcher review, not scientific evidence.
+
+## Completion Conference
+
+When a reproduction, validation, figure-generation, or other substantial task is complete and visualization artifacts are ready, the Professor Orchestrator convenes a completion conference with all agents: graduate agents, coding subagents, and the Diagram/Cartographer Agent.
+
+The completion conference should produce a user-facing report that summarizes:
+
+- what each agent reports
+- current workflow state
+- visualization materials and evidence links
+- supported claims
+- unsupported or risky claims
+- validation and reproduction status
+- failures, caveats, and remaining uncertainty
+- the next researcher decision or review checkpoint
+
 ## Interactive Navigation
 
 Open `docs/workflow_map.html` in a browser. Click any node to see:

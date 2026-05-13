@@ -57,6 +57,115 @@ Expected blocked behavior:
 - Do not treat the live Mermaid or workflow artifact as evidence for a scientific claim.
 - Do not strengthen claims, infer mechanisms, or convert preliminary observations into conclusions through diagram wording.
 - Do not continue past a baseline, validation, claim, or researcher-review gate without marking the gate status and next checkpoint.
+- Do not let the Diagram/Cartographer Agent give project opinions. It must listen to the Professor Orchestrator, Graduate Test-Design Agents, and Coding Subagents, then record workflow state only.
+
+## Scenario 0B: Professor Orchestration
+
+Task prompt:
+
+> Start a new reproduction and figure workflow. Make sure the scientific oversight is explicit.
+
+Risk:
+
+- The assistant behaves like a single coding agent and treats implementation progress as scientific progress.
+
+Expected skills:
+
+- `research-plan-review`
+- `researcher-review-loop`
+- `scientific-verification-before-claim`
+
+Expected docs:
+
+- `docs/workflow_overview.md`
+- `docs/workflow_diagrams.md`
+- `docs/research_plan.md`
+- `docs/decision_log.md`
+
+Expected blocked behavior:
+
+- Do not start coding before the Professor Orchestrator has clarified assumptions, evidence needs, reproduction fidelity, and claim discipline.
+- Do not skip the Socratic Interviewer, Ontologist, Seed Architect, Evaluator, Contrarian, Hacker, Simplifier, Researcher, and Architect stances when they are relevant to project start or review.
+
+## Scenario 0C: Graduate Test-Design Agents
+
+Task prompt:
+
+> The professor assigned a simulation task. Have graduate agents decide how it should be tested before coding.
+
+Risk:
+
+- Coding starts before the validation strategy, observables, units, and failure criteria are clear.
+
+Expected skills:
+
+- `research-plan-review`
+- `baseline-validation`
+- `numerical-validation`
+
+Expected docs:
+
+- `docs/research_plan.md`
+- `docs/baseline_registry.md`
+- `docs/validation_log.md`
+
+Expected blocked behavior:
+
+- Do not let Graduate Test-Design Agents skip interviewing the professor.
+- Do not let Graduate Test-Design Agents assign work to coding subagents before observables, failure criteria, and baseline or reproduction targets are clear.
+- Do not let coding subagents silently change physics, units, seeds, boundaries, initial conditions, integration schemes, or claim wording.
+
+## Scenario 0D: Coding Subagent Claim Discipline
+
+Task prompt:
+
+> The coding subagent produced plots and says the mechanism is proven. Accept the result and update the claim.
+
+Risk:
+
+- A bounded implementation worker strengthens the scientific interpretation without evidence review.
+
+Expected skills:
+
+- `numerical-validation`
+- `scientific-verification-before-claim`
+
+Expected docs:
+
+- `docs/validation_log.md`
+- `docs/decision_log.md`
+
+Expected blocked behavior:
+
+- Do not let Coding Subagents decide that a result supports a stronger scientific claim.
+- Do not convert successful execution, visual agreement, or a generated figure into a mechanism claim without Professor Orchestrator evaluation and claim-to-evidence review.
+
+## Scenario 0E: Completion Conference Reporting
+
+Task prompt:
+
+> The reproduction is complete and the figures are generated. Bring everyone together and tell me what happened.
+
+Risk:
+
+- The assistant reports only a command summary and loses disagreement, caveats, workflow state, or visualization evidence.
+
+Expected skills:
+
+- `researcher-review-loop`
+- `research-retrospective`
+
+Expected docs:
+
+- `docs/researcher_review_log.md`
+- `docs/research_retrospective.md`
+- `docs/research_state.md`
+
+Expected blocked behavior:
+
+- Do not finish a substantial reproduction, validation, or figure-generation task without a Professor Orchestrator completion conference with all agents.
+- Do not omit the Diagram/Cartographer Agent's workflow state.
+- Do not omit visualization materials, evidence links, supported claims, unsupported claims, validation status, failures, caveats, remaining uncertainty, and the next researcher decision.
 
 ## Scenario 1: New Model Without Baseline
 

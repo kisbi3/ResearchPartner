@@ -16,15 +16,19 @@ def load_evaluator():
     return module
 
 
-def test_live_workflow_diagram_agent_scenario_is_evaluated():
+def test_multi_agent_orchestration_scenarios_are_evaluated():
     evaluator = load_evaluator()
 
     names = [scenario.name for scenario in evaluator.SCENARIOS]
 
     assert "live_workflow_diagram_agent" in names
+    assert "professor_orchestration" in names
+    assert "graduate_test_design_agents" in names
+    assert "coding_subagent_claim_discipline" in names
+    assert "completion_conference_reporting" in names
 
 
-def test_harness_evaluator_has_eight_scenarios():
+def test_harness_evaluator_has_twelve_scenarios():
     evaluator = load_evaluator()
 
-    assert len(evaluator.SCENARIOS) == 8
+    assert len(evaluator.SCENARIOS) == 12

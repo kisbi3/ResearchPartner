@@ -53,11 +53,95 @@ SCENARIOS = [
             "docs/researcher_review_log.md",
         ),
         rule_terms=(
-            "separate workflow-diagram agent",
+            "Diagram/Cartographer Agent",
+            "does not give project opinions",
+            "listens to the Professor Orchestrator",
+            "live workflow artifact",
             "active step",
             "gates",
             "evidence links",
             "must not strengthen scientific claims",
+        ),
+    ),
+    Scenario(
+        name="professor_orchestration",
+        skills=(
+            "skills/research-plan-review/SKILL.md",
+            "skills/researcher-review-loop/SKILL.md",
+            "skills/scientific-verification-before-claim/SKILL.md",
+        ),
+        docs=(
+            "docs/workflow_overview.md",
+            "docs/workflow_diagrams.md",
+            "docs/research_plan.md",
+            "docs/decision_log.md",
+        ),
+        rule_terms=(
+            "Professor Orchestrator",
+            "Socratic Interviewer",
+            "Ontologist",
+            "Seed Architect",
+            "Evaluator",
+            "Contrarian",
+            "Hacker",
+            "Simplifier",
+            "Researcher",
+            "Architect",
+        ),
+    ),
+    Scenario(
+        name="graduate_test_design_agents",
+        skills=(
+            "skills/research-plan-review/SKILL.md",
+            "skills/baseline-validation/SKILL.md",
+            "skills/numerical-validation/SKILL.md",
+        ),
+        docs=(
+            "docs/research_plan.md",
+            "docs/baseline_registry.md",
+            "docs/validation_log.md",
+        ),
+        rule_terms=(
+            "Graduate Test-Design Agents",
+            "interview the professor",
+            "interview coding subagents",
+            "observables",
+            "failure criteria",
+        ),
+    ),
+    Scenario(
+        name="coding_subagent_claim_discipline",
+        skills=(
+            "skills/numerical-validation/SKILL.md",
+            "skills/scientific-verification-before-claim/SKILL.md",
+        ),
+        docs=(
+            "docs/validation_log.md",
+            "docs/decision_log.md",
+        ),
+        rule_terms=(
+            "Coding Subagents",
+            "bounded implementation",
+            "should not decide",
+            "stronger scientific claim",
+        ),
+    ),
+    Scenario(
+        name="completion_conference_reporting",
+        skills=(
+            "skills/researcher-review-loop/SKILL.md",
+            "skills/research-retrospective/SKILL.md",
+        ),
+        docs=(
+            "docs/researcher_review_log.md",
+            "docs/research_retrospective.md",
+            "docs/research_state.md",
+        ),
+        rule_terms=(
+            "completion conference",
+            "all agents",
+            "visualization materials",
+            "report to the user",
         ),
     ),
     Scenario(

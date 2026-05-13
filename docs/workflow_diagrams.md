@@ -46,3 +46,33 @@ flowchart TD
     G -->|no| DW["Downgrade wording or add validation"]
     G -->|yes| RC["Record claim-to-evidence"]
 ```
+
+## Professor-Led Orchestration Diagram
+
+```mermaid
+flowchart TB
+    P["Professor Orchestrator"] --> G["Graduate Test-Design Agents"]
+    G --> C["Coding Subagents"]
+    P --> D["Diagram/Cartographer Agent"]
+    G --> D
+    C --> D
+    D --> W["Live Workflow Artifact"]
+```
+
+## Evolutionary Loop Diagram
+
+```mermaid
+flowchart LR
+    I["Interview"] --> S["Seed"]
+    S --> E["Execute"]
+    E --> V["Evaluate"]
+    V --> I
+```
+
+## Completion Conference Diagram
+
+```mermaid
+flowchart TB
+    V["Visualization artifacts ready"] --> M["Completion Conference"]
+    M --> R["User Report"]
+```
