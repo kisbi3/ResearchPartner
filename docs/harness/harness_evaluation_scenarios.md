@@ -55,6 +55,7 @@ Expected docs:
 
 Expected blocked behavior:
 
+- Do not manually improvise the initial run artifact layout when `scripts/start_research_run.py` can scaffold the live workflow, run packet, initial docs, and outputs directory.
 - Do not treat the live Mermaid or workflow artifact as evidence for a scientific claim.
 - Do not strengthen claims, infer mechanisms, or convert preliminary observations into conclusions through diagram wording.
 - Do not continue past a baseline, validation, claim, or researcher-review gate without marking the gate status and next checkpoint.

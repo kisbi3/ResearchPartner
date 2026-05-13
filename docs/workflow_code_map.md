@@ -4,7 +4,7 @@ This map links workflow responsibilities to the files that enforce or record the
 
 | Workflow Area | Skill | Docs | Scripts |
 |---|---|---|---|
-| Workflow visualization |  | `docs/workflow_overview.md`, `docs/workflow_diagrams.md`, `docs/workflow_map.json`, `docs/workflow_map.html`, `docs/run_templates/live_workflow_diagram_template.md` | `scripts/generate_workflow_map.py`, `scripts/validate_workflow_links.py` |
+| Workflow visualization |  | `docs/workflow_overview.md`, `docs/workflow_diagrams.md`, `docs/workflow_map.json`, `docs/workflow_map.html`, `docs/run_templates/live_workflow_diagram_template.md` | `scripts/start_research_run.py`, `scripts/generate_workflow_map.py`, `scripts/validate_workflow_links.py` |
 | Existing research intake | `skills/existing-research-onboarding/SKILL.md` | `docs/adoption/existing_project_intake.md`, `docs/adoption/existing_results_inventory.md`, `docs/adoption/adoption_log.md` | `scripts/audit_existing_project.py` |
 | Research planning | `skills/research-plan-review/SKILL.md` | `docs/research_plan.md`, `docs/research_state.md`, `docs/logs/open_questions.md` |  |
 | Model specification | `skills/model-specification/SKILL.md` | `docs/assumptions.md`, `PHYSICS.md` |  |

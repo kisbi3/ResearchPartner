@@ -16,6 +16,14 @@ Generate `docs/workflow_map.html` as a live research workflow by default:
 python scripts/generate_workflow_map.py
 ```
 
+Start a new run-specific artifact set from the harness templates with:
+
+```bash
+python scripts/start_research_run.py --name 1d-diffusion-mode-decay
+```
+
+The run scaffolder creates a sibling `ResearchPartner-runs/YYYY-MM-DD-<slug>/` directory with `docs/live_workflow_diagram.md`, `research_run_packet.md`, initial run docs, and `outputs/`.
+
 When the researcher explicitly starts manuscript planning, generate the paper logic workflow for review:
 
 ```bash

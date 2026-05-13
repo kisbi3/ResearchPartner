@@ -110,6 +110,7 @@ Before substantial simulations, analyses, figure sets, reproduction attempts, or
 3. Check that the plan has assumptions, units, baseline validation, observables, failure criteria, and a claim-to-evidence path.
 4. Identify the first researcher review checkpoint.
 5. Prefer the smallest iteration that can change scientific interpretation.
+6. When starting a new run-specific artifact set, prefer `python scripts/start_research_run.py --name <run-name>` so `ResearchPartner-runs/YYYY-MM-DD-<slug>/` contains the live workflow, run packet, initial docs, and outputs directory.
 
 ## Real-Time Workflow Diagram Agent
 

@@ -54,6 +54,7 @@ SCENARIOS = [
             "docs/researcher_review_log.md",
         ),
         rule_terms=(
+            "scripts/start_research_run.py",
             "Diagram/Cartographer Agent",
             "does not give project opinions",
             "listens to the Professor Orchestrator",
