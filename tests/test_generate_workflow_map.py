@@ -50,6 +50,11 @@ def test_live_nodes_include_result_summaries_and_images():
         image["path"].endswith("positivity_profile.png")
         for image in nodes["positivity_sanity"]["images"]
     )
+    assert "final_relative_error" in nodes["dirichlet_boundary"]["result_summary"]
+    assert any(
+        image["path"].endswith("dirichlet_amplitude_decay.png")
+        for image in nodes["dirichlet_boundary"]["images"]
+    )
     assert "stability_ratio" in nodes["anomaly_probe"]["result_summary"]
 
 

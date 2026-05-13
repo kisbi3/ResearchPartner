@@ -98,6 +98,7 @@ def result_fields_for_gate(gate_id: str, run_root: Path) -> tuple[dict[str, str]
     anomaly = read_json(run_root / "outputs" / "unstable_anomaly_probe.json")
     multimode = read_json(run_root / "outputs" / "multimode_validation_summary.json")
     positivity = read_json(run_root / "outputs" / "positivity_validation_summary.json")
+    dirichlet = read_json(run_root / "outputs" / "dirichlet_validation_summary.json")
 
     if gate_id == "baseline":
         return (
@@ -156,6 +157,19 @@ def result_fields_for_gate(gate_id: str, run_root: Path) -> tuple[dict[str, str]
             [
                 image_ref(run_root, "positivity_profile.png", "Positivity profile"),
                 image_ref(run_root, "positivity_history.png", "Positivity history"),
+            ],
+        )
+    if gate_id == "dirichlet_boundary":
+        return (
+            {
+                "final_relative_error": fmt_float(dirichlet.get("final_relative_error")),
+                "boundary_max_abs": fmt_float(dirichlet.get("boundary_max_abs")),
+                "stability_ratio": fmt_float(dirichlet.get("stability_ratio")),
+                "claim_scope": "one homogeneous Dirichlet sine mode",
+            },
+            [
+                image_ref(run_root, "dirichlet_amplitude_decay.png", "Dirichlet amplitude"),
+                image_ref(run_root, "dirichlet_profile_evolution.png", "Dirichlet profile"),
             ],
         )
     if gate_id == "anomaly_probe":
