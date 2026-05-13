@@ -79,6 +79,44 @@ For simulations, track:
 
 A simulation result is not manuscript-ready unless its numerical reliability has been checked.
 
+## Baseline-First Discipline
+
+Before trusting a new model, solver, analysis pipeline, or figure workflow, validate it on at least one baseline:
+
+- toy model with known behavior
+- analytically solvable limit
+- reproduced result from literature
+- previous validated output
+- conservation-law test
+- dimensional sanity case
+
+A full result should not be interpreted scientifically until the baseline status is recorded, unless the researcher explicitly waives this requirement.
+
+## Iterative Researcher Review
+
+Physics research should move in reviewable iterations:
+
+1. Run or derive the smallest meaningful next result.
+2. Separate raw result, interpretation, uncertainty, and speculation.
+3. Present the result to the researcher with the exact assumptions and validation status.
+4. Record the researcher's decision or requested change.
+5. Use that decision to choose the next model, run, figure, or manuscript revision.
+
+Do not let an automated workflow silently turn preliminary output into a scientific conclusion.
+
+## Existing Research Retrofit Discipline
+
+When attaching this harness to a project that already has results:
+
+- Preserve the existing artifact layout until the inventory is complete.
+- Treat previous figures, tables, manuscript claims, and numerical results as unvalidated unless their evidence is recorded.
+- Do not silently convert units, nondimensionalization, boundary conditions, seeds, or plotting scripts to fit the harness.
+- Build a map from existing artifacts to assumptions, models, scripts, data, validation status, and claims.
+- Start with one narrow retrofit target before attempting a full project audit.
+- Prefer reproducing one existing figure or toy result before changing the research direction.
+
+The first retrofit goal is not to judge the whole project. It is to make the current scientific state visible enough that a researcher can decide what to validate next.
+
 ## Conservation Laws
 
 When applicable, check:

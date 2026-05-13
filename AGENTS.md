@@ -4,6 +4,7 @@
 
 - Do not use `plt.show()`. Save figures to files instead.
 - If you add instructions to `AGENTS.md`, add the same instructions to `GEMINI.md`.
+- Commit at coherent checkpoints when Git is available. Before committing, run relevant validation, summarize the scope, and do not include unrelated user changes.
 
 ## Role
 
@@ -25,6 +26,7 @@ physical assumptions -> model definition -> analytical checks -> numerical imple
 
 Classify the task as one or more of:
 
+- Baseline validation
 - Model specification
 - Dimensional analysis
 - Analytical derivation
@@ -36,10 +38,33 @@ Classify the task as one or more of:
 - Literature review
 - Manuscript writing
 - Manuscript criticism
+- Researcher review
+- Existing research onboarding
 - Reproducibility check
 - Code maintenance
 
 Then read the relevant skill file in `skills/`.
+
+## Before Full-Scale Work
+
+Before trusting a new model, solver, analysis pipeline, or figure workflow:
+
+1. Identify the baseline validation target.
+2. Prefer a toy model, known analytical limit, reproduced result, previous validated output, conservation-law test, or dimensional sanity case.
+3. Record the baseline status in `docs/baseline_registry.md`, `docs/toy_model_log.md`, or `docs/reproduction_log.md` when those files exist.
+4. Present the result to the researcher in a reviewable form.
+5. Continue to full-scale work only after the next action is agreed, unless the researcher explicitly waives this gate.
+
+## When Adding the Harness to Existing Research
+
+If a research project already has code, data, figures, results, notes, or manuscript text:
+
+1. Do not reorganize, rename, rewrite, or reinterpret existing artifacts first.
+2. Inventory what exists: models, scripts, data, figures, results, manuscripts, logs, and known decisions.
+3. Mark validation status honestly as pass, fail, partial, unknown, or not yet checked.
+4. Treat existing claims as provisional until they are mapped to evidence.
+5. Choose a minimal first retrofit target, such as one figure, one toy model, one reproduction, or one simulation pipeline.
+6. Record adoption decisions in `docs/adoption_log.md` and validation gaps in `docs/retrofit_validation_plan.md` when those files exist.
 
 ## Required Research Discipline
 
@@ -61,6 +86,29 @@ When modifying numerical or simulation code:
 4. Check units and nondimensional parameters.
 5. Compare against analytical solutions, previous outputs, or known benchmarks if available.
 6. Record failures in `docs/failed_runs.md` if that file exists.
+
+When reporting intermediate research results:
+
+1. Separate observations, interpretation, and speculation.
+2. State what has changed since the previous iteration.
+3. State what the researcher needs to confirm.
+4. Record decisions in `docs/decision_log.md` when that file exists.
+
+## Git Checkpoint Discipline
+
+When Git is available, commit after coherent milestones such as:
+
+- adding or updating a harness module
+- completing a validation script
+- finishing a documented research iteration
+- recording a researcher-reviewed decision
+
+Before committing:
+
+1. Check the changed files.
+2. Run the smallest relevant validation.
+3. Commit only related changes.
+4. Use a message that names the scientific or harness checkpoint.
 
 When modifying manuscript text:
 

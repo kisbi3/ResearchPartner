@@ -1,0 +1,101 @@
+#!/usr/bin/env python3
+"""Check that the physics research harness has its baseline files in place."""
+
+from __future__ import annotations
+
+import argparse
+from pathlib import Path
+import sys
+
+
+ROOT = Path(__file__).resolve().parents[1]
+
+REQUIRED_PATHS = [
+    "AGENTS.md",
+    "GEMINI.md",
+    "PHYSICS.md",
+    "README.md",
+    "skills/baseline-validation/SKILL.md",
+    "skills/existing-research-onboarding/SKILL.md",
+    "skills/model-specification/SKILL.md",
+    "skills/dimensional-analysis/SKILL.md",
+    "skills/numerical-validation/SKILL.md",
+    "skills/claim-to-evidence/SKILL.md",
+    "skills/researcher-review-loop/SKILL.md",
+    "docs/assumptions.md",
+    "docs/baseline_registry.md",
+    "docs/toy_model_log.md",
+    "docs/reproduction_log.md",
+    "docs/validation_log.md",
+    "docs/researcher_review_log.md",
+    "docs/decision_log.md",
+    "docs/existing_project_intake.md",
+    "docs/existing_results_inventory.md",
+    "docs/retrofit_validation_plan.md",
+    "docs/adoption_log.md",
+    "scripts/audit_existing_project.py",
+]
+
+CODE_DIRS = ["src", "scripts", "notebooks"]
+BANNED_MATPLOTLIB_SHOW = "plt." + "show("
+
+
+def check_required_paths() -> list[str]:
+    missing = []
+    for relative_path in REQUIRED_PATHS:
+        if not (ROOT / relative_path).exists():
+            missing.append(relative_path)
+    return missing
+
+
+def scan_for_matplotlib_show() -> list[str]:
+    matches = []
+    for directory in CODE_DIRS:
+        base = ROOT / directory
+        if not base.exists():
+            continue
+        for path in base.rglob("*"):
+            if path.suffix.lower() not in {".py", ".ipynb"}:
+                continue
+            try:
+                text = path.read_text(encoding="utf-8")
+            except UnicodeDecodeError:
+                text = path.read_text(encoding="utf-8", errors="ignore")
+            if BANNED_MATPLOTLIB_SHOW in text:
+                matches.append(str(path.relative_to(ROOT)))
+    return matches
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(
+        description="Validate the baseline structure of the physics research harness."
+    )
+    parser.add_argument(
+        "--skip-plt-scan",
+        action="store_true",
+        help="Only check required harness paths.",
+    )
+    args = parser.parse_args()
+
+    missing = check_required_paths()
+    plt_matches = [] if args.skip_plt_scan else scan_for_matplotlib_show()
+
+    if missing:
+        print("Missing required harness files:")
+        for path in missing:
+            print(f"  - {path}")
+
+    if plt_matches:
+        print(f"Found prohibited {BANNED_MATPLOTLIB_SHOW}) usage:")
+        for path in plt_matches:
+            print(f"  - {path}")
+
+    if missing or plt_matches:
+        return 1
+
+    print("Baseline harness check passed.")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
