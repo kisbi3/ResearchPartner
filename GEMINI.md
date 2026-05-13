@@ -46,10 +46,24 @@ Classify the task as one or more of:
 - Research retrospective
 - Researcher review
 - Existing research onboarding
+- Harness evaluation
 - Reproducibility check
 - Code maintenance
 
 Then read the relevant skill file in `skills/`.
+
+## Harness Evaluation
+
+The harness itself must be evaluated periodically.
+
+Run or update the harness evaluation when:
+
+- a new skill is added
+- `AGENTS.md`, `GEMINI.md`, `PHYSICS.md`, or `README.md` changes
+- the harness is adopted into an existing research repository
+- a researcher reports that the workflow was skipped, confusing, or too heavy
+
+Evaluate not only whether files exist, but whether realistic research scenarios trigger the right skills, logs, and blocked behaviors.
 
 ## Before Executing a Research Plan
 
@@ -112,7 +126,7 @@ When reporting intermediate research results:
 When a result is anomalous, surprising, unstable, or contradictory:
 
 1. Do not patch the symptom first.
-2. State expected and observed behavior.
+2. State expected behavior and observed behavior.
 3. Classify the anomaly as physical, model, approximation, dimensional, numerical, implementation, data, plotting, stochastic, interpretation, or unknown.
 4. Reproduce it with the smallest command, derivation, or data slice.
 5. Record important unresolved anomalies in `docs/anomaly_log.md` when that file exists.

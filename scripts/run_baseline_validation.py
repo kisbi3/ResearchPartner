@@ -18,6 +18,7 @@ REQUIRED_PATHS = [
     "skills/anomaly-debugging/SKILL.md",
     "skills/baseline-validation/SKILL.md",
     "skills/existing-research-onboarding/SKILL.md",
+    "skills/harness-evaluation/SKILL.md",
     "skills/model-specification/SKILL.md",
     "skills/dimensional-analysis/SKILL.md",
     "skills/numerical-validation/SKILL.md",
@@ -39,6 +40,10 @@ REQUIRED_PATHS = [
     "docs/retrofit_validation_plan.md",
     "docs/adoption_log.md",
     "docs/hypothesis_log.md",
+    "docs/harness_evaluation_log.md",
+    "docs/harness_evaluation_plan.md",
+    "docs/harness_evaluation_scenarios.md",
+    "docs/harness_pilot_protocol.md",
     "docs/lineage/README.md",
     "docs/lineage/iteration_template.md",
     "docs/negative_results.md",
@@ -48,6 +53,7 @@ REQUIRED_PATHS = [
     "docs/research_state.md",
     "docs/tacit_patterns.md",
     "scripts/audit_existing_project.py",
+    "scripts/evaluate_harness.py",
 ]
 
 CODE_DIRS = ["src", "scripts", "notebooks"]

@@ -175,6 +175,8 @@ When a result behaves unexpectedly, classify the anomaly before fixing it.
 
 Possible classes include physical effect, model misspecification, invalid approximation, dimensional error, boundary or initial condition issue, numerical instability, convergence failure, implementation bug, data preprocessing error, plotting error, stochastic fluctuation, interpretation overreach, and unknown.
 
+Before changing code, parameters, units, or interpretation, state the expected behavior, observed behavior, smallest reproduction, current classification, and next diagnostic.
+
 ## Conservation Laws
 
 When applicable, check:

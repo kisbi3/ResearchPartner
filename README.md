@@ -39,6 +39,7 @@ physics-research-harness/
 │   ├── claim-to-evidence/
 │   ├── dimensional-analysis/
 │   ├── existing-research-onboarding/
+│   ├── harness-evaluation/
 │   ├── model-specification/
 │   ├── numerical-validation/
 │   ├── research-plan-review/
@@ -53,6 +54,9 @@ physics-research-harness/
 │   ├── decision_log.md
 │   ├── existing_project_intake.md
 │   ├── existing_results_inventory.md
+│   ├── harness_evaluation_log.md
+│   ├── harness_evaluation_plan.md
+│   ├── harness_evaluation_scenarios.md
 │   ├── hypothesis_log.md
 │   ├── lineage/
 │   ├── negative_results.md
@@ -68,6 +72,7 @@ physics-research-harness/
 │   └── validation_log.md
 └── scripts/
     ├── audit_existing_project.py
+    ├── evaluate_harness.py
     └── run_baseline_validation.py
 ```
 
@@ -97,6 +102,28 @@ physics-research-harness/
 - `anomaly-debugging`: classify surprising or unstable results before patching symptoms.
 - `research-plan-review`: check assumptions, baselines, units, validation, and claim paths before substantial work.
 - `research-retrospective`: preserve lessons, lineage, and reusable artifacts after each iteration.
+- `harness-evaluation`: evaluate whether the harness is actually useful across realistic research scenarios.
+
+## Evaluating the Harness
+
+Run:
+
+```bash
+python scripts/evaluate_harness.py
+```
+
+This checks scenario coverage for:
+
+- new model without baseline
+- existing project with old figures
+- manuscript overclaim
+- anomalous simulation
+- numerical code change
+- end-of-iteration retrospective
+
+Record evaluations in `docs/harness_evaluation_log.md`. Use `docs/harness_evaluation_scenarios.md` to add pressure tests when researchers find ways the workflow is skipped or too heavy.
+
+Automated evaluation is only a coverage check. Before relying on the harness for a real manuscript or major simulation campaign, run one pilot task using `docs/harness_pilot_protocol.md`.
 
 ## Research Memory
 
