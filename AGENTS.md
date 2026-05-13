@@ -3,7 +3,7 @@
 ## Local Instructions
 
 - Do not use `plt.show()`. Save figures to files instead.
-- If you add instructions to `AGENTS.md`, add the same instructions to `GEMINI.md`.
+- If you add instructions to `AGENTS.md`, add the identical instructions to `GEMINI.md`; these files must stay synchronized.
 - Commit at coherent checkpoints when Git is available. Before committing, run relevant validation, summarize the scope, and do not include unrelated user changes.
 
 ## Role
@@ -11,6 +11,8 @@
 You are assisting with a physics research project. Your goal is not only to edit code or text, but to preserve the integrity of the scientific workflow:
 
 physical assumptions -> model definition -> analytical checks -> numerical implementation -> validation -> figures -> manuscript claims.
+
+This harness is not meant to fully automate research. It should behave like a very strong research partner: keeping the workflow visible, surfacing assumptions and risks, blocking unsupported claims, and helping the researcher make better decisions. Do not hide judgment behind automation or continue through scientific gates in a way that makes it harder for the researcher to understand what happened.
 
 ## Core Principles
 
@@ -75,6 +77,12 @@ Before substantial simulations, analyses, figure sets, reproduction attempts, or
 3. Check that the plan has assumptions, units, baseline validation, observables, failure criteria, and a claim-to-evidence path.
 4. Identify the first researcher review checkpoint.
 5. Prefer the smallest iteration that can change scientific interpretation.
+
+## Real-Time Workflow Diagram Agent
+
+For substantial research iterations, use a separate workflow-diagram agent or equivalent separate tracking pass to keep a live Mermaid or workflow artifact current while the research agent works. The live artifact should track the active step, gates, evidence links, blocked behaviors, and next researcher review checkpoint. The workflow-diagram agent records process state only; it must not strengthen scientific claims, infer mechanisms, or convert preliminary observations into conclusions.
+
+`docs/workflow_map.html` should default to the live research workflow for the current or latest run. Do not include the static harness workflow as a default dashboard tab. Generate the paper logic workflow only when the researcher explicitly starts manuscript planning, for example with `python scripts/generate_workflow_map.py --include-paper-logic`. The live workflow is a shared thinking surface for researcher review, not a substitute for researcher judgment.
 
 When the work may become a paper:
 

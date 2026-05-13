@@ -2,12 +2,29 @@
 
 This document is the pre-run overview for the physics research harness.
 
-Before starting a substantial research task, inspect:
+Research Partner is not a full automation system. It is a strong research partner that keeps assumptions, evidence, gates, and decisions visible so the researcher can understand and steer the work.
 
-- `docs/workflow_map.html` for the interactive map
+Before starting or continuing a substantial research task, inspect:
+
+- `docs/workflow_map.html` for the live research workflow
 - `docs/workflow_diagrams.md` for the research workflow diagram
-- `docs/paper_logic_diagram.md` when the work may become a paper
 - `docs/workflow_code_map.md` for the file ownership map
+
+Generate `docs/workflow_map.html` as a live research workflow by default:
+
+```bash
+python scripts/generate_workflow_map.py
+```
+
+When the researcher explicitly starts manuscript planning, generate the paper logic workflow for review:
+
+```bash
+python scripts/generate_workflow_map.py --include-paper-logic
+```
+
+Do not show the paper logic workflow as a default research dashboard before the researcher asks to plan manuscript structure.
+
+For substantial research iterations, keep a live Mermaid or workflow artifact current through a separate workflow-diagram agent or equivalent separate tracking pass. This live artifact should show the active step, gates, evidence links, blocked behaviors, and next researcher review checkpoint. It is a process-tracking artifact only and must not strengthen scientific claims beyond the evidence chain.
 
 ## Workflow Summary
 
@@ -24,6 +41,10 @@ Before starting a substantial research task, inspect:
 | Claim gate | Convert result into safe wording | No claim without fresh or recorded evidence | `skills/scientific-verification-before-claim/SKILL.md`, `skills/claim-to-evidence/SKILL.md` |
 | Retrospective | Preserve lineage and reusable artifacts | Each iteration leaves a check, log, benchmark, or decision | `skills/research-retrospective/SKILL.md`, `docs/lineage/iteration_template.md` |
 
+## Live Workflow Tracking
+
+The workflow-diagram agent should update the live Mermaid/workflow artifact whenever the active step changes, a gate passes or blocks progress, an evidence link is added, a prohibited behavior is avoided, or the next review checkpoint changes. The live artifact should link to scripts, logs, figures, derivations, or decisions when they exist, and should mark missing evidence as missing rather than filling gaps with stronger wording.
+
 ## Interactive Navigation
 
 Open `docs/workflow_map.html` in a browser. Click any node to see:
@@ -34,11 +55,13 @@ Open `docs/workflow_map.html` in a browser. Click any node to see:
 - responsible docs
 - responsible scripts
 
-The HTML is generated from `docs/workflow_map.json` by:
+The default HTML is generated from the latest `ResearchPartner-runs/*/docs/live_workflow_diagram.md` artifact by:
 
 ```bash
 python scripts/generate_workflow_map.py
 ```
+
+The optional paper logic workflow is sourced from `docs/workflow_map.json` only when `--include-paper-logic` is passed.
 
 Validate the links with:
 

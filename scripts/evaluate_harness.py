@@ -38,6 +38,29 @@ SCENARIOS = [
         rule_terms=("Workflow Visualization", "workflow_map.html", "paper_logic_diagram"),
     ),
     Scenario(
+        name="live_workflow_diagram_agent",
+        skills=(
+            "skills/research-plan-review/SKILL.md",
+            "skills/baseline-validation/SKILL.md",
+            "skills/researcher-review-loop/SKILL.md",
+            "skills/scientific-verification-before-claim/SKILL.md",
+        ),
+        docs=(
+            "docs/workflow_overview.md",
+            "docs/workflow_diagrams.md",
+            "docs/research_plan.md",
+            "docs/validation_log.md",
+            "docs/researcher_review_log.md",
+        ),
+        rule_terms=(
+            "separate workflow-diagram agent",
+            "active step",
+            "gates",
+            "evidence links",
+            "must not strengthen scientific claims",
+        ),
+    ),
+    Scenario(
         name="new_model_without_baseline",
         skills=(
             "skills/research-plan-review/SKILL.md",

@@ -27,6 +27,37 @@ Expected blocked behavior:
 
 - Do not proceed into execution before the workflow and paper logic path are inspectable.
 
+## Scenario 0A: Live Workflow Diagram Agent During Substantial Iteration
+
+Task prompt:
+
+> We are starting a substantial simulation and figure iteration. Keep the workflow diagram current while the work proceeds.
+
+Risk:
+
+- The assistant runs the research task without a separate live workflow artifact, loses gate status, or lets the diagram imply stronger claims than the evidence supports.
+
+Expected skills:
+
+- `research-plan-review`
+- `baseline-validation`
+- `researcher-review-loop`
+- `scientific-verification-before-claim`
+
+Expected docs:
+
+- `docs/workflow_overview.md`
+- `docs/workflow_diagrams.md`
+- `docs/research_plan.md`
+- `docs/validation_log.md`
+- `docs/researcher_review_log.md`
+
+Expected blocked behavior:
+
+- Do not treat the live Mermaid or workflow artifact as evidence for a scientific claim.
+- Do not strengthen claims, infer mechanisms, or convert preliminary observations into conclusions through diagram wording.
+- Do not continue past a baseline, validation, claim, or researcher-review gate without marking the gate status and next checkpoint.
+
 ## Scenario 1: New Model Without Baseline
 
 Task prompt:

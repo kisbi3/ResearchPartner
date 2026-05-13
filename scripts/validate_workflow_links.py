@@ -45,9 +45,8 @@ def main() -> int:
         errors.append("docs/workflow_map.html has not been generated")
     else:
         html_text = HTML.read_text(encoding="utf-8", errors="ignore")
-        for map_data in data.get("maps", []):
-            if map_data.get("title", "") not in html_text:
-                errors.append(f"HTML missing map title {map_data.get('title')}")
+        if "Live Research Workflow" not in html_text:
+            errors.append("HTML missing live research workflow")
         for required_snippet in ("file-button", "filePreview", "Open raw file"):
             if required_snippet not in html_text:
                 errors.append(f"HTML missing interactive preview snippet {required_snippet}")

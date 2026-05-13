@@ -5,12 +5,16 @@ from __future__ import annotations
 
 import html
 import json
+import os
+import argparse
 from pathlib import Path
+import re
 
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "docs" / "workflow_map.json"
 OUTPUT = ROOT / "docs" / "workflow_map.html"
+RUNS_ROOT = ROOT.parent / "ResearchPartner-runs"
 
 
 def relative_href(path: str) -> str:
@@ -18,9 +22,302 @@ def relative_href(path: str) -> str:
     return source.relative_to(OUTPUT.parent).as_posix() if source.is_relative_to(OUTPUT.parent) else Path("..", path).as_posix()
 
 
+def latest_live_workflow_path() -> Path | None:
+    if not RUNS_ROOT.exists():
+        return None
+    candidates = sorted(
+        RUNS_ROOT.glob("*/docs/live_workflow_diagram.md"),
+        key=lambda path: path.stat().st_mtime,
+        reverse=True,
+    )
+    return candidates[0] if candidates else None
+
+
+def run_relative_path(path: Path) -> str:
+    return Path(os.path.relpath(path, OUTPUT.parent)).as_posix()
+
+
+def extract_section(markdown: str, heading: str) -> str:
+    pattern = re.compile(
+        rf"^## {re.escape(heading)}\s*$\n(?P<body>.*?)(?=^## |\Z)",
+        re.MULTILINE | re.DOTALL,
+    )
+    match = pattern.search(markdown)
+    return match.group("body").strip() if match else ""
+
+
+def extract_bullet_links(markdown: str, run_root: Path) -> list[dict[str, str]]:
+    links = []
+    for line in markdown.splitlines():
+        stripped = line.strip()
+        if not stripped.startswith("- `") or "`" not in stripped[3:]:
+            continue
+        path_text = stripped.split("`", 2)[1]
+        links.append(
+            {
+                "label": path_text,
+                "path": run_relative_path(run_root / path_text),
+            }
+        )
+    return links
+
+
+def extract_gate_rows(markdown: str) -> list[dict[str, str]]:
+    section = extract_section(markdown, "Gate Status")
+    rows = []
+    for line in section.splitlines():
+        stripped = line.strip()
+        if not stripped.startswith("|") or stripped.startswith("|---"):
+            continue
+        cells = [cell.strip() for cell in stripped.strip("|").split("|")]
+        if len(cells) != 3 or cells[0] == "Gate":
+            continue
+        rows.append({"gate": cells[0], "status": cells[1].lower(), "note": cells[2]})
+    return rows
+
+
+def read_json(path: Path) -> dict:
+    if not path.exists():
+        return {}
+    return json.loads(path.read_text(encoding="utf-8", errors="ignore"))
+
+
+def fmt_float(value: object, digits: int = 4) -> str:
+    if not isinstance(value, (float, int)):
+        return str(value)
+    return f"{value:.{digits}g}"
+
+
+def image_ref(run_root: Path, filename: str, label: str) -> dict[str, str]:
+    return {"label": label, "path": run_relative_path(run_root / "outputs" / filename)}
+
+
+def result_fields_for_gate(gate_id: str, run_root: Path) -> tuple[dict[str, str], list[dict[str, str]]]:
+    validation = read_json(run_root / "outputs" / "validation_summary.json")
+    fixed = read_json(run_root / "outputs" / "fixed_ratio_convergence_summary.json")
+    anomaly = read_json(run_root / "outputs" / "unstable_anomaly_probe.json")
+    multimode = read_json(run_root / "outputs" / "multimode_validation_summary.json")
+    positivity = read_json(run_root / "outputs" / "positivity_validation_summary.json")
+
+    if gate_id == "baseline":
+        return (
+            {
+                "final_relative_error": fmt_float(validation.get("final_relative_error")),
+                "mean_drift": fmt_float(validation.get("mean_drift")),
+                "stability_ratio": fmt_float(validation.get("stability_ratio")),
+            },
+            [
+                image_ref(run_root, "amplitude_decay.png", "Amplitude decay"),
+                image_ref(run_root, "profile_evolution.png", "Profile evolution"),
+            ],
+        )
+    if gate_id == "refinement_trend":
+        rows = validation.get("convergence", {}).get("rows", [])
+        last_error = rows[-1].get("final_relative_error") if rows else ""
+        return (
+            {
+                "grid_points": "32, 64, 128, 256",
+                "finest_error": fmt_float(last_error),
+                "claim_scope": "trend only",
+            },
+            [image_ref(run_root, "convergence_sweep.png", "Refinement trend")],
+        )
+    if gate_id == "fixed_ratio_convergence":
+        return (
+            {
+                "observed_order": fmt_float(fixed.get("observed_order")),
+                "target_ratio": "0.1",
+                "claim_scope": "single-mode final amplitude",
+            },
+            [image_ref(run_root, "fixed_ratio_convergence.png", "Fixed-ratio convergence")],
+        )
+    if gate_id == "multi_mode_validation":
+        modes = multimode.get("modes", {})
+        return (
+            {
+                "max_relative_error": fmt_float(multimode.get("max_relative_error")),
+                "mean_drift": fmt_float(multimode.get("mean_drift")),
+                "modes": ", ".join(str(mode) for mode in modes.keys()),
+                "claim_scope": "finite periodic sine modes",
+            },
+            [
+                image_ref(run_root, "multimode_amplitude_decay.png", "Multi-mode amplitudes"),
+                image_ref(run_root, "multimode_profile_evolution.png", "Multi-mode profile"),
+            ],
+        )
+    if gate_id == "positivity_sanity":
+        return (
+            {
+                "minimum_value": fmt_float(positivity.get("minimum_value")),
+                "mean_drift": fmt_float(positivity.get("mean_drift")),
+                "peak_decay": fmt_float(positivity.get("peak_decay")),
+                "claim_scope": "one smooth nonnegative periodic profile",
+            },
+            [
+                image_ref(run_root, "positivity_profile.png", "Positivity profile"),
+                image_ref(run_root, "positivity_history.png", "Positivity history"),
+            ],
+        )
+    if gate_id == "anomaly_probe":
+        return (
+            {
+                "classification": str(anomaly.get("classification", "")),
+                "stability_ratio": fmt_float(anomaly.get("stability_ratio")),
+                "status": str(anomaly.get("status", "")),
+            },
+            [],
+        )
+    if gate_id == "claim_gate":
+        return (
+            {
+                "supported": "single-mode order claim",
+                "limited": "not general robustness",
+                "blocked": "arbitrary diffusion claims",
+            },
+            [],
+        )
+    return ({}, [])
+
+
+def live_workflow_map() -> dict | None:
+    live_path = latest_live_workflow_path()
+    if live_path is None:
+        return None
+
+    run_root = live_path.parents[1]
+    markdown = live_path.read_text(encoding="utf-8", errors="ignore")
+    active_step = extract_section(markdown, "Active Step") or "No active step recorded."
+    checkpoint = extract_section(markdown, "Next Review Checkpoint") or "No checkpoint recorded."
+    evidence_links = extract_bullet_links(extract_section(markdown, "Evidence Links"), run_root)
+    gate_rows = extract_gate_rows(markdown)
+
+    phase_by_status = {
+        "pass": "passed",
+        "partial": "blocked",
+        "pending": "pending",
+        "fail": "blocked",
+        "waived": "waived",
+    }
+    x_positions = [80, 330, 580, 830]
+    nodes = []
+    for index, row in enumerate(gate_rows):
+        status = row["status"]
+        gate_id = re.sub(r"[^a-z0-9]+", "_", row["gate"].lower()).strip("_")
+        result_summary, images = result_fields_for_gate(gate_id, run_root)
+        nodes.append(
+            {
+                "id": gate_id or f"gate_{index}",
+                "title": row["gate"],
+                "phase": phase_by_status.get(status, status or "unknown"),
+                "x": x_positions[index % len(x_positions)],
+                "y": 90 + 170 * (index // len(x_positions)),
+                "summary": f"{status.upper()}: {row['note']}",
+                "result_summary": result_summary,
+                "images": images,
+                "responsible": evidence_links
+                + [
+                    {
+                        "label": "Live workflow diagram",
+                        "path": run_relative_path(live_path),
+                    }
+                ],
+                "checks": [
+                    "This is a process-tracking artifact, not scientific evidence.",
+                    "The live workflow must not strengthen scientific claims.",
+                    f"Next checkpoint: {checkpoint}",
+                ],
+                "edges": [],
+            }
+        )
+
+    for index, node in enumerate(nodes[:-1]):
+        node["edges"] = [nodes[index + 1]["id"]]
+
+    if not nodes:
+        nodes = [
+            {
+                "id": "live_workflow",
+                "title": "Live Workflow",
+                "phase": "pending",
+                "x": 80,
+                "y": 90,
+                "summary": active_step,
+                "result_summary": {},
+                "images": [],
+                "responsible": [
+                    {"label": "Live workflow diagram", "path": run_relative_path(live_path)}
+                ],
+                "checks": [
+                    "This is a process-tracking artifact, not scientific evidence.",
+                    "The live workflow must not strengthen scientific claims.",
+                ],
+                "edges": [],
+            }
+        ]
+
+    return {
+        "id": "live_research_run",
+        "title": f"Live Research Workflow: {run_root.name}",
+        "description": (
+            "Current run state generated from the latest live workflow artifact. "
+            "This is process-tracking only and must not strengthen scientific claims."
+        ),
+        "nodes": nodes,
+    }
+
+
+def placeholder_live_workflow_map() -> dict:
+    return {
+        "id": "live_research_run",
+        "title": "Live Research Workflow: no active run",
+        "description": (
+            "No live workflow artifact was found. Start or update a run under "
+            "ResearchPartner-runs/*/docs/live_workflow_diagram.md."
+        ),
+        "nodes": [
+            {
+                "id": "no_active_run",
+                "title": "No Active Run",
+                "phase": "pending",
+                "x": 80,
+                "y": 90,
+                "summary": "No live workflow artifact has been generated yet.",
+                "result_summary": {},
+                "images": [],
+                "responsible": [
+                    {"label": "Workflow overview", "path": "docs/workflow_overview.md"}
+                ],
+                "checks": [
+                    "Create a run-specific live workflow artifact before treating the map as current.",
+                    "This process-tracking view must not strengthen scientific claims.",
+                ],
+                "edges": [],
+            }
+        ],
+    }
+
+
+def build_data(include_paper_logic: bool = False) -> dict:
+    source_data = json.loads(SOURCE.read_text(encoding="utf-8"))
+    live_map = live_workflow_map()
+    maps = [live_map or placeholder_live_workflow_map()]
+    if include_paper_logic:
+        paper_logic = next(
+            (
+                map_data
+                for map_data in source_data.get("maps", [])
+                if map_data.get("id") == "paper_logic"
+            ),
+            None,
+        )
+        if paper_logic is not None:
+            maps.append(paper_logic)
+    return {"maps": maps}
+
+
 def build_html(data: dict) -> str:
     data_json = json.dumps(data, ensure_ascii=False)
-    title = "Physics Research Workflow Map"
+    title = "Research Partner Live Workflow"
     template = """<!doctype html>
 <html lang=\"en\">
 <head>
@@ -148,6 +445,40 @@ def build_html(data: dict) -> str:
       font-size: 12px;
       line-height: 1.4;
     }}
+    .results {{
+      display: grid;
+      gap: 8px;
+    }}
+    .result-row {{
+      display: grid;
+      grid-template-columns: minmax(120px, 0.55fr) minmax(0, 1fr);
+      gap: 8px;
+      padding: 7px 8px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fbfbf8;
+      font-size: 13px;
+    }}
+    .result-key {{ color: var(--muted); }}
+    .result-value {{ font-weight: 650; overflow-wrap: anywhere; }}
+    .image-grid {{
+      display: grid;
+      gap: 10px;
+    }}
+    .evidence-image {{
+      display: block;
+      width: 100%;
+      max-height: 220px;
+      object-fit: contain;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fff;
+    }}
+    .image-caption {{
+      margin-top: 4px;
+      font-size: 12px;
+      color: var(--muted);
+    }}
     footer {{
       padding: 12px 24px 20px;
       color: var(--muted);
@@ -162,7 +493,7 @@ def build_html(data: dict) -> str:
 <body>
   <header>
     <h1>__TITLE__</h1>
-    <p>Click a workflow node to inspect the responsible skills, docs, scripts, gates, and links. This file is generated from <a href=\"workflow_map.json\">docs/workflow_map.json</a>.</p>
+    <p>Click a workflow node to inspect current gates, evidence links, blocked behaviors, and next review checkpoints. This page is the live research workflow by default. Add the paper logic workflow only when the researcher explicitly starts manuscript planning. Auto-refreshes every 10 seconds after the generator updates this file.</p>
   </header>
   <main class=\"shell\">
     <section class=\"panel\">
@@ -182,6 +513,7 @@ def build_html(data: dict) -> str:
     let activeNode = DATA.maps[0].nodes[0].id;
 
     function pathHref(path) {{
+      if (path.startsWith('../')) return path;
       if (path.startsWith('docs/')) return path.replace(/^docs\\//, '');
       return '../' + path;
     }}
@@ -276,10 +608,35 @@ def build_html(data: dict) -> str:
         `<button type="button" class="file-button" data-path="${{escapeHtml(pathHref(item.path))}}" data-label="${{escapeHtml(item.label)}}">${{escapeHtml(item.label)}}</button>`
       ).join('');
       const checks = (node.checks || []).map(check => `<li>${{escapeHtml(check)}}</li>`).join('');
+      const resultEntries = Object.entries(node.result_summary || {{}});
+      const resultMarkup = resultEntries.length
+        ? resultEntries.map(([key, value]) => `
+          <div class="result-row">
+            <span class="result-key">${{escapeHtml(key)}}</span>
+            <span class="result-value">${{escapeHtml(value)}}</span>
+          </div>
+        `).join('')
+        : '<p class="meta">No compact result summary recorded for this node.</p>';
+      const imageMarkup = (node.images || []).length
+        ? (node.images || []).map(image => `
+          <figure>
+            <img class="evidence-image" src="${{escapeHtml(pathHref(image.path))}}" alt="${{escapeHtml(image.label)}} evidence preview">
+            <figcaption class="image-caption">${{escapeHtml(image.label)}} · evidence preview, not a standalone claim</figcaption>
+          </figure>
+        `).join('')
+        : '<p class="meta">No figure preview for this node.</p>';
       document.getElementById('details').innerHTML = `
         <h2>${{escapeHtml(node.title)}}</h2>
         <div class="meta">${{escapeHtml(map.title)}} / ${{escapeHtml(node.phase)}}</div>
         <p>${{escapeHtml(node.summary)}}</p>
+        <div class="section">
+          <h3>Result Summary</h3>
+          <div class="results">${{resultMarkup}}</div>
+        </div>
+        <div class="section">
+          <h3>Evidence Images</h3>
+          <div class="image-grid">${{imageMarkup}}</div>
+        </div>
         <div class="section">
           <h3>Responsible Files</h3>
           <div class="docs">${{links}}</div>
@@ -324,6 +681,7 @@ def build_html(data: dict) -> str:
     }}
 
     render();
+    window.setInterval(() => window.location.reload(), 10000);
   </script>
 </body>
 </html>
@@ -337,8 +695,17 @@ def build_html(data: dict) -> str:
 
 
 def main() -> int:
-    data = json.loads(SOURCE.read_text(encoding="utf-8"))
-    OUTPUT.write_text(build_html(data), encoding="utf-8")
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--include-paper-logic",
+        action="store_true",
+        help="Include the paper logic workflow when manuscript planning has been requested.",
+    )
+    args = parser.parse_args()
+    OUTPUT.write_text(
+        build_html(build_data(include_paper_logic=args.include_paper_logic)),
+        encoding="utf-8",
+    )
     print(f"Generated {OUTPUT.relative_to(ROOT)}")
     return 0
 
