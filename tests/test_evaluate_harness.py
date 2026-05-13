@@ -32,3 +32,18 @@ def test_harness_evaluator_has_twelve_scenarios():
     evaluator = load_evaluator()
 
     assert len(evaluator.SCENARIOS) == 12
+
+
+def test_orchestration_scenarios_require_run_templates():
+    evaluator = load_evaluator()
+
+    scenarios = {scenario.name: scenario for scenario in evaluator.SCENARIOS}
+
+    assert (
+        "docs/run_templates/live_workflow_diagram_template.md"
+        in scenarios["live_workflow_diagram_agent"].docs
+    )
+    assert (
+        "docs/run_templates/research_run_packet_template.md"
+        in scenarios["completion_conference_reporting"].docs
+    )

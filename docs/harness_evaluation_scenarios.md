@@ -48,6 +48,7 @@ Expected docs:
 
 - `docs/workflow_overview.md`
 - `docs/workflow_diagrams.md`
+- `docs/run_templates/live_workflow_diagram_template.md`
 - `docs/research_plan.md`
 - `docs/validation_log.md`
 - `docs/researcher_review_log.md`
@@ -160,6 +161,7 @@ Expected docs:
 - `docs/researcher_review_log.md`
 - `docs/research_retrospective.md`
 - `docs/research_state.md`
+- `docs/run_templates/research_run_packet_template.md`
 
 Expected blocked behavior:
 

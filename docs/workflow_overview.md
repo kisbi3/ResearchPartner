@@ -69,6 +69,8 @@ For substantial research iterations, the Diagram/Cartographer Agent maintains th
 
 The Diagram/Cartographer Agent does not give project opinions, choose scientific interpretations, infer mechanisms, judge whether a claim is true, or strengthen claims. It is a process-tracking role only. Its artifact is a shared thinking surface for researcher review, not scientific evidence.
 
+Use `docs/run_templates/live_workflow_diagram_template.md` when starting a new run-specific live workflow artifact.
+
 ## Completion Conference
 
 When a reproduction, validation, figure-generation, or other substantial task is complete and visualization artifacts are ready, the Professor Orchestrator convenes a completion conference with all agents: graduate agents, coding subagents, and the Diagram/Cartographer Agent.
@@ -83,6 +85,8 @@ The completion conference should produce a user-facing report that summarizes:
 - validation and reproduction status
 - failures, caveats, and remaining uncertainty
 - the next researcher decision or review checkpoint
+
+Use `docs/run_templates/research_run_packet_template.md` to keep Interview, Seed, Execute, Evaluate, Completion Conference, User Report, and Retrospective notes together without duplicating separate interview and report templates.
 
 ## Interactive Navigation
 
