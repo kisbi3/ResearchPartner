@@ -48,6 +48,9 @@ def main() -> int:
         for map_data in data.get("maps", []):
             if map_data.get("title", "") not in html_text:
                 errors.append(f"HTML missing map title {map_data.get('title')}")
+        for required_snippet in ("file-button", "filePreview", "Open raw file"):
+            if required_snippet not in html_text:
+                errors.append(f"HTML missing interactive preview snippet {required_snippet}")
 
     if errors:
         print("Workflow link validation failed:")

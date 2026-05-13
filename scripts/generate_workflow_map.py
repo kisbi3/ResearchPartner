@@ -111,7 +111,7 @@ def build_html(data: dict) -> str:
       flex-wrap: wrap;
       gap: 8px;
     }}
-    .docs a {{
+    .docs a, .docs button {{
       display: inline-block;
       border: 1px solid var(--line);
       border-radius: 6px;
@@ -119,8 +119,35 @@ def build_html(data: dict) -> str:
       text-decoration: none;
       color: var(--ink);
       background: #fbfbf8;
+      font: inherit;
+      cursor: pointer;
     }}
-    .docs a:hover {{ border-color: var(--focus); }}
+    .docs a:hover, .docs button:hover {{ border-color: var(--focus); }}
+    .file-preview {{
+      margin-top: 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfbf8;
+      overflow: hidden;
+    }}
+    .file-preview .preview-head {{
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--line);
+      font-size: 13px;
+      color: var(--muted);
+    }}
+    .file-preview pre {{
+      margin: 0;
+      padding: 10px;
+      max-height: 230px;
+      overflow: auto;
+      white-space: pre-wrap;
+      font-size: 12px;
+      line-height: 1.4;
+    }}
     footer {{
       padding: 12px 24px 20px;
       color: var(--muted);
@@ -246,7 +273,7 @@ def build_html(data: dict) -> str:
       const map = currentMap();
       const node = currentNode();
       const links = (node.responsible || []).map(item =>
-        `<a href="${{pathHref(item.path)}}">${{escapeHtml(item.label)}}</a>`
+        `<button type="button" class="file-button" data-path="${{escapeHtml(pathHref(item.path))}}" data-label="${{escapeHtml(item.label)}}">${{escapeHtml(item.label)}}</button>`
       ).join('');
       const checks = (node.checks || []).map(check => `<li>${{escapeHtml(check)}}</li>`).join('');
       document.getElementById('details').innerHTML = `
@@ -256,12 +283,38 @@ def build_html(data: dict) -> str:
         <div class="section">
           <h3>Responsible Files</h3>
           <div class="docs">${{links}}</div>
+          <div class="file-preview" id="filePreview">
+            <div class="preview-head">
+              <span>Select a file to preview it here.</span>
+              <a id="rawFileLink" href="#" hidden>Open raw file</a>
+            </div>
+            <pre id="filePreviewText"></pre>
+          </div>
         </div>
         <div class="section">
           <h3>Checks</h3>
           <ul>${{checks}}</ul>
         </div>
       `;
+      document.querySelectorAll('.file-button').forEach(button => {{
+        button.addEventListener('click', async () => {{
+          const previewText = document.getElementById('filePreviewText');
+          const rawLink = document.getElementById('rawFileLink');
+          const path = button.dataset.path;
+          previewText.textContent = 'Loading ' + path + '...';
+          rawLink.hidden = false;
+          rawLink.href = path;
+          rawLink.textContent = 'Open raw file';
+          try {{
+            const response = await fetch(path);
+            if (!response.ok) throw new Error(response.status + ' ' + response.statusText);
+            const text = await response.text();
+            previewText.textContent = text.slice(0, 8000);
+          }} catch (error) {{
+            previewText.textContent = 'Could not preview ' + path + ': ' + error.message;
+          }}
+        }});
+      }});
     }}
 
     function render() {{
