@@ -1,0 +1,17 @@
+# Python runtime artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Test/cache artifacts
+.pytest_cache/
+
+# Local tool state
+.sixth/
+
+# Local generated outputs for ad hoc runs
+outputs/
+
+# Virtual environments
+.venv/
+venv/
