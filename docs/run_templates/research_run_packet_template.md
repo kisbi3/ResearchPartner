@@ -59,12 +59,14 @@ Use this before full execution when novelty, reproduction targets, or prior meth
 - Literature review plan: `docs/literature_review_plan.md`
 - PDF directory: `literature/pdfs/`
 - Paper review directory: `literature/reviews/`
+- Extracted text directory: `literature/extracted_text/`
 - Paper review index: `literature/index.md`
 - Missing PDFs:
 
 ### Detailed Review Standard
 
 - Each important paper needs a section-by-section paper review, not a short abstract summary.
+- PDF text extraction is a reading aid, not evidence by itself; verify equations, figures, captions, tables, and claims against the PDF.
 - Reviews should reconstruct research context, key concepts, methods, equations, assumptions, units, figures/tables, limitations, novelty impact, and reproduction details.
 - Use a Figure/Table-by-Figure/Table Review for evidence that may support claims or reproduction targets.
 - Keep author claims, reviewer interpretation, and project implications separate.

@@ -59,6 +59,7 @@ def create_run(name: str, date_text: str | None = None, runs_root: Path | str = 
     outputs_dir.mkdir()
     (literature_dir / "pdfs").mkdir(parents=True)
     (literature_dir / "reviews").mkdir()
+    (literature_dir / "extracted_text").mkdir()
 
     shutil.copyfile(LIVE_TEMPLATE, docs_dir / "live_workflow_diagram.md")
     shutil.copyfile(PACKET_TEMPLATE, run_path / "research_run_packet.md")

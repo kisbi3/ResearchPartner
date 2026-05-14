@@ -40,6 +40,7 @@ def test_create_run_copies_templates_and_initial_docs(tmp_path):
     assert (run_path / "outputs").is_dir()
     assert (run_path / "literature" / "pdfs").is_dir()
     assert (run_path / "literature" / "reviews").is_dir()
+    assert (run_path / "literature" / "extracted_text").is_dir()
     assert (run_path / "literature" / "index.md").exists()
     assert (run_path / "docs" / "research_plan.md").exists()
     assert (run_path / "docs" / "literature_review_plan.md").exists()

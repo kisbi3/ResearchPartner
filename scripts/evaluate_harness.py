@@ -53,6 +53,7 @@ SCENARIOS = [
             "docs/literature/replanning_memo_template.md",
             "docs/run_templates/research_run_packet_template.md",
             "scripts/scaffold_paper_review.py",
+            "scripts/extract_paper_text.py",
         ),
         rule_terms=(
             "Literature Replanning Hook",
@@ -63,6 +64,7 @@ SCENARIOS = [
             "reproduction targets",
             "section-by-section paper review",
             "Figure/Table-by-Figure/Table Review",
+            "PDF text extraction is a reading aid",
         ),
     ),
     Scenario(

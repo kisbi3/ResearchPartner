@@ -10,6 +10,7 @@ Use this workspace before full research execution when literature access, novelt
 
 - `literature/pdfs/`: PDFs supplied by the researcher.
 - `literature/reviews/`: detailed, reusable, section-by-section paper review notes.
+- `literature/extracted_text/`: extracted PDF text used as a reading aid.
 - `literature/index.md`: run-local index of requested, received, reviewed, deferred, and rejected papers.
 - `docs/paper_request_queue.md`: papers or paper categories requested from the researcher.
 - `docs/literature_review_plan.md`: intake table and reading priorities.
@@ -19,10 +20,13 @@ Use this workspace before full research execution when literature access, novelt
 
 Use `python scripts/scaffold_paper_review.py --run <run-dir> --paper-id P1 --title "<paper title>" --pdf <run-dir>/literature/pdfs/<paper>.pdf --role benchmark` to create a detailed review note and append it to the run-local paper index.
 
+Use `python scripts/extract_paper_text.py --run <run-dir> --paper-id P1 --pdf <run-dir>/literature/pdfs/<paper>.pdf --review <run-dir>/literature/reviews/<review>.md` to save extracted PDF text and link it from the review note.
+
 ## Discipline
 
 - Do not infer novelty from memory alone.
 - Distinguish direct PDF evidence from abstracts, metadata, and unverified summaries.
+- PDF text extraction is a reading aid, not evidence by itself. Verify equations, captions, tables, and claims against the PDF.
 - Write detailed paper reviews, not short abstract summaries. A review should reconstruct context, methods, equations, figures/tables, limitations, reuse value, and reproduction details.
 - Choose at least one reproduction target before claiming a project is ready for full execution, unless the researcher explicitly waives the gate.
 - Keep unsupported novelty claims marked as unverified.

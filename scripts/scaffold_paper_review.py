@@ -64,6 +64,12 @@ def build_review_note(
 - What a future researcher should remember:
 - Claim ceiling this paper can support for our project:
 
+## Source Text Extraction
+
+- Extracted text path:
+- Extraction command:
+- Extraction caveat: PDF text extraction is a reading aid, not evidence by itself. Verify claims against the PDF.
+
 ## 1. Research Context and Motivation
 
 - Research background:
@@ -320,4 +326,3 @@ def main(argv: list[str] | None = None) -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
-

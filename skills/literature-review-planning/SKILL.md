@@ -43,6 +43,7 @@ Maintain a single run-local literature directory:
 
 - `literature/pdfs/`: researcher-provided PDFs
 - `literature/reviews/`: detailed paper review notes
+- `literature/extracted_text/`: extracted PDF text used as a reading aid
 - `literature/index.md`: run-local paper review index
 - `docs/paper_request_queue.md`: papers requested from the researcher
 - `docs/literature_review_plan.md`: current paper set, review status, and reading priorities
@@ -51,6 +52,8 @@ Maintain a single run-local literature directory:
 Repository templates live in `docs/literature/`.
 
 Use `scripts/scaffold_paper_review.py` to initialize a detailed review note and append it to `literature/index.md` when a paper enters the review set.
+
+Use `scripts/extract_paper_text.py` to create an extracted-text artifact and link it from the review note. PDF text extraction is a reading aid, not evidence by itself; verify equations, figures, captions, tables, and claims against the PDF.
 
 ## Detailed Review Standard
 

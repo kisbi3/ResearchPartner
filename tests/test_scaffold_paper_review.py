@@ -52,6 +52,7 @@ def test_scaffold_paper_review_creates_review_and_updates_index(tmp_path):
     assert "PDF path: `literature/pdfs/example.pdf`" in review_text
     assert "Figure/Table-by-Figure/Table Review" in review_text
     assert "Reproduction Extraction" in review_text
+    assert "Source Text Extraction" in review_text
 
     index_text = (run_path / "literature" / "index.md").read_text(encoding="utf-8")
     assert "Example Paper: A Useful Benchmark" in index_text
@@ -76,4 +77,3 @@ def test_scaffold_paper_review_refuses_duplicate_review(tmp_path):
             paper_id="P1",
             title="Duplicate Paper",
         )
-
