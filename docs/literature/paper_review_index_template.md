@@ -4,7 +4,7 @@ Use this run-local index to keep the literature set navigable. Add every request
 
 | Paper ID | Title | Authors / Year | PDF | Review Note | Status | Role in Project | Reproduction Candidate | Novelty Impact |
 |---|---|---|---|---|---|---|---|---|
-| P1 |  |  | `literature/pdfs/` | `literature/reviews/P1-title.md` | requested / received / reading / reviewed / deferred | foundation / closest prior work / benchmark / method / review | yes / no / maybe | supports / weakens / contradicts / unverified |
+| P1 |  |  | [PDF](pdfs/example.pdf)<br>`literature/pdfs/example.pdf` | [Review](reviews/P1-title.md)<br>`literature/reviews/P1-title.md` | requested / received / reading / reviewed / deferred | foundation / closest prior work / benchmark / method / review | yes / no / maybe | supports / weakens / contradicts / unverified |
 
 ## Review Status Legend
 
@@ -18,5 +18,6 @@ Use this run-local index to keep the literature set navigable. Add every request
 ## Reuse Notes
 
 - Link every review note back to the PDF and the replanning memo.
+- Use clickable relative Markdown links plus run-relative code paths so future agents can navigate quickly and still recover exact run-local paths.
 - Keep title, authors, year, and role stable so future runs can reuse this index.
 - Do not mark novelty as supported from metadata alone.

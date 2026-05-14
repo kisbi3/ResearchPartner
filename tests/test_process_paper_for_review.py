@@ -61,11 +61,13 @@ def test_process_paper_creates_review_text_artifact_and_draft(tmp_path):
 
     review_text = result.review_path.read_text(encoding="utf-8")
     assert "Source Text Extraction" in review_text
+    assert "[Extracted text](../extracted_text/P1-example.txt)" in review_text
     assert "Machine-Assisted Draft From Extracted Text" in review_text
     assert "reflecting boundary conditions" in review_text
     assert "does not establish novelty or validate claims" in review_text
 
     index_text = (run_path / "literature" / "index.md").read_text(encoding="utf-8")
     assert "Example Paper: A Useful Benchmark" in index_text
+    assert "[PDF](pdfs/example.pdf)" in index_text
+    assert "[Review](reviews/P1-example-paper-a-useful-benchmark.md)" in index_text
     assert "`literature/reviews/P1-example-paper-a-useful-benchmark.md`" in index_text
-

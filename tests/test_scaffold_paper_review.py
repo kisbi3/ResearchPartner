@@ -49,13 +49,18 @@ def test_scaffold_paper_review_creates_review_and_updates_index(tmp_path):
     review_text = review_path.read_text(encoding="utf-8")
     assert "Paper ID: P1" in review_text
     assert "Title: Example Paper: A Useful Benchmark" in review_text
-    assert "PDF path: `literature/pdfs/example.pdf`" in review_text
+    assert "PDF path: [PDF](../pdfs/example.pdf)" in review_text
+    assert "Run-relative PDF path: `literature/pdfs/example.pdf`" in review_text
+    assert "Paper Review Index: [literature/index.md](../index.md)" in review_text
+    assert "Replanning Memo: [docs/replanning_memo.md](../../docs/replanning_memo.md)" in review_text
     assert "Figure/Table-by-Figure/Table Review" in review_text
     assert "Reproduction Extraction" in review_text
     assert "Source Text Extraction" in review_text
 
     index_text = (run_path / "literature" / "index.md").read_text(encoding="utf-8")
     assert "Example Paper: A Useful Benchmark" in index_text
+    assert "[PDF](pdfs/example.pdf)" in index_text
+    assert "[Review](reviews/P1-example-paper-a-useful-benchmark.md)" in index_text
     assert "`literature/pdfs/example.pdf`" in index_text
     assert "`literature/reviews/P1-example-paper-a-useful-benchmark.md`" in index_text
     assert "benchmark" in index_text

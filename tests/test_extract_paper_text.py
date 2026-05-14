@@ -55,6 +55,10 @@ def test_write_extracted_text_creates_source_artifact_and_links_review(tmp_path)
 
     review_text = review_path.read_text(encoding="utf-8")
     assert "Source Text Extraction" in review_text
-    assert "`literature/extracted_text/P1-example.txt`" in review_text
+    assert "[Extracted text](../extracted_text/P1-example.txt)" in review_text
+    assert "Run-relative extracted text path: `literature/extracted_text/P1-example.txt`" in review_text
     assert "PDF text extraction is a reading aid, not evidence by itself" in review_text
 
+    extracted_text = text_path.read_text(encoding="utf-8")
+    assert "Source PDF: [PDF](../pdfs/example.pdf)" in extracted_text
+    assert "Review note: [Review](../reviews/P1-example.md)" in extracted_text

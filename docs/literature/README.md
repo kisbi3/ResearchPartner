@@ -30,6 +30,7 @@ Use `python scripts/process_paper_for_review.py --run <run-dir> --paper-id P1 --
 
 - Do not infer novelty from memory alone.
 - Distinguish direct PDF evidence from abstracts, metadata, and unverified summaries.
+- Keep the literature graph linked: `literature/index.md` should link to PDFs and review notes, review notes should link back to the index and replanning memo, and extracted text artifacts should link back to their source PDF and review note.
 - PDF text extraction is a reading aid, not evidence by itself. Verify equations, captions, tables, and claims against the PDF.
 - A machine-assisted draft from extracted text does not establish novelty or validate claims. It only creates candidates for human review.
 - Write detailed paper reviews, not short abstract summaries. A review should reconstruct context, methods, equations, figures/tables, limitations, reuse value, and reproduction details.

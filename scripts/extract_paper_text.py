@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 from pathlib import Path
 import sys
 
@@ -14,6 +15,11 @@ def relative_to_run(run_path: Path, path: Path) -> str:
         return path.resolve().relative_to(run_path.resolve()).as_posix()
     except ValueError:
         return path.as_posix()
+
+
+def relative_markdown_target(from_path: Path, to_path: Path) -> str:
+    """Return a POSIX Markdown target from one artifact to another."""
+    return os.path.relpath(Path(to_path), start=Path(from_path).parent).replace(os.sep, "/")
 
 
 def review_slug_from_pdf(pdf_path: Path) -> str:
@@ -41,12 +47,14 @@ def replace_or_append_source_section(
     review_text: str,
     *,
     extracted_relative_path: str,
+    extracted_link_target: str,
     command_hint: str,
 ) -> str:
     """Update the Source Text Extraction section in a review note."""
     section = (
         "## Source Text Extraction\n\n"
-        f"- Extracted text path: `{extracted_relative_path}`\n"
+        f"- Extracted text path: [Extracted text]({extracted_link_target})\n"
+        f"- Run-relative extracted text path: `{extracted_relative_path}`\n"
         f"- Extraction command: `{command_hint}`\n"
         "- Extraction caveat: PDF text extraction is a reading aid, not evidence by itself. "
         "Verify claims against the PDF.\n"
@@ -78,12 +86,16 @@ def write_extracted_text(
     text_path = text_dir / f"{paper_id}-{review_slug_from_pdf(pdf_path)}.txt"
     header = (
         f"# Extracted text for {paper_id}\n"
-        f"# Source PDF: {relative_to_run(run_path, pdf_path)}\n"
+        f"# Source PDF: [PDF]({relative_markdown_target(text_path, pdf_path)})\n"
+        f"# Run-relative source PDF: {relative_to_run(run_path, pdf_path)}\n"
+        f"# Review note: [Review]({relative_markdown_target(text_path, review_path)})\n"
+        f"# Run-relative review note: {relative_to_run(run_path, review_path)}\n"
         "# Caveat: PDF text extraction may omit equations, captions, tables, and layout.\n\n"
     )
     text_path.write_text(header + text.strip() + "\n", encoding="utf-8")
 
     extracted_relative_path = relative_to_run(run_path, text_path)
+    extracted_link_target = relative_markdown_target(review_path, text_path)
     command_hint = (
         "python scripts/extract_paper_text.py "
         f"--run {run_path} --paper-id {paper_id} --pdf {pdf_path} --review {review_path}"
@@ -93,6 +105,7 @@ def write_extracted_text(
         replace_or_append_source_section(
             review_text,
             extracted_relative_path=extracted_relative_path,
+            extracted_link_target=extracted_link_target,
             command_hint=command_hint,
         ),
         encoding="utf-8",
@@ -125,4 +138,3 @@ def main(argv: list[str] | None = None) -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
-

@@ -114,3 +114,4 @@ def test_literature_replanning_loop_scenario_is_evaluated():
     assert "PDF text extraction is a reading aid" in scenario.rule_terms
     assert "Machine-Assisted Draft From Extracted Text" in scenario.rule_terms
     assert "process_paper_for_review.py" in scenario.rule_terms
+    assert "clickable links across the literature graph" in scenario.rule_terms

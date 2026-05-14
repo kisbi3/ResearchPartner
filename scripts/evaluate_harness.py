@@ -69,6 +69,7 @@ SCENARIOS = [
             "PDF text extraction is a reading aid",
             "Machine-Assisted Draft From Extracted Text",
             "process_paper_for_review.py",
+            "clickable links across the literature graph",
         ),
     ),
     Scenario(

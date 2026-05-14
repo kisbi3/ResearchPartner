@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 from pathlib import Path
 import re
 import sys
@@ -28,6 +29,18 @@ def relative_to_run(run_path: Path, path: Path | None) -> str:
     return relative.as_posix()
 
 
+def markdown_link(label: str, target: str) -> str:
+    """Return a Markdown link, preserving empty targets as blank text."""
+    if not target:
+        return ""
+    return f"[{label}]({target})"
+
+
+def relative_markdown_target(from_path: Path, to_path: Path) -> str:
+    """Return a POSIX Markdown target from one artifact to another."""
+    return os.path.relpath(Path(to_path), start=Path(from_path).parent).replace(os.sep, "/")
+
+
 def build_review_note(
     *,
     paper_id: str,
@@ -36,10 +49,14 @@ def build_review_note(
     year: str = "",
     pdf_relative_path: str = "",
     role: str = "",
+    pdf_link_target: str = "",
+    index_link_target: str = "../index.md",
+    replanning_link_target: str = "../../docs/replanning_memo.md",
 ) -> str:
     """Build the reusable detailed review note body."""
     citation = ", ".join(part for part in [authors, year] if part)
-    pdf_text = f"`{pdf_relative_path}`" if pdf_relative_path else ""
+    pdf_text = markdown_link("PDF", pdf_link_target) if pdf_link_target else ""
+    run_relative_pdf = f"`{pdf_relative_path}`" if pdf_relative_path else ""
     return f"""# {title}
 
 ## Review Metadata
@@ -50,7 +67,10 @@ def build_review_note(
 - Venue:
 - DOI / arXiv / URL:
 - PDF path: {pdf_text}
+- Run-relative PDF path: {run_relative_pdf}
 - Review note path:
+- Paper Review Index: [literature/index.md]({index_link_target})
+- Replanning Memo: [docs/replanning_memo.md]({replanning_link_target})
 - Review date:
 - Reviewer:
 - Status: reading
@@ -231,6 +251,8 @@ def append_index_row(
     year: str,
     pdf_relative_path: str,
     review_relative_path: str,
+    pdf_link_target: str,
+    review_link_target: str,
     role: str,
 ) -> None:
     """Append a paper row to the run-local literature index."""
@@ -239,8 +261,12 @@ def append_index_row(
         index_path.write_text("# Paper Review Index\n\n", encoding="utf-8")
 
     authors_year = " / ".join(part for part in [authors, year] if part)
-    pdf_cell = f"`{pdf_relative_path}`" if pdf_relative_path else ""
-    review_cell = f"`{review_relative_path}`"
+    pdf_cell = (
+        f"{markdown_link('PDF', pdf_link_target)}<br>`{pdf_relative_path}`"
+        if pdf_relative_path
+        else ""
+    )
+    review_cell = f"{markdown_link('Review', review_link_target)}<br>`{review_relative_path}`"
     row = (
         f"| {paper_id} | {title} | {authors_year} | {pdf_cell} | {review_cell} | "
         f"reading | {role} | maybe | unverified |\n"
@@ -272,6 +298,10 @@ def create_paper_review(
     pdf = Path(pdf_path) if pdf_path else None
     pdf_relative_path = relative_to_run(run_path, pdf)
     review_relative_path = relative_to_run(run_path, review_path)
+    index_path = run_path / "literature" / "index.md"
+    pdf_review_link = relative_markdown_target(review_path, pdf) if pdf else ""
+    pdf_index_link = relative_markdown_target(index_path, pdf) if pdf else ""
+    review_index_link = relative_markdown_target(index_path, review_path)
 
     review_path.write_text(
         build_review_note(
@@ -281,17 +311,20 @@ def create_paper_review(
             year=year,
             pdf_relative_path=pdf_relative_path,
             role=role,
+            pdf_link_target=pdf_review_link,
         ),
         encoding="utf-8",
     )
     append_index_row(
-        index_path=run_path / "literature" / "index.md",
+        index_path=index_path,
         paper_id=paper_id,
         title=title,
         authors=authors,
         year=year,
         pdf_relative_path=pdf_relative_path,
         review_relative_path=review_relative_path,
+        pdf_link_target=pdf_index_link,
+        review_link_target=review_index_link,
         role=role,
     )
     return review_path
