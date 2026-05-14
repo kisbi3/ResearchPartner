@@ -300,6 +300,8 @@ Orient -> Interview -> Specify -> Seed -> Validate -> Execute -> Evaluate -> Rev
 
 모든 스크립트가 자동으로 실행되는 것이 중요한 게 아닙니다. 프로젝트가 코드나 플롯에서 과학적 해석으로 넘어가기 전에 가정, 단위, 베이스라인 게이트, 매개변수, 증거 링크, 그림 출처, 주장의 강도, 연구자 검토 체크포인트를 계속 눈에 띄게 유지하는 것이 핵심입니다.
 
+하네스 자체가 바뀔 때는 사용자-facing 문서도 변경의 일부입니다. 하네스 feature, script, skill, command, workflow, installation behavior, 또는 사용자-facing capability를 추가, 제거, rename, 또는 실질적으로 변경한다면 같은 checkpoint에서 `README.md`와 `README.ko.md`를 함께 갱신해야 합니다. 단, 변경이 명시적으로 내부 구현에만 해당하고 사용자에게 노출되지 않는 경우는 예외입니다.
+
 ---
 
 ## 🛠 Research Partner 활용 방법

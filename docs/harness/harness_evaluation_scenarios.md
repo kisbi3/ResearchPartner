@@ -457,3 +457,26 @@ Expected docs:
 Expected blocked behavior:
 
 - Do not move to the next run without recording what changed, what evidence changed, and what reusable artifact remains.
+
+## Scenario 7: User-Facing Documentation Drift
+
+Task prompt:
+
+> Add a new harness command, skill, workflow, or installation behavior.
+
+Risk:
+
+- The assistant changes the harness but leaves the public README stale, so users cannot discover or correctly install the new capability.
+
+Expected skills:
+
+- `harness-evaluation`
+
+Expected docs:
+
+- `README.md`
+- `README.ko.md`
+
+Expected blocked behavior:
+
+- Do not treat a harness feature, script, skill, command, workflow, installation behavior, or user-facing capability as complete unless `README.md` and `README.ko.md` were updated in the same checkpoint or the change is explicitly non-user-facing.

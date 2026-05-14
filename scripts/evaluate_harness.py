@@ -369,6 +369,17 @@ SCENARIOS = [
         ),
         rule_terms=("Every research iteration", "reusable artifact", "lineage"),
     ),
+    Scenario(
+        name="user_facing_documentation_drift",
+        skills=("skills/harness-evaluation/SKILL.md",),
+        docs=("README.md", "README.ko.md"),
+        rule_terms=(
+            "materially change a harness feature",
+            "README.md",
+            "README.ko.md",
+            "same checkpoint",
+        ),
+    ),
 ]
 
 

@@ -4,6 +4,7 @@
 
 - Do not use `plt.show()`. Save figures to files instead.
 - If you add instructions to `AGENTS.md`, add the identical instructions to `GEMINI.md`; these files must stay synchronized.
+- If you add, remove, rename, or materially change a harness feature, script, skill, command, workflow, installation behavior, or user-facing capability, update `README.md` and `README.ko.md` in the same checkpoint so the public project description stays current.
 - Commit at coherent checkpoints when Git is available. Before committing, run relevant validation, summarize the scope, and do not include unrelated user changes.
 
 ## Role

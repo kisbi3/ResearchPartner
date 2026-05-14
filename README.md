@@ -282,6 +282,8 @@ Orient -> Interview -> Specify -> Seed -> Validate -> Execute -> Evaluate -> Rev
 
 The important behavior is not that every script runs automatically. The important behavior is that assumptions, units, baseline gates, parameters, evidence links, figure provenance, claim strength, and researcher review checkpoints stay visible before the project moves from code or plots into scientific interpretation.
 
+When the harness itself changes, user-facing documentation is part of the change. Any added, removed, renamed, or materially changed harness feature, script, skill, command, workflow, installation behavior, or user-facing capability must update both `README.md` and `README.ko.md` in the same checkpoint, unless the change is explicitly internal and non-user-facing.
+
 ---
 
 ## 🛠 How to Utilize Research Partner

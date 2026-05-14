@@ -31,7 +31,7 @@ def test_multi_agent_orchestration_scenarios_are_evaluated():
 def test_harness_evaluator_includes_hook_scenarios():
     evaluator = load_evaluator()
 
-    assert len(evaluator.SCENARIOS) == 17
+    assert len(evaluator.SCENARIOS) == 18
 
 
 def test_orchestration_scenarios_require_run_templates():
@@ -79,6 +79,16 @@ def test_live_linked_research_graph_scenario_is_evaluated():
     scenarios = {scenario.name: scenario for scenario in evaluator.SCENARIOS}
 
     assert "live_linked_research_graph" in scenarios
+
+
+def test_user_facing_documentation_scenario_is_evaluated():
+    evaluator = load_evaluator()
+
+    scenarios = {scenario.name: scenario for scenario in evaluator.SCENARIOS}
+
+    assert "user_facing_documentation_drift" in scenarios
+    assert "README.md" in scenarios["user_facing_documentation_drift"].docs
+    assert "README.ko.md" in scenarios["user_facing_documentation_drift"].docs
     scenario = scenarios["live_linked_research_graph"]
     assert "docs/run_templates/cartographer_update_template.md" in scenario.docs
     assert "docs/run_templates/live_workflow_diagram_template.md" in scenario.docs
