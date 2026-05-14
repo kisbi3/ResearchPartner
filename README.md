@@ -28,7 +28,25 @@ The harness generates an **Interactive Workflow Map** (`docs/workflow_map.html`)
 
 ## 🛠 Installation Guide
 
-Research Partner is installed by placing its instruction files, skill library, workflow documents, and helper scripts inside the root of the research project that should be governed by the harness. After installation, your AI coding or research CLI reads the local instructions first, uses the `skills/` directory for discipline-specific procedures, and writes workflow evidence into `docs/` and run-specific directories.
+Quick Start: install from inside the research project root with one command:
+
+```powershell
+python -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/kisbi3/ResearchPartner/main/scripts/install.py').read())"
+```
+
+Then open your AI coding or research agent in that same directory and start with a small validation-oriented request:
+
+```text
+Use the research-plan-review skill to help me define a small validation target.
+```
+
+The installer downloads the current Research Partner harness, installs the instruction files, skill library, workflow documents, and helper scripts into the current project root, and leaves unrelated research files alone.
+
+To update an existing harness installation, rerun the same command with `--force`:
+
+```powershell
+python -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/kisbi3/ResearchPartner/main/scripts/install.py').read())" --force
+```
 
 ### 1. Prerequisites
 
@@ -40,7 +58,7 @@ Research Partner is installed by placing its instruction files, skill library, w
   - **Claude Code** can use `AGENTS.md` or a project-specific `CLAUDE.md` if you choose to add one.
 - Git is recommended but not required. It lets the assistant checkpoint coherent harness or research milestones after validation.
 
-### 2. Choose the Installation Target
+### 2. Install Into the Project Root
 
 Install Research Partner into the root of the project whose scientific workflow you want to protect. The project root is the directory that contains, or will contain, your research code, data notes, figures, and manuscript materials.
 
@@ -59,9 +77,7 @@ cd C:\ExistingPhysicsProject
 
 Do not install run outputs back into the harness source repository. Run-specific evidence should live in a separate run directory, normally under a sibling root such as `C:\ResearchPartner-runs\YYYY-MM-DD-topic-name\`.
 
-### 3. Copy the Harness Files
-
-From this repository, copy these required items into the target project root:
+The one-line installer places these managed harness items in the target project:
 
 ```text
 AGENTS.md
@@ -72,33 +88,11 @@ docs/
 scripts/
 ```
 
-Optional but useful items:
-
-```text
-README.md
-tests/
-.gitignore
-```
-
-Do not copy transient runtime artifacts such as `outputs/`, `__pycache__/`, `.pytest_cache/`, temporary run folders, or another repository's `.git/` directory.
-
-In PowerShell, from the Research Partner source directory:
-
-```powershell
-$SOURCE = "C:\ResearchPartner"
-$TARGET = "C:\MyPhysicsProject"
-
-Copy-Item "$SOURCE\AGENTS.md" "$TARGET\AGENTS.md" -Force
-Copy-Item "$SOURCE\GEMINI.md" "$TARGET\GEMINI.md" -Force
-Copy-Item "$SOURCE\PHYSICS.md" "$TARGET\PHYSICS.md" -Force
-Copy-Item "$SOURCE\skills" "$TARGET\skills" -Recurse -Force
-Copy-Item "$SOURCE\docs" "$TARGET\docs" -Recurse -Force
-Copy-Item "$SOURCE\scripts" "$TARGET\scripts" -Recurse -Force
-```
+It does not install transient runtime artifacts such as `outputs/`, `__pycache__/`, `.pytest_cache/`, temporary run folders, or another repository's `.git/` directory. Existing managed harness files are protected by default; use `--force` only when you intentionally want to refresh `AGENTS.md`, `GEMINI.md`, `PHYSICS.md`, `skills/`, `docs/`, and `scripts/`.
 
 If you later change the local harness contract, keep `AGENTS.md` and `GEMINI.md` synchronized. They are the same behavioral contract for different assistant runtimes.
 
-### 4. Verify the Installation
+### 3. Verify the Installation
 
 Run these checks from the target project root:
 
@@ -116,7 +110,7 @@ Expected result:
 
 If your terminal cannot find `python`, try `py -3` in place of `python`.
 
-### 5. Confirm Platform Routing
+### 4. Confirm Platform Routing
 
 Research Partner works by giving each AI CLI a local instruction file plus a skill directory. The activation mechanism varies by tool:
 
@@ -134,7 +128,7 @@ Use the research-plan-review skill to help me define a small validation target.
 
 The assistant should classify the task, load the relevant skill, ask for assumptions or review checkpoints when needed, and avoid jumping directly into unsupported simulation or manuscript claims.
 
-### 6. Start the First Run
+### 5. Start the First Run
 
 For a new run-specific artifact set, use the scaffolder from the installed project root:
 
@@ -151,6 +145,16 @@ python scripts\audit_existing_project.py
 ```
 
 Then use `docs\adoption\existing_results_inventory.md` and `docs\adoption\retrofit_validation_plan.md` to mark which figures, scripts, and claims are validated, partial, unknown, or not yet checked.
+
+### 6. Manual Local Install Fallback
+
+If you already have a local checkout of Research Partner and do not want the installer to download from GitHub, run this from anywhere:
+
+```powershell
+python C:\ResearchPartner\scripts\install.py --source C:\ResearchPartner --target C:\MyPhysicsProject
+```
+
+Use `--force` with the local installer only when overwriting an existing harness installation is intended.
 
 ### 7. Operating Rule After Installation
 
