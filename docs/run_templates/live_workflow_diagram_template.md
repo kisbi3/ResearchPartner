@@ -16,7 +16,9 @@ The Diagram/Cartographer Agent listens to the Professor Orchestrator, Graduate T
 flowchart LR
     O["Orient"] --> I["Interview"]
     I --> SP["Specify"]
-    SP --> S["Seed"]
+    SP --> L["Literature Replanning"]
+    L --> SP
+    L --> S["Seed"]
     S --> V["Validate"]
     V --> E["Execute"]
     E --> EV["Evaluate"]
@@ -30,6 +32,7 @@ flowchart LR
 | Gate | Status | Note |
 |---|---|---|
 | Professor interview | pending |  |
+| Literature review and replanning | pending |  |
 | Test-design seed | pending |  |
 | Baseline or reproduction target | pending |  |
 | Execution | pending |  |
@@ -43,6 +46,9 @@ Allowed status values: `pending`, `pass`, `partial`, `fail`, `blocked`, `waived`
 ## Evidence Links
 
 - `docs/research_plan.md`
+- `docs/literature_review_plan.md`
+- `docs/paper_request_queue.md`
+- `docs/replanning_memo.md`
 - `docs/baseline_registry.md`
 - `docs/validation_log.md`
 - `docs/researcher_review_log.md`

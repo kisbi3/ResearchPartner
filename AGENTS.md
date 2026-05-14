@@ -57,6 +57,7 @@ Required scientific-loop hooks:
 - **Figure Provenance Hook**: every figure should trace to script, input data, command, parameters, output path, and caption claim.
 - **Claim Strength Hook**: when claims, captions, conclusions, README text, or manuscript text change, check wording strength against evidence and downgrade unsupported language.
 - **Literature Claim Hook**: novelty, priority, "to our knowledge", "first", "known result", and prior-work claims require citations or must be marked as unverified.
+- **Literature Replanning Hook**: before full research execution when novelty, prior methods, or reproduction targets matter, run an iterative literature review and replanning loop. The Professor Orchestrator must request researcher-provided PDFs when access requires an institutional account, review the papers directly, build a novelty map, choose reproduction targets, and revise the plan before coding or full-scale analysis.
 - **Manuscript Drift Hook**: detect when manuscript language becomes stronger than the current evidence chain or diverges from recorded assumptions and limitations.
 - **Artifact Freshness Hook**: after code, data, parameters, or analysis change, mark dependent figures, tables, captions, and manuscript references stale until regenerated or revalidated.
 - **Anomaly Hook**: surprising, unstable, contradictory, or failed results must be classified before patching symptoms.
@@ -116,6 +117,7 @@ Classify the task as one or more of:
 - Baseline validation
 - Workflow visualization
 - Research plan review
+- Literature replanning
 - Model specification
 - Dimensional analysis
 - Analytical derivation
@@ -157,10 +159,24 @@ Before substantial simulations, analyses, figure sets, reproduction attempts, or
 
 1. Inspect `docs/workflow_overview.md`, `docs/workflow_diagrams.md`, and `docs/workflow_map.html` when those files exist.
 2. Record the plan in `docs/research_plan.md` when that file exists.
-3. Check that the plan has assumptions, units, baseline validation, observables, failure criteria, and a claim-to-evidence path.
-4. Identify the first researcher review checkpoint.
-5. Prefer the smallest iteration that can change scientific interpretation.
-6. When starting a new run-specific artifact set, prefer `python scripts/start_research_run.py --name <run-name>` so `ResearchPartner-runs/YYYY-MM-DD-<slug>/` contains the live workflow, run packet, initial docs, and outputs directory.
+3. If the plan depends on novelty, prior methods, or reproduction fidelity, run the Literature Replanning Loop before execution.
+4. Check that the plan has assumptions, units, baseline validation, observables, failure criteria, and a claim-to-evidence path.
+5. Identify the first researcher review checkpoint.
+6. Prefer the smallest iteration that can change scientific interpretation.
+7. When starting a new run-specific artifact set, prefer `python scripts/start_research_run.py --name <run-name>` so `ResearchPartner-runs/YYYY-MM-DD-<slug>/` contains the live workflow, run packet, literature PDF workspace, initial docs, and outputs directory.
+
+## Literature Replanning Loop
+
+Use this loop between initial planning and full research execution whenever literature access, novelty, reproduction targets, or prior methods could change the research direction. This loop may repeat several times before coding, simulation, figure generation, or manuscript drafting begins.
+
+1. The Professor Orchestrator frames the literature need: research question, physical system, observable, candidate claim, and why literature could change the plan.
+2. The Professor Orchestrator asks the researcher to collect specific papers or paper categories as PDFs, especially papers requiring school, library, or institutional access that the LLM cannot retrieve directly.
+3. Store researcher-provided PDFs in the run-local `literature/pdfs/` directory. Track requests in `docs/paper_request_queue.md` and the read status in `docs/literature_review_plan.md`.
+4. Read the PDFs directly and write paper review notes that separate methods, assumptions, equations, parameter regimes, baselines, limitations, results, and claims.
+5. Build a novelty map comparing the proposed contribution against the reviewed papers. Mark novelty as supported, weak, contradicted, or unverified; unsupported novelty claims must remain unverified.
+6. Select reproduction targets from the literature: the smallest figure, equation, dataset, benchmark, or known limit that should be reproduced before new claims are pursued.
+7. Write or update `docs/replanning_memo.md` with the revised research plan, reproduction target, claim ceiling, validation gates, and open literature questions.
+8. Ask the researcher to review the PDF set, novelty map, reproduction target, and replanned execution before moving to full-scale work, unless the researcher explicitly waives the literature gate.
 
 ## Real-Time Workflow Diagram Agent
 

@@ -25,6 +25,7 @@ SCENARIOS = [
         name="pre_run_workflow_navigation",
         skills=(
             "skills/research-plan-review/SKILL.md",
+            "skills/literature-review-planning/SKILL.md",
             "skills/scientific-verification-before-claim/SKILL.md",
         ),
         docs=(
@@ -36,6 +37,29 @@ SCENARIOS = [
             "docs/workflow_code_map.md",
         ),
         rule_terms=("Workflow Visualization", "workflow_map.html", "paper_logic_diagram"),
+    ),
+    Scenario(
+        name="literature_replanning_loop",
+        skills=(
+            "skills/literature-review-planning/SKILL.md",
+            "skills/research-plan-review/SKILL.md",
+            "skills/claim-to-evidence/SKILL.md",
+        ),
+        docs=(
+            "docs/literature/README.md",
+            "docs/literature/paper_request_queue.md",
+            "docs/literature/literature_review_template.md",
+            "docs/literature/replanning_memo_template.md",
+            "docs/run_templates/research_run_packet_template.md",
+        ),
+        rule_terms=(
+            "Literature Replanning Hook",
+            "Literature Replanning Loop",
+            "researcher-provided PDFs",
+            "literature/pdfs/",
+            "novelty map",
+            "reproduction targets",
+        ),
     ),
     Scenario(
         name="live_workflow_diagram_agent",

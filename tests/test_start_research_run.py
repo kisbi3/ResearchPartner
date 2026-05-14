@@ -38,7 +38,11 @@ def test_create_run_copies_templates_and_initial_docs(tmp_path):
     assert (run_path / "docs" / "cartographer_update_template.md").exists()
     assert (run_path / "research_run_packet.md").exists()
     assert (run_path / "outputs").is_dir()
+    assert (run_path / "literature" / "pdfs").is_dir()
     assert (run_path / "docs" / "research_plan.md").exists()
+    assert (run_path / "docs" / "literature_review_plan.md").exists()
+    assert (run_path / "docs" / "paper_request_queue.md").exists()
+    assert (run_path / "docs" / "replanning_memo.md").exists()
     assert (run_path / "docs" / "baseline_registry.md").exists()
     assert (run_path / "docs" / "validation_log.md").exists()
     assert (run_path / "docs" / "researcher_review_log.md").exists()
@@ -54,6 +58,8 @@ def test_create_run_copies_templates_and_initial_docs(tmp_path):
     assert "Artifact Preview" in workflow
     assert "Completion Conference" in packet
     assert "Live Linked Research Graph" in packet
+    assert "Literature Replanning Loop" in packet
+    assert "researcher-provided PDFs" in packet
     assert "Code links" in packet
     assert "Result links" in packet
     assert "Interpretation links" in packet

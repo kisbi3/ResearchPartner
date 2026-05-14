@@ -31,7 +31,7 @@ def test_multi_agent_orchestration_scenarios_are_evaluated():
 def test_harness_evaluator_includes_hook_scenarios():
     evaluator = load_evaluator()
 
-    assert len(evaluator.SCENARIOS) == 16
+    assert len(evaluator.SCENARIOS) == 17
 
 
 def test_orchestration_scenarios_require_run_templates():
@@ -87,3 +87,20 @@ def test_live_linked_research_graph_scenario_is_evaluated():
     assert "Evidence Strength" in scenario.rule_terms
     assert "Artifact Preview" in scenario.rule_terms
     assert "Staleness propagation" in scenario.rule_terms
+
+
+def test_literature_replanning_loop_scenario_is_evaluated():
+    evaluator = load_evaluator()
+
+    scenarios = {scenario.name: scenario for scenario in evaluator.SCENARIOS}
+
+    assert "literature_replanning_loop" in scenarios
+    scenario = scenarios["literature_replanning_loop"]
+    assert "skills/literature-review-planning/SKILL.md" in scenario.skills
+    assert "docs/literature/README.md" in scenario.docs
+    assert "docs/literature/paper_request_queue.md" in scenario.docs
+    assert "docs/literature/literature_review_template.md" in scenario.docs
+    assert "docs/literature/replanning_memo_template.md" in scenario.docs
+    assert "Literature Replanning Hook" in scenario.rule_terms
+    assert "researcher-provided PDFs" in scenario.rule_terms
+    assert "novelty map" in scenario.rule_terms

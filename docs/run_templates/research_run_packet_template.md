@@ -49,6 +49,36 @@ Record only decision-relevant dialogue, not a full transcript.
 - Claim-to-evidence path:
 - First researcher review checkpoint:
 
+## Literature Replanning Loop
+
+Use this before full execution when novelty, reproduction targets, or prior methods affect the plan. The Professor Orchestrator requests researcher-provided PDFs when papers are behind institutional access or otherwise unavailable to the LLM.
+
+### Paper Request and Intake
+
+- Paper request queue: `docs/paper_request_queue.md`
+- Literature review plan: `docs/literature_review_plan.md`
+- PDF directory: `literature/pdfs/`
+- Missing PDFs:
+
+### Novelty Map
+
+| Planned Contribution | Closest Prior Work | Evidence Source | Novelty Status | Claim Ceiling |
+|---|---|---|---|---|
+|  |  | direct PDF / metadata / unverified | pending_review | unsupported |
+
+### Reproduction Target
+
+- Target paper:
+- Result, figure, equation, dataset, or benchmark:
+- Why this is the smallest useful reproduction target:
+- Pass/fail criterion:
+
+### Replanning Memo
+
+- Memo path: `docs/replanning_memo.md`
+- Plan changes:
+- Researcher approval status:
+
 ## Execute
 
 | Task | Owner | Command / Artifact | Status | Failure or Caveat |
