@@ -61,4 +61,4 @@ def test_write_extracted_text_creates_source_artifact_and_links_review(tmp_path)
 
     extracted_text = text_path.read_text(encoding="utf-8")
     assert "Source PDF: [PDF](../pdfs/example.pdf)" in extracted_text
-    assert "Review note: [Review](../reviews/P1-example.md)" in extracted_text
+    assert "Review note: [Review](../reviews/P1-example-paper.md)" in extracted_text
