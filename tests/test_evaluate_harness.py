@@ -31,7 +31,7 @@ def test_multi_agent_orchestration_scenarios_are_evaluated():
 def test_harness_evaluator_includes_hook_scenarios():
     evaluator = load_evaluator()
 
-    assert len(evaluator.SCENARIOS) == 15
+    assert len(evaluator.SCENARIOS) == 16
 
 
 def test_orchestration_scenarios_require_run_templates():
@@ -71,3 +71,19 @@ def test_scientific_loop_hook_scenarios_are_evaluated():
         "Artifact Freshness Hook"
         in scenarios["manuscript_and_artifact_drift_hooks"].rule_terms
     )
+
+
+def test_live_linked_research_graph_scenario_is_evaluated():
+    evaluator = load_evaluator()
+
+    scenarios = {scenario.name: scenario for scenario in evaluator.SCENARIOS}
+
+    assert "live_linked_research_graph" in scenarios
+    scenario = scenarios["live_linked_research_graph"]
+    assert "docs/run_templates/cartographer_update_template.md" in scenario.docs
+    assert "docs/run_templates/live_workflow_diagram_template.md" in scenario.docs
+    assert "docs/run_templates/research_run_packet_template.md" in scenario.docs
+    assert "Link Status" in scenario.rule_terms
+    assert "Evidence Strength" in scenario.rule_terms
+    assert "Artifact Preview" in scenario.rule_terms
+    assert "Staleness propagation" in scenario.rule_terms

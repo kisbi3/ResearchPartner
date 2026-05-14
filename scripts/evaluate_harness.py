@@ -219,6 +219,34 @@ SCENARIOS = [
         ),
     ),
     Scenario(
+        name="live_linked_research_graph",
+        skills=(
+            "skills/research-plan-review/SKILL.md",
+            "skills/numerical-validation/SKILL.md",
+            "skills/researcher-review-loop/SKILL.md",
+            "skills/scientific-verification-before-claim/SKILL.md",
+        ),
+        docs=(
+            "docs/workflow_overview.md",
+            "docs/workflow_diagrams.md",
+            "docs/run_templates/cartographer_update_template.md",
+            "docs/run_templates/live_workflow_diagram_template.md",
+            "docs/run_templates/research_run_packet_template.md",
+        ),
+        rule_terms=(
+            "Live Linked Research Graph",
+            "Code links",
+            "Result links",
+            "Interpretation links",
+            "Link Status",
+            "Evidence Strength",
+            "Claim ceiling",
+            "Researcher Checkpoint Marker",
+            "Artifact Preview",
+            "Staleness propagation",
+        ),
+    ),
+    Scenario(
         name="new_model_without_baseline",
         skills=(
             "skills/research-plan-review/SKILL.md",

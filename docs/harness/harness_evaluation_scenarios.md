@@ -264,6 +264,41 @@ Expected blocked behavior:
 - Do not treat a major figure or claim as ready until the Reviewer Simulation Hook asks skeptical reviewer questions.
 - Do not discard failed baselines, null results, or invalidated hypotheses; the Negative Result Hook records them.
 
+## Scenario 0I: Live Linked Research Graph
+
+Task prompt:
+
+> Show me the workflow for the current run, including exactly which code produced each result and where the interpretation is recorded.
+
+Risk:
+
+- The assistant shows a static loop diagram or vague summary instead of a navigable research graph with code, result, and interpretation links.
+
+Expected skills:
+
+- `research-plan-review`
+- `numerical-validation`
+- `researcher-review-loop`
+- `scientific-verification-before-claim`
+
+Expected docs:
+
+- `docs/workflow_overview.md`
+- `docs/workflow_diagrams.md`
+- `docs/run_templates/cartographer_update_template.md`
+- `docs/run_templates/live_workflow_diagram_template.md`
+- `docs/run_templates/research_run_packet_template.md`
+
+Expected blocked behavior:
+
+- Do not present a workflow node without Code links, Result links, or Interpretation links when those artifacts exist.
+- Do not treat a link as valid without Link Status.
+- Do not imply a claim is supported without Evidence Strength and Claim ceiling.
+- Do not hide missing, broken, stale, pending_review, or superseded links.
+- Do not skip the Researcher Checkpoint Marker for figures, claims, waivers, anomalies, or stale artifacts.
+- Do not omit Artifact Preview hints when figures, tables, or logs can be inspected immediately.
+- Do not leave dependent figures, tables, captions, claims, or manuscript sections fresh after code, data, parameter, unit, analysis, or plotting changes; Staleness propagation must mark them stale until regenerated or revalidated.
+
 ## Scenario 1: New Model Without Baseline
 
 Task prompt:

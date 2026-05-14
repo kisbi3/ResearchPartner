@@ -35,6 +35,7 @@ def test_create_run_copies_templates_and_initial_docs(tmp_path):
 
     assert run_path == tmp_path / "2026-05-14-1d-diffusion-mode-decay"
     assert (run_path / "docs" / "live_workflow_diagram.md").exists()
+    assert (run_path / "docs" / "cartographer_update_template.md").exists()
     assert (run_path / "research_run_packet.md").exists()
     assert (run_path / "outputs").is_dir()
     assert (run_path / "docs" / "research_plan.md").exists()
@@ -46,7 +47,16 @@ def test_create_run_copies_templates_and_initial_docs(tmp_path):
     workflow = (run_path / "docs" / "live_workflow_diagram.md").read_text(encoding="utf-8")
     packet = (run_path / "research_run_packet.md").read_text(encoding="utf-8")
     assert "Diagram/Cartographer Agent" in workflow
+    assert "Cartographer Update Events" in workflow
+    assert "Link Status" in workflow
+    assert "Evidence Strength" in workflow
+    assert "Researcher Checkpoint Marker" in workflow
+    assert "Artifact Preview" in workflow
     assert "Completion Conference" in packet
+    assert "Live Linked Research Graph" in packet
+    assert "Code links" in packet
+    assert "Result links" in packet
+    assert "Interpretation links" in packet
 
 
 def test_create_run_refuses_to_overwrite_existing_run(tmp_path):

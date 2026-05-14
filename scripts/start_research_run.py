@@ -15,6 +15,9 @@ ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_RUNS_ROOT = ROOT.parent / "ResearchPartner-runs"
 LIVE_TEMPLATE = ROOT / "docs" / "run_templates" / "live_workflow_diagram_template.md"
 PACKET_TEMPLATE = ROOT / "docs" / "run_templates" / "research_run_packet_template.md"
+CARTOGRAPHER_UPDATE_TEMPLATE = (
+    ROOT / "docs" / "run_templates" / "cartographer_update_template.md"
+)
 
 INITIAL_DOCS = {
     "research_plan.md": "# Research Plan\n\n- Run-specific plan seed:\n",
@@ -50,6 +53,10 @@ def create_run(name: str, date_text: str | None = None, runs_root: Path | str = 
 
     shutil.copyfile(LIVE_TEMPLATE, docs_dir / "live_workflow_diagram.md")
     shutil.copyfile(PACKET_TEMPLATE, run_path / "research_run_packet.md")
+    shutil.copyfile(
+        CARTOGRAPHER_UPDATE_TEMPLATE,
+        docs_dir / "cartographer_update_template.md",
+    )
 
     for filename, content in INITIAL_DOCS.items():
         (docs_dir / filename).write_text(content, encoding="utf-8")

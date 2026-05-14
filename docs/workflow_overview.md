@@ -71,6 +71,31 @@ The hooks are grouped by the risk they control:
 - Evidence and claims: Claim Strength Hook, Literature Claim Hook, Manuscript Drift Hook, Artifact Freshness Hook, Reviewer Simulation Hook.
 - Failure and memory: Anomaly Hook, Negative Result Hook, Cartographer Hook, Retrospective Hook.
 
+## Live Linked Research Graph
+
+The visible workflow map should not merely redraw the fixed loop. It should grow from the order in which research actually happens. Each Professor Orchestrator, Graduate Test-Design Agent, and Coding Subagent update should send a small Cartographer update event using `docs/run_templates/cartographer_update_template.md`. The Diagram/Cartographer Agent records those events as graph nodes and links, but does not judge scientific meaning.
+
+Each important node should expose three link families:
+
+- Code links: exact files and line numbers that define parameters, implement models, run validation, compute observables, or generate figures.
+- Result links: figures, tables, logs, raw data, processed data, fit summaries, and other artifacts that the researcher can inspect immediately.
+- Interpretation links: validation notes, decision records, researcher review notes, claim-to-evidence entries, waivers, caveats, and manuscript interpretation.
+
+The graph tracks link state, not just link existence:
+
+- Link Status: `fresh`, `stale`, `missing`, `broken`, `pending_review`, `superseded`.
+- Evidence Strength: `none`, `weak`, `moderate`, `strong`, `contradictory`.
+- Claim ceiling: `observation`, `interpretation`, `mechanism`, `generalization`, `unsupported`.
+- Researcher Checkpoint Marker: whether the researcher must inspect the node before progress continues.
+- Artifact Preview: thumbnail, table head, or log-tail hints for immediate inspection.
+
+The graph should preserve both views:
+
+- Chronological view: the order in which questions, decisions, runs, figures, anomalies, waivers, and reviews happened.
+- Evidence view: how claims depend on code, parameters, baselines, runs, artifacts, interpretation notes, and reviewer checkpoints.
+
+Staleness propagation is mandatory. When code, data, parameters, unit conversions, analysis, or plotting change, dependent figures, tables, captions, claims, manuscript sections, and interpretation links must become `stale` until regenerated or revalidated. Open issue nodes should represent missing evidence, broken links, failed validation, unresolved anomalies, and unlinked claims rather than hiding them.
+
 ## Live Workflow Tracking
 
 The workflow-diagram agent should update the live Mermaid/workflow artifact whenever the active step changes, a gate passes or blocks progress, an evidence link is added, a prohibited behavior is avoided, or the next review checkpoint changes. The live artifact should link to scripts, logs, figures, derivations, or decisions when they exist, and should mark missing evidence as missing rather than filling gaps with stronger wording.

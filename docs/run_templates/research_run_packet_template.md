@@ -92,6 +92,53 @@ Convene this after a reproduction, validation, figure-generation, or other subst
 - Logs:
 - Data products:
 
+## Live Linked Research Graph
+
+Use this section as the run-level index for the workflow map. Every important graph node should link code, result artifacts, and interpretation documents so the researcher can inspect the state immediately.
+
+### Node and Relation Taxonomy
+
+- Node types: `question`, `assumption`, `model`, `equation`, `parameter`, `baseline`, `validation`, `run`, `dataset`, `figure`, `table`, `anomaly`, `waiver`, `claim`, `decision`, `review`, `retrospective`, `open_issue`.
+- Relations: `depends_on`, `implements`, `defines_parameter`, `runs_validation`, `generates_figure`, `computes_observable`, `generated_by`, `computed_from`, `supports`, `contradicts`, `limits`, `blocks`, `waived_by`, `supersedes`, `interprets`, `documents`, `requires_review`.
+
+### Link State
+
+- Link Status: `fresh`, `stale`, `missing`, `broken`, `pending_review`, `superseded`.
+- Evidence Strength: `none`, `weak`, `moderate`, `strong`, `contradictory`.
+- Claim ceiling: `observation`, `interpretation`, `mechanism`, `generalization`, `unsupported`.
+- Review owner:
+- Researcher Checkpoint Marker:
+
+### Code links
+
+| Node | Path | Line | Role | Relation | Status |
+|---|---|---:|---|---|---|
+|  |  |  |  |  | pending_review |
+
+### Result links
+
+| Node | Path | Kind | Relation | Status | Artifact Preview |
+|---|---|---|---|---|---|
+|  |  |  |  | pending_review |  |
+
+### Interpretation links
+
+| Node | Path | Anchor | Relation | Status |
+|---|---|---|---|---|
+|  |  |  |  | pending_review |
+
+### Open issue nodes
+
+| Issue | Blocks | Missing Evidence | Owner | Status |
+|---|---|---|---|---|
+|  |  |  |  | pending_review |
+
+### Staleness propagation
+
+- Code, data, parameter, or analysis changes must mark dependent figures, tables, captions, claims, and manuscript sections as `stale` until regenerated or revalidated.
+- Waivers must remain visible as graph nodes and lower the claim ceiling when they limit interpretation.
+- The graph should be viewable both chronologically and by evidence relation.
+
 ## User-Facing Report
 
 ### Summary

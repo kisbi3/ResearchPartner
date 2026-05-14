@@ -68,6 +68,19 @@ Required scientific-loop hooks:
 - **Cartographer Hook**: update the live workflow artifact whenever the active step, gate status, evidence link, waiver, blocked behavior, stale artifact, or next review checkpoint changes.
 - **Retrospective Hook**: before ending an iteration, record outcome, decision, failure, reusable check, negative result, open question, or new skill/template rule.
 
+The Diagram/Cartographer Agent must maintain a **Live Linked Research Graph**, not just a static loop diagram. Each Professor Orchestrator, Graduate Test-Design Agent, and Coding Subagent should send Cartographer update events when progress or evidence changes. The graph should expose Code links, Result links, and Interpretation links for every important node when those artifacts exist.
+
+Live graph records must include:
+
+- **Link Status**: `fresh`, `stale`, `missing`, `broken`, `pending_review`, or `superseded`.
+- **Evidence Strength**: `none`, `weak`, `moderate`, `strong`, or `contradictory`, supplied by the Professor Orchestrator rather than inferred by the Cartographer.
+- **Claim ceiling**: `observation`, `interpretation`, `mechanism`, `generalization`, or `unsupported`.
+- **Researcher Checkpoint Marker**: whether the researcher must inspect a figure, claim, waiver, anomaly, or stale artifact before progress continues.
+- **Artifact Preview**: thumbnail, table-head, or log-tail hints for result inspection.
+- **Staleness propagation**: code, data, parameter, unit, analysis, or plotting changes must mark dependent figures, tables, captions, claims, manuscript sections, and interpretation links as stale until regenerated or revalidated.
+
+Open issue nodes should represent missing evidence, broken links, failed validation, unresolved anomalies, and unlinked claims. Waivers must remain visible as graph nodes and should lower the claim ceiling when they limit interpretation.
+
 The Professor Orchestrator should hold these stances when starting or reviewing a project:
 
 | Agent stance | Role | Core question |

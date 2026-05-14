@@ -76,6 +76,106 @@ def extract_gate_rows(markdown: str) -> list[dict[str, str]]:
     return rows
 
 
+def extract_json_objects(markdown: str) -> list[dict]:
+    objects = []
+    for match in re.finditer(r"```json\s*(?P<body>.*?)```", markdown, re.DOTALL):
+        body = match.group("body").strip()
+        if not body:
+            continue
+        try:
+            value = json.loads(body)
+        except json.JSONDecodeError:
+            continue
+        if isinstance(value, dict):
+            objects.append(value)
+    return objects
+
+
+def with_run_path(link: dict, run_root: Path) -> dict:
+    normalized = dict(link)
+    path_text = str(normalized.get("path", ""))
+    if path_text:
+        normalized["path"] = run_relative_path(run_root / path_text)
+    normalized.setdefault(
+        "label",
+        normalized.get("role")
+        or normalized.get("kind")
+        or normalized.get("relation")
+        or path_text
+        or "linked artifact",
+    )
+    return normalized
+
+
+def cartographer_event_nodes(markdown: str, run_root: Path) -> list[dict]:
+    section = extract_section(markdown, "Cartographer Update Events")
+    events = []
+    for value in extract_json_objects(section):
+        update = value.get("cartographer_update", value)
+        if isinstance(update, dict):
+            events.append(update)
+
+    nodes = []
+    x_positions = [80, 330, 580, 830]
+    for index, event in enumerate(events):
+        node_id = event.get("node_id") or re.sub(
+            r"[^a-z0-9]+",
+            "_",
+            str(event.get("title") or event.get("summary") or f"event_{index}").lower(),
+        ).strip("_")
+        code_links = [with_run_path(link, run_root) for link in event.get("code_links", [])]
+        result_links = [with_run_path(link, run_root) for link in event.get("result_links", [])]
+        interpretation_links = [
+            with_run_path(link, run_root) for link in event.get("interpretation_links", [])
+        ]
+        nodes.append(
+            {
+                "id": node_id or f"cartographer_event_{index}",
+                "title": event.get("title") or event.get("summary") or "Cartographer Update",
+                "phase": event.get("status", "active"),
+                "node_type": event.get("node_type", event.get("event_type", "update")),
+                "link_status": event.get("link_status", "pending_review"),
+                "evidence_strength": event.get("evidence_strength", "none"),
+                "claim_ceiling": event.get("claim_ceiling", "unsupported"),
+                "review_owner": event.get("review_owner", event.get("from", "unknown")),
+                "requires_researcher_review": bool(
+                    event.get("requires_researcher_review", False)
+                ),
+                "x": x_positions[index % len(x_positions)],
+                "y": 90 + 170 * (index // len(x_positions)),
+                "summary": event.get("summary", ""),
+                "result_summary": {
+                    "node_type": event.get("node_type", event.get("event_type", "update")),
+                    "link_status": event.get("link_status", "pending_review"),
+                    "evidence_strength": event.get("evidence_strength", "none"),
+                    "claim_ceiling": event.get("claim_ceiling", "unsupported"),
+                    "review_owner": event.get("review_owner", event.get("from", "unknown")),
+                },
+                "images": [
+                    link
+                    for link in result_links
+                    if str(link.get("kind", "")).lower() == "figure"
+                    or str(link.get("path", "")).lower().endswith((".png", ".jpg", ".jpeg", ".gif", ".webp"))
+                ],
+                "responsible": code_links + result_links + interpretation_links,
+                "code_links": code_links,
+                "result_links": result_links,
+                "interpretation_links": interpretation_links,
+                "graph_links": event.get("graph_links", []),
+                "checks": [
+                    "Cartographer records link state only; it does not judge scientific meaning.",
+                    "Open issues, stale links, waivers, and missing evidence must stay visible.",
+                ],
+                "edges": [
+                    link.get("to")
+                    for link in event.get("graph_links", [])
+                    if link.get("from") == node_id and link.get("to")
+                ],
+            }
+        )
+    return nodes
+
+
 def read_json(path: Path) -> dict:
     if not path.exists():
         return {}
@@ -204,6 +304,7 @@ def live_workflow_map() -> dict | None:
     checkpoint = extract_section(markdown, "Next Review Checkpoint") or "No checkpoint recorded."
     evidence_links = extract_bullet_links(extract_section(markdown, "Evidence Links"), run_root)
     gate_rows = extract_gate_rows(markdown)
+    event_nodes = cartographer_event_nodes(markdown, run_root)
 
     phase_by_status = {
         "pass": "passed",
@@ -228,6 +329,16 @@ def live_workflow_map() -> dict | None:
                 "summary": f"{status.upper()}: {row['note']}",
                 "result_summary": result_summary,
                 "images": images,
+                "node_type": "validation_gate",
+                "link_status": "pending_review" if status == "pending" else status,
+                "evidence_strength": "none",
+                "claim_ceiling": "unsupported",
+                "review_owner": "professor",
+                "requires_researcher_review": status in {"partial", "fail", "blocked", "waived"},
+                "code_links": [],
+                "result_links": [],
+                "interpretation_links": evidence_links,
+                "graph_links": [],
                 "responsible": evidence_links
                 + [
                     {
@@ -244,8 +355,17 @@ def live_workflow_map() -> dict | None:
             }
         )
 
+    if event_nodes:
+        if nodes:
+            for index, node in enumerate(event_nodes):
+                node["x"] = x_positions[index % len(x_positions)]
+                node["y"] = 90 + 170 * ((index + len(nodes)) // len(x_positions))
+            nodes[-1]["edges"] = [event_nodes[0]["id"]]
+        nodes.extend(event_nodes)
+
     for index, node in enumerate(nodes[:-1]):
-        node["edges"] = [nodes[index + 1]["id"]]
+        if not node.get("edges"):
+            node["edges"] = [nodes[index + 1]["id"]]
 
     if not nodes:
         nodes = [
@@ -258,6 +378,16 @@ def live_workflow_map() -> dict | None:
                 "summary": active_step,
                 "result_summary": {},
                 "images": [],
+                "node_type": "workflow_state",
+                "link_status": "missing",
+                "evidence_strength": "none",
+                "claim_ceiling": "unsupported",
+                "review_owner": "professor",
+                "requires_researcher_review": True,
+                "code_links": [],
+                "result_links": [],
+                "interpretation_links": [],
+                "graph_links": [],
                 "responsible": [
                     {"label": "Live workflow diagram", "path": run_relative_path(live_path)}
                 ],
@@ -298,6 +428,16 @@ def placeholder_live_workflow_map() -> dict:
                 "summary": "No live workflow artifact has been generated yet.",
                 "result_summary": {},
                 "images": [],
+                "node_type": "workflow_state",
+                "link_status": "missing",
+                "evidence_strength": "none",
+                "claim_ceiling": "unsupported",
+                "review_owner": "professor",
+                "requires_researcher_review": True,
+                "code_links": [],
+                "result_links": [],
+                "interpretation_links": [],
+                "graph_links": [],
                 "responsible": [
                     {"label": "Workflow overview", "path": "docs/workflow_overview.md"}
                 ],
@@ -493,6 +633,25 @@ def build_html(data: dict) -> str:
       font-size: 12px;
       color: var(--muted);
     }}
+    .link-grid {{
+      display: grid;
+      gap: 8px;
+    }}
+    .link-card {{
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 8px;
+      background: #fbfbf8;
+    }}
+    .link-card a {{
+      font-weight: 700;
+    }}
+    .link-meta {{
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 12px;
+      overflow-wrap: anywhere;
+    }}
     footer {{
       padding: 12px 24px 20px;
       color: var(--muted);
@@ -527,9 +686,17 @@ def build_html(data: dict) -> str:
     let activeNode = DATA.maps[0].nodes[0].id;
 
     function pathHref(path) {{
-      if (path.startsWith('../')) return path;
-      if (path.startsWith('docs/')) return path.replace(/^docs\\//, '');
-      return '../' + path;
+      const [base, hash] = String(path).split('#');
+      let href = base;
+      if (href.startsWith('../')) href = href;
+      else if (href.startsWith('docs/')) href = href.replace(/^docs\\//, '');
+      else href = '../' + href;
+      return hash ? href + '#' + hash : href;
+    }}
+
+    function linkHref(item) {{
+      const anchor = item.anchor ? '#' + item.anchor : '';
+      return pathHref(String(item.path || '') + anchor);
     }}
 
     function currentMap() {{
@@ -621,6 +788,33 @@ def build_html(data: dict) -> str:
       const links = (node.responsible || []).map(item =>
         `<button type="button" class="file-button" data-path="${{escapeHtml(pathHref(item.path))}}" data-label="${{escapeHtml(item.label)}}">${{escapeHtml(item.label)}}</button>`
       ).join('');
+      const metadata = [
+        ['Node Type', node.node_type || 'unclassified'],
+        ['Link Status', node.link_status || 'unknown'],
+        ['Evidence Strength', node.evidence_strength || 'none'],
+        ['Claim Ceiling', node.claim_ceiling || 'unsupported'],
+        ['Review Owner', node.review_owner || 'unassigned'],
+        ['Researcher Checkpoint Marker', node.requires_researcher_review ? 'required' : 'not required']
+      ].map(([key, value]) => `
+        <div class="result-row">
+          <span class="result-key">${{escapeHtml(key)}}</span>
+          <span class="result-value">${{escapeHtml(value)}}</span>
+        </div>
+      `).join('');
+      const linkSection = (items, emptyText) => (items || []).length
+        ? `<div class="link-grid">${{items.map(item => `
+            <div class="link-card">
+              <a href="${{escapeHtml(linkHref(item))}}">${{escapeHtml(item.role || item.kind || item.relation || item.path)}}</a>
+              <div class="link-meta">${{escapeHtml([
+                item.path,
+                item.line ? 'line ' + item.line : '',
+                item.relation || '',
+                item.status || '',
+                item.preview ? 'preview: ' + item.preview : ''
+              ].filter(Boolean).join(' · '))}}</div>
+            </div>
+          `).join('')}}</div>`
+        : `<p class="meta">${{escapeHtml(emptyText)}}</p>`;
       const checks = (node.checks || []).map(check => `<li>${{escapeHtml(check)}}</li>`).join('');
       const resultEntries = Object.entries(node.result_summary || {{}});
       const resultMarkup = resultEntries.length
@@ -644,12 +838,28 @@ def build_html(data: dict) -> str:
         <div class="meta">${{escapeHtml(map.title)}} / ${{escapeHtml(node.phase)}}</div>
         <p>${{escapeHtml(node.summary)}}</p>
         <div class="section">
+          <h3>Link State</h3>
+          <div class="results">${{metadata}}</div>
+        </div>
+        <div class="section">
           <h3>Result Summary</h3>
           <div class="results">${{resultMarkup}}</div>
         </div>
         <div class="section">
           <h3>Evidence Images</h3>
           <div class="image-grid">${{imageMarkup}}</div>
+        </div>
+        <div class="section">
+          <h3>Code Links</h3>
+          ${{linkSection(node.code_links, 'No code links recorded for this node.')}}
+        </div>
+        <div class="section">
+          <h3>Result Links</h3>
+          ${{linkSection(node.result_links, 'No result links recorded for this node.')}}
+        </div>
+        <div class="section">
+          <h3>Interpretation Links</h3>
+          ${{linkSection(node.interpretation_links, 'No interpretation links recorded for this node.')}}
         </div>
         <div class="section">
           <h3>Responsible Files</h3>
