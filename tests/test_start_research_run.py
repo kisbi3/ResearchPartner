@@ -39,6 +39,8 @@ def test_create_run_copies_templates_and_initial_docs(tmp_path):
     assert (run_path / "research_run_packet.md").exists()
     assert (run_path / "outputs").is_dir()
     assert (run_path / "literature" / "pdfs").is_dir()
+    assert (run_path / "literature" / "reviews").is_dir()
+    assert (run_path / "literature" / "index.md").exists()
     assert (run_path / "docs" / "research_plan.md").exists()
     assert (run_path / "docs" / "literature_review_plan.md").exists()
     assert (run_path / "docs" / "paper_request_queue.md").exists()
@@ -60,9 +62,17 @@ def test_create_run_copies_templates_and_initial_docs(tmp_path):
     assert "Live Linked Research Graph" in packet
     assert "Literature Replanning Loop" in packet
     assert "researcher-provided PDFs" in packet
+    assert "section-by-section paper review" in packet
     assert "Code links" in packet
     assert "Result links" in packet
     assert "Interpretation links" in packet
+
+    review_plan = (run_path / "docs" / "literature_review_plan.md").read_text(
+        encoding="utf-8"
+    )
+    assert "Detailed Paper Review Notes" in review_plan
+    assert "Figure/Table-by-Figure/Table Review" in review_plan
+    assert "Reproduction Extraction" in review_plan
 
 
 def test_create_run_refuses_to_overwrite_existing_run(tmp_path):

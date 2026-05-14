@@ -49,6 +49,8 @@ Allowed status values: `pending`, `pass`, `partial`, `fail`, `blocked`, `waived`
 - `docs/literature_review_plan.md`
 - `docs/paper_request_queue.md`
 - `docs/replanning_memo.md`
+- `literature/index.md`
+- `literature/reviews/`
 - `docs/baseline_registry.md`
 - `docs/validation_log.md`
 - `docs/researcher_review_log.md`

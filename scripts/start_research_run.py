@@ -21,6 +21,9 @@ CARTOGRAPHER_UPDATE_TEMPLATE = (
 LITERATURE_REVIEW_TEMPLATE = ROOT / "docs" / "literature" / "literature_review_template.md"
 PAPER_REQUEST_TEMPLATE = ROOT / "docs" / "literature" / "paper_request_queue.md"
 REPLANNING_MEMO_TEMPLATE = ROOT / "docs" / "literature" / "replanning_memo_template.md"
+PAPER_REVIEW_INDEX_TEMPLATE = (
+    ROOT / "docs" / "literature" / "paper_review_index_template.md"
+)
 
 INITIAL_DOCS = {
     "research_plan.md": "# Research Plan\n\n- Run-specific plan seed:\n",
@@ -55,6 +58,7 @@ def create_run(name: str, date_text: str | None = None, runs_root: Path | str = 
     docs_dir.mkdir(parents=True)
     outputs_dir.mkdir()
     (literature_dir / "pdfs").mkdir(parents=True)
+    (literature_dir / "reviews").mkdir()
 
     shutil.copyfile(LIVE_TEMPLATE, docs_dir / "live_workflow_diagram.md")
     shutil.copyfile(PACKET_TEMPLATE, run_path / "research_run_packet.md")
@@ -65,6 +69,7 @@ def create_run(name: str, date_text: str | None = None, runs_root: Path | str = 
     shutil.copyfile(LITERATURE_REVIEW_TEMPLATE, docs_dir / "literature_review_plan.md")
     shutil.copyfile(PAPER_REQUEST_TEMPLATE, docs_dir / "paper_request_queue.md")
     shutil.copyfile(REPLANNING_MEMO_TEMPLATE, docs_dir / "replanning_memo.md")
+    shutil.copyfile(PAPER_REVIEW_INDEX_TEMPLATE, literature_dir / "index.md")
 
     for filename, content in INITIAL_DOCS.items():
         (docs_dir / filename).write_text(content, encoding="utf-8")

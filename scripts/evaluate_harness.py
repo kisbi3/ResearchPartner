@@ -48,6 +48,7 @@ SCENARIOS = [
         docs=(
             "docs/literature/README.md",
             "docs/literature/paper_request_queue.md",
+            "docs/literature/paper_review_index_template.md",
             "docs/literature/literature_review_template.md",
             "docs/literature/replanning_memo_template.md",
             "docs/run_templates/research_run_packet_template.md",
@@ -59,6 +60,8 @@ SCENARIOS = [
             "literature/pdfs/",
             "novelty map",
             "reproduction targets",
+            "section-by-section paper review",
+            "Figure/Table-by-Figure/Table Review",
         ),
     ),
     Scenario(
