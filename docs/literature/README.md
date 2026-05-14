@@ -24,6 +24,8 @@ Use `python scripts/extract_paper_text.py --run <run-dir> --paper-id P1 --pdf <r
 
 Use `python scripts/draft_paper_review.py --review <run-dir>/literature/reviews/<review>.md --extracted-text <run-dir>/literature/extracted_text/<paper>.txt` to insert a `Machine-Assisted Draft From Extracted Text` section. Treat this as a provisional reading aid only.
 
+Use `python scripts/process_paper_for_review.py --run <run-dir> --paper-id P1 --title "<paper title>" --pdf <run-dir>/literature/pdfs/<paper>.pdf --role benchmark` to run scaffold, text extraction, and provisional drafting in one step.
+
 ## Discipline
 
 - Do not infer novelty from memory alone.

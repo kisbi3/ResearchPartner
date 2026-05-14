@@ -55,6 +55,7 @@ SCENARIOS = [
             "scripts/scaffold_paper_review.py",
             "scripts/extract_paper_text.py",
             "scripts/draft_paper_review.py",
+            "scripts/process_paper_for_review.py",
         ),
         rule_terms=(
             "Literature Replanning Hook",
@@ -67,6 +68,7 @@ SCENARIOS = [
             "Figure/Table-by-Figure/Table Review",
             "PDF text extraction is a reading aid",
             "Machine-Assisted Draft From Extracted Text",
+            "process_paper_for_review.py",
         ),
     ),
     Scenario(
