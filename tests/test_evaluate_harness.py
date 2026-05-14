@@ -102,6 +102,7 @@ def test_literature_replanning_loop_scenario_is_evaluated():
     assert "docs/literature/paper_review_index_template.md" in scenario.docs
     assert "docs/literature/literature_review_template.md" in scenario.docs
     assert "docs/literature/replanning_memo_template.md" in scenario.docs
+    assert "scripts/scaffold_paper_review.py" in scenario.docs
     assert "Literature Replanning Hook" in scenario.rule_terms
     assert "researcher-provided PDFs" in scenario.rule_terms
     assert "novelty map" in scenario.rule_terms

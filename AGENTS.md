@@ -172,11 +172,12 @@ Use this loop between initial planning and full research execution whenever lite
 1. The Professor Orchestrator frames the literature need: research question, physical system, observable, candidate claim, and why literature could change the plan.
 2. The Professor Orchestrator asks the researcher to collect specific papers or paper categories as PDFs, especially papers requiring school, library, or institutional access that the LLM cannot retrieve directly.
 3. Store researcher-provided PDFs in the run-local `literature/pdfs/` directory. Track requests in `docs/paper_request_queue.md` and the read status in `docs/literature_review_plan.md`.
-4. Read the PDFs directly and write detailed, reusable paper review notes in `literature/reviews/`. Each important paper needs a section-by-section paper review, not a short abstract summary. The review should reconstruct research context, key concepts, methods, equations, assumptions, units, limitations, results, reusable details, and claims, and include a `Figure/Table-by-Figure/Table Review` for evidence-bearing artifacts.
-5. Build a novelty map comparing the proposed contribution against the reviewed papers. Mark novelty as supported, weak, contradicted, or unverified; unsupported novelty claims must remain unverified.
-6. Select reproduction targets from the literature: the smallest figure, equation, dataset, benchmark, or known limit that should be reproduced before new claims are pursued.
-7. Write or update `docs/replanning_memo.md` with the revised research plan, reproduction target, claim ceiling, validation gates, and open literature questions.
-8. Ask the researcher to review the PDF set, novelty map, reproduction target, and replanned execution before moving to full-scale work, unless the researcher explicitly waives the literature gate.
+4. Use `python scripts/scaffold_paper_review.py --run <run-dir> --paper-id <id> --title <title>` when adding a paper to initialize its review note and update `literature/index.md`.
+5. Read the PDFs directly and write detailed, reusable paper review notes in `literature/reviews/`. Each important paper needs a section-by-section paper review, not a short abstract summary. The review should reconstruct research context, key concepts, methods, equations, assumptions, units, limitations, results, reusable details, and claims, and include a `Figure/Table-by-Figure/Table Review` for evidence-bearing artifacts.
+6. Build a novelty map comparing the proposed contribution against the reviewed papers. Mark novelty as supported, weak, contradicted, or unverified; unsupported novelty claims must remain unverified.
+7. Select reproduction targets from the literature: the smallest figure, equation, dataset, benchmark, or known limit that should be reproduced before new claims are pursued.
+8. Write or update `docs/replanning_memo.md` with the revised research plan, reproduction target, claim ceiling, validation gates, and open literature questions.
+9. Ask the researcher to review the PDF set, novelty map, reproduction target, and replanned execution before moving to full-scale work, unless the researcher explicitly waives the literature gate.
 
 ## Real-Time Workflow Diagram Agent
 

@@ -50,6 +50,8 @@ Maintain a single run-local literature directory:
 
 Repository templates live in `docs/literature/`.
 
+Use `scripts/scaffold_paper_review.py` to initialize a detailed review note and append it to `literature/index.md` when a paper enters the review set.
+
 ## Detailed Review Standard
 
 Each important paper review should be reusable by a future researcher. Include:

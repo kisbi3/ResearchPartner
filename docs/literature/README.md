@@ -15,6 +15,10 @@ Use this workspace before full research execution when literature access, novelt
 - `docs/literature_review_plan.md`: intake table and reading priorities.
 - `docs/replanning_memo.md`: novelty map, reproduction target, revised plan, and claim ceiling.
 
+## Review Note Scaffolding
+
+Use `python scripts/scaffold_paper_review.py --run <run-dir> --paper-id P1 --title "<paper title>" --pdf <run-dir>/literature/pdfs/<paper>.pdf --role benchmark` to create a detailed review note and append it to the run-local paper index.
+
 ## Discipline
 
 - Do not infer novelty from memory alone.

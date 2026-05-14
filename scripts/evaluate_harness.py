@@ -52,6 +52,7 @@ SCENARIOS = [
             "docs/literature/literature_review_template.md",
             "docs/literature/replanning_memo_template.md",
             "docs/run_templates/research_run_packet_template.md",
+            "scripts/scaffold_paper_review.py",
         ),
         rule_terms=(
             "Literature Replanning Hook",
