@@ -55,6 +55,8 @@ Use `scripts/scaffold_paper_review.py` to initialize a detailed review note and 
 
 Use `scripts/extract_paper_text.py` to create an extracted-text artifact and link it from the review note. PDF text extraction is a reading aid, not evidence by itself; verify equations, figures, captions, tables, and claims against the PDF.
 
+Use `scripts/draft_paper_review.py` only to insert a `Machine-Assisted Draft From Extracted Text` section with provisional candidates. This does not establish novelty or validate claims; the Professor Orchestrator must require human/PDF verification before any candidate text affects the replanning memo.
+
 ## Detailed Review Standard
 
 Each important paper review should be reusable by a future researcher. Include:

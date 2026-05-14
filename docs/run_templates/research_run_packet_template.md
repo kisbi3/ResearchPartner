@@ -67,6 +67,7 @@ Use this before full execution when novelty, reproduction targets, or prior meth
 
 - Each important paper needs a section-by-section paper review, not a short abstract summary.
 - PDF text extraction is a reading aid, not evidence by itself; verify equations, figures, captions, tables, and claims against the PDF.
+- A `Machine-Assisted Draft From Extracted Text` section may suggest candidate summary, method, result, figure/table, and reproduction leads, but it does not establish novelty or validate claims.
 - Reviews should reconstruct research context, key concepts, methods, equations, assumptions, units, figures/tables, limitations, novelty impact, and reproduction details.
 - Use a Figure/Table-by-Figure/Table Review for evidence that may support claims or reproduction targets.
 - Keep author claims, reviewer interpretation, and project implications separate.

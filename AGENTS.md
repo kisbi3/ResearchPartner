@@ -174,11 +174,12 @@ Use this loop between initial planning and full research execution whenever lite
 3. Store researcher-provided PDFs in the run-local `literature/pdfs/` directory. Track requests in `docs/paper_request_queue.md` and the read status in `docs/literature_review_plan.md`.
 4. Use `python scripts/scaffold_paper_review.py --run <run-dir> --paper-id <id> --title <title>` when adding a paper to initialize its review note and update `literature/index.md`.
 5. Use `python scripts/extract_paper_text.py --run <run-dir> --paper-id <id> --pdf <pdf-path> --review <review-path>` when a text extraction artifact would help review. PDF text extraction is a reading aid, not evidence by itself; verify equations, figures, captions, tables, and claims against the PDF.
-6. Read the PDFs directly and write detailed, reusable paper review notes in `literature/reviews/`. Each important paper needs a section-by-section paper review, not a short abstract summary. The review should reconstruct research context, key concepts, methods, equations, assumptions, units, limitations, results, reusable details, and claims, and include a `Figure/Table-by-Figure/Table Review` for evidence-bearing artifacts.
-7. Build a novelty map comparing the proposed contribution against the reviewed papers. Mark novelty as supported, weak, contradicted, or unverified; unsupported novelty claims must remain unverified.
-8. Select reproduction targets from the literature: the smallest figure, equation, dataset, benchmark, or known limit that should be reproduced before new claims are pursued.
-9. Write or update `docs/replanning_memo.md` with the revised research plan, reproduction target, claim ceiling, validation gates, and open literature questions.
-10. Ask the researcher to review the PDF set, novelty map, reproduction target, and replanned execution before moving to full-scale work, unless the researcher explicitly waives the literature gate.
+6. Use `python scripts/draft_paper_review.py --review <review-path> --extracted-text <text-path>` only to insert a `Machine-Assisted Draft From Extracted Text` section with provisional candidates. This does not establish novelty or validate claims.
+7. Read the PDFs directly and write detailed, reusable paper review notes in `literature/reviews/`. Each important paper needs a section-by-section paper review, not a short abstract summary. The review should reconstruct research context, key concepts, methods, equations, assumptions, units, limitations, results, reusable details, and claims, and include a `Figure/Table-by-Figure/Table Review` for evidence-bearing artifacts.
+8. Build a novelty map comparing the proposed contribution against the reviewed papers. Mark novelty as supported, weak, contradicted, or unverified; unsupported novelty claims must remain unverified.
+9. Select reproduction targets from the literature: the smallest figure, equation, dataset, benchmark, or known limit that should be reproduced before new claims are pursued.
+10. Write or update `docs/replanning_memo.md` with the revised research plan, reproduction target, claim ceiling, validation gates, and open literature questions.
+11. Ask the researcher to review the PDF set, novelty map, reproduction target, and replanned execution before moving to full-scale work, unless the researcher explicitly waives the literature gate.
 
 ## Real-Time Workflow Diagram Agent
 

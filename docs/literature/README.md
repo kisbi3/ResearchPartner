@@ -22,11 +22,14 @@ Use `python scripts/scaffold_paper_review.py --run <run-dir> --paper-id P1 --tit
 
 Use `python scripts/extract_paper_text.py --run <run-dir> --paper-id P1 --pdf <run-dir>/literature/pdfs/<paper>.pdf --review <run-dir>/literature/reviews/<review>.md` to save extracted PDF text and link it from the review note.
 
+Use `python scripts/draft_paper_review.py --review <run-dir>/literature/reviews/<review>.md --extracted-text <run-dir>/literature/extracted_text/<paper>.txt` to insert a `Machine-Assisted Draft From Extracted Text` section. Treat this as a provisional reading aid only.
+
 ## Discipline
 
 - Do not infer novelty from memory alone.
 - Distinguish direct PDF evidence from abstracts, metadata, and unverified summaries.
 - PDF text extraction is a reading aid, not evidence by itself. Verify equations, captions, tables, and claims against the PDF.
+- A machine-assisted draft from extracted text does not establish novelty or validate claims. It only creates candidates for human review.
 - Write detailed paper reviews, not short abstract summaries. A review should reconstruct context, methods, equations, figures/tables, limitations, reuse value, and reproduction details.
 - Choose at least one reproduction target before claiming a project is ready for full execution, unless the researcher explicitly waives the gate.
 - Keep unsupported novelty claims marked as unverified.
