@@ -48,6 +48,100 @@ To update an existing harness installation, rerun the same command with `--force
 python -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/kisbi3/ResearchPartner/main/scripts/install.py').read())" --force
 ```
 
+### What You Get
+
+After one disciplined research loop, a loose physics idea becomes a traceable research state: assumptions recorded, units checked, baseline targets identified, execution bounded, and claims capped by evidence.
+
+| Step | Before | After |
+|---|---|---|
+| Orient | "Analyze this model" | Task classified as model specification, validation, simulation, figure audit, manuscript claim, anomaly debugging, or adoption work |
+| Interview | Hidden assumptions | Physical object, observable, boundary conditions, approximation regime, units, and review checkpoint surfaced before execution |
+| Specify | No stable research contract | Research plan with assumptions, validation target, observables, failure criteria, and claim-to-evidence path |
+| Seed | Vague next action | Graduate test-design task with files, commands, inputs, outputs, pass/fail criteria, and failure handling |
+| Validate | "Looks plausible" | Baseline gate: toy model, known limit, reproduction target, conservation check, dimensional sanity case, or explicit waiver |
+| Execute | Unbounded coding or plotting | Bounded implementation that reports parameters, seeds, commands, outputs, and validation status |
+| Evaluate | Interpretation drifts from output | Professor-led review separates observation, interpretation, speculation, and unsupported claims |
+| Retrospect | Results disappear into chat | Reusable log entry, negative result, open question, workflow update, benchmark, or decision record |
+
+What just happened? The harness forced the research object to become explicit before code, and forced the evidence chain to stay visible before interpretation.
+
+### How It Compares
+
+AI coding tools are powerful, but physics research fails when the input is scientifically under-specified or the claims outgrow the evidence.
+
+| Topic | Vanilla AI Coding | Research Partner |
+|---|---|---|
+| Vague prompt | AI guesses intent and fills in physical assumptions silently | Socratic interview exposes assumptions before execution |
+| Units and regimes | Unit conversions, nondimensionalization, and approximations can drift unnoticed | Assumption, unit-conversion, and approximation-regime hooks record the model's domain |
+| Baseline validation | A simulation may be interpreted after it merely runs | Baseline gate blocks interpretation until a toy model, known limit, reproduction, or waiver exists |
+| Numerical work | Timestep, grid, tolerance, seed, and sweep changes may be buried in code | Parameter, stability, convergence, uncertainty, and reproducibility hooks keep run metadata visible |
+| Figures | A plot can become a claim without provenance | Figure provenance links script, command, data, parameters, output path, and caption claim |
+| Manuscript claims | Language often strengthens during editing | Claim-strength and manuscript-drift hooks downgrade unsupported language |
+| Anomalies | Symptoms get patched first | Anomaly hook classifies expected vs observed behavior before fixing |
+| Review | Manual "looks good" review | Professor-led evaluation plus researcher checkpoints and visible workflow state |
+
+### The Loop
+
+Research Partner is not a decorative workflow chart. The loop is the research method:
+
+```text
+Orient -> Interview -> Specify -> Seed -> Validate -> Execute -> Evaluate -> Review -> Retrospect
+    ^                                                                                 |
+    +----------------------------- Evolutionary Loop ---------------------------------+
+```
+
+Each cycle should change the research state: a stronger validation gate, a clearer assumption, a rejected hypothesis, a cleaner figure lineage, a lower claim ceiling, or a better next question. The output of evaluation becomes the input to the next specification.
+
+| Phase | What Happens |
+|---|---|
+| Orient | Classify the task and identify the responsible research role |
+| Interview | Ask the first professor question and expose ambiguity |
+| Specify | Record model meaning, assumptions, units, observables, and failure criteria |
+| Seed | Convert the research seed into testable graduate-agent tasks |
+| Validate | Check baseline, numerical stability, units, data lineage, or reproduction target |
+| Execute | Run bounded coding, analysis, plotting, or literature-processing work |
+| Evaluate | Separate supported observations from interpretation and speculation |
+| Review | Present evidence, figures, stale artifacts, waivers, and checkpoints to the researcher |
+| Retrospect | Preserve outcomes, negative results, open questions, and reusable checks |
+
+Convergence is not "the code ran." Convergence means the current claim is no stronger than the current evidence chain.
+
+### Commands
+
+Use these commands from the installed project root. The assistant should invoke the matching skills and workflow hooks during conversation; the terminal commands create or validate durable artifacts.
+
+| Need | Command | What It Does |
+|---|---|---|
+| Install harness | `python -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/kisbi3/ResearchPartner/main/scripts/install.py').read())"` | Installs instructions, skills, docs, and scripts into the current project |
+| Refresh harness | Same install command with `--force` | Overwrites managed harness files intentionally |
+| Start run | `python scripts\start_research_run.py --name "topic name"` | Creates a dated run packet under a sibling `ResearchPartner-runs` root |
+| Audit existing project | `python scripts\audit_existing_project.py` | Inventories scripts, figures, outputs, and validation gaps before retrofit |
+| Evaluate harness | `python scripts\evaluate_harness.py` | Checks realistic scenarios for correct skills, gates, and blocked behaviors |
+| Validate links | `python scripts\validate_workflow_links.py` | Checks workflow-document links |
+| Generate workflow map | `python scripts\generate_workflow_map.py` | Builds `docs\workflow_map.html` and `docs\workflow_map.json` |
+| Include paper logic | `python scripts\generate_workflow_map.py --include-paper-logic` | Adds manuscript-logic view when paper planning explicitly starts |
+| Scaffold paper review | `python scripts\scaffold_paper_review.py --run <run-dir> --paper-id P1 --title "Title"` | Creates a reusable paper review note and updates the literature index |
+| Process paper PDF | `python scripts\process_paper_for_review.py --run <run-dir> --paper-id P1 --title "Title" --pdf <pdf-path>` | Scaffolds review, extracts text, and drafts provisional extraction notes |
+| Check paper review | `python scripts\check_paper_review_quality.py <review-path>` | Blocks weak paper notes before they support novelty or reproduction claims |
+
+### The Research Minds
+
+For substantial work, the harness behaves like a professor-led research group rather than a single code generator.
+
+| Agent stance | Role | Core question |
+|---|---|---|
+| Socratic Interviewer | Questions-only; never builds | What are you assuming? |
+| Ontologist | Finds essence, not symptoms | What is this, really? |
+| Seed Architect | Crystallizes specs from dialogue | Is this complete and unambiguous? |
+| Evaluator | Performs staged verification | Did we build the right thing? |
+| Contrarian | Challenges every assumption | What if the opposite were true? |
+| Hacker | Finds unconventional paths | What constraints are actually real? |
+| Simplifier | Removes complexity | What is the simplest thing that could work? |
+| Researcher | Stops coding and starts investigating | What evidence do we actually have? |
+| Architect | Identifies structural causes | If we started over, would we build it this way? |
+
+These stances support four operational roles: the Professor Orchestrator owns scientific judgment and claim discipline; Graduate Test-Design Agents turn the plan into validation tasks; Coding Subagents execute bounded implementation only after the validation strategy is clear; the Diagram/Cartographer Agent records workflow state without adding opinions or strengthening claims.
+
 ### 1. Prerequisites
 
 - A local research project directory where the harness should run, for example `C:\MyPhysicsProject`.
