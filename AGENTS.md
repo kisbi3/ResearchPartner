@@ -26,10 +26,47 @@ For substantial research plans, existing-project reviews, reproduction attempts,
 The operating loop is:
 
 ```text
-Interview -> Seed -> Execute -> Evaluate
-    ^                                 |
-    +-------- Evolutionary Loop ------+
+Orient -> Interview -> Specify -> Seed -> Validate -> Execute -> Evaluate -> Review -> Retrospect
+    ^                                                                                 |
+    +----------------------------- Evolutionary Loop ---------------------------------+
 ```
+
+This is not a separate software workflow imposed on research. It is the scientific loop itself, with explicit transition hooks that keep scientific meaning, validation, implementation, evidence, and lineage connected.
+
+Role ownership across the loop:
+
+- **Professor Orchestrator** owns Orient, Interview, Specify, Evaluate, Review, claim discipline, waiver judgment, and completion conference decisions.
+- **Graduate Test-Design Agents** own Seed and Validate planning: they convert the professor's research seed into testable tasks with files, commands, inputs, outputs, pass/fail criteria, and required records.
+- **Coding Subagents** own bounded Execute tasks after the validation strategy is clear. They may implement, analyze, or plot, but they only report commands, parameters, seeds, files, outputs, validation status, and failures.
+- **Diagram/Cartographer Agent** owns live workflow state only: active step, gate status, evidence links, blocked behaviors, waivers, stale artifacts, and next researcher review checkpoint.
+
+Required scientific-loop hooks:
+
+- **Task Intake Hook**: classify the work before action as new model, existing project, simulation, figure, manuscript claim, bug/anomaly, maintenance, or harness evaluation; identify the responsible role and first professor question.
+- **Ambiguity Hook**: if the research question, physical object, observable, failure criterion, or review checkpoint is unclear, remain in Interview/Specify instead of executing.
+- **Assumption/Units Hook**: record assumptions, units, boundary conditions, initial conditions, nondimensionalization, and approximation regime before relying on equations, parameters, or results.
+- **Unit Conversion Hook**: when SI, cgs, natural units, code units, or nondimensional units are converted, record the conversion formula and reference scale.
+- **Approximation Regime Hook**: mark linearization, perturbation, continuum, weak-coupling, low/high-temperature, small-angle, or similar approximations with their validity regime.
+- **Baseline Gate Hook**: before a new model, solver, analysis pipeline, or figure workflow is interpreted, require a toy model, known limit, reproduction, conservation check, or explicit waiver.
+- **Graduate Test-Design Hook**: before coding begins, require graduate-agent tasks with exact files, commands, inputs, outputs, pass/fail criteria, evidence records, and failure handling.
+- **Code-before-Test Hook**: for numerical, simulation, analysis, or figure-generation code, flag implementation that lacks a prior or accompanying validation check.
+- **Numerical Stability Hook**: when solvers, timesteps, grids, tolerances, convergence criteria, sampling, or fitting routines are involved, require stability, convergence, uncertainty, or sensitivity checks.
+- **Parameter Change Hook**: record parameter values, sweep ranges, timestep, grid size, tolerance, random seed, sample size, and any changes from previous runs.
+- **Randomness/Reproducibility Hook**: for stochastic sampling, Monte Carlo, bootstrap, train/test split, randomized initialization, or noise, record seeds and run metadata; seedless results are provisional.
+- **Data Lineage Hook**: record raw data, processed data, filters, smoothing, clipping, outlier removal, normalization, fits, and derived datasets.
+- **Figure Provenance Hook**: every figure should trace to script, input data, command, parameters, output path, and caption claim.
+- **Claim Strength Hook**: when claims, captions, conclusions, README text, or manuscript text change, check wording strength against evidence and downgrade unsupported language.
+- **Literature Claim Hook**: novelty, priority, "to our knowledge", "first", "known result", and prior-work claims require citations or must be marked as unverified.
+- **Manuscript Drift Hook**: detect when manuscript language becomes stronger than the current evidence chain or diverges from recorded assumptions and limitations.
+- **Artifact Freshness Hook**: after code, data, parameters, or analysis change, mark dependent figures, tables, captions, and manuscript references stale until regenerated or revalidated.
+- **Anomaly Hook**: surprising, unstable, contradictory, or failed results must be classified before patching symptoms.
+- **Scope Creep Hook**: new observables, claims, parameter sweeps, figures, or goals that appear mid-run must be accepted into the seed explicitly or deferred.
+- **Reviewer Simulation Hook**: before major claims or figures are treated as ready, generate skeptical reviewer questions and check whether the evidence answers them.
+- **Waiver Hook**: if the researcher chooses to bypass a baseline, unit, reproduction, stability, or evidence gate, record the waiver, reason, risk, and claim limits.
+- **Negative Result Hook**: failed baselines, null results, disappearing effects, and invalidated hypotheses should be recorded rather than silently discarded.
+- **Environment Capture Hook**: for important runs, record command, OS, Python/package versions, relevant environment, and git state when available.
+- **Cartographer Hook**: update the live workflow artifact whenever the active step, gate status, evidence link, waiver, blocked behavior, stale artifact, or next review checkpoint changes.
+- **Retrospective Hook**: before ending an iteration, record outcome, decision, failure, reusable check, negative result, open question, or new skill/template rule.
 
 The Professor Orchestrator should hold these stances when starting or reviewing a project:
 

@@ -148,6 +148,77 @@ SCENARIOS = [
         ),
     ),
     Scenario(
+        name="hook_aware_scientific_loop",
+        skills=(
+            "skills/research-plan-review/SKILL.md",
+            "skills/model-specification/SKILL.md",
+            "skills/baseline-validation/SKILL.md",
+            "skills/numerical-validation/SKILL.md",
+        ),
+        docs=(
+            "docs/workflow_overview.md",
+            "docs/workflow_diagrams.md",
+            "docs/research_plan.md",
+            "docs/baseline_registry.md",
+            "docs/validation_log.md",
+        ),
+        rule_terms=(
+            "Task Intake Hook",
+            "Ambiguity Hook",
+            "Assumption/Units Hook",
+            "Baseline Gate Hook",
+            "Graduate Test-Design Hook",
+            "Code-before-Test Hook",
+            "Numerical Stability Hook",
+            "Waiver Hook",
+        ),
+    ),
+    Scenario(
+        name="provenance_and_reproducibility_hooks",
+        skills=(
+            "skills/numerical-validation/SKILL.md",
+            "skills/dimensional-analysis/SKILL.md",
+            "skills/research-retrospective/SKILL.md",
+        ),
+        docs=(
+            "docs/validation_log.md",
+            "docs/logs/negative_results.md",
+            "docs/research_retrospective.md",
+        ),
+        rule_terms=(
+            "Parameter Change Hook",
+            "Randomness/Reproducibility Hook",
+            "Data Lineage Hook",
+            "Figure Provenance Hook",
+            "Unit Conversion Hook",
+            "Environment Capture Hook",
+        ),
+    ),
+    Scenario(
+        name="manuscript_and_artifact_drift_hooks",
+        skills=(
+            "skills/scientific-verification-before-claim/SKILL.md",
+            "skills/claim-to-evidence/SKILL.md",
+            "skills/researcher-review-loop/SKILL.md",
+        ),
+        docs=(
+            "docs/decision_log.md",
+            "docs/researcher_review_log.md",
+            "docs/logs/open_questions.md",
+        ),
+        rule_terms=(
+            "Claim Strength Hook",
+            "Literature Claim Hook",
+            "Manuscript Drift Hook",
+            "Artifact Freshness Hook",
+            "Scope Creep Hook",
+            "Reviewer Simulation Hook",
+            "Negative Result Hook",
+            "Cartographer Hook",
+            "Retrospective Hook",
+        ),
+    ),
+    Scenario(
         name="new_model_without_baseline",
         skills=(
             "skills/research-plan-review/SKILL.md",

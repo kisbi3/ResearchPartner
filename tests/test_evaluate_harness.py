@@ -28,10 +28,10 @@ def test_multi_agent_orchestration_scenarios_are_evaluated():
     assert "completion_conference_reporting" in names
 
 
-def test_harness_evaluator_has_twelve_scenarios():
+def test_harness_evaluator_includes_hook_scenarios():
     evaluator = load_evaluator()
 
-    assert len(evaluator.SCENARIOS) == 12
+    assert len(evaluator.SCENARIOS) == 15
 
 
 def test_orchestration_scenarios_require_run_templates():
@@ -50,4 +50,24 @@ def test_orchestration_scenarios_require_run_templates():
     assert (
         "scripts/start_research_run.py"
         in scenarios["live_workflow_diagram_agent"].rule_terms
+    )
+
+
+def test_scientific_loop_hook_scenarios_are_evaluated():
+    evaluator = load_evaluator()
+
+    scenarios = {scenario.name: scenario for scenario in evaluator.SCENARIOS}
+
+    assert "hook_aware_scientific_loop" in scenarios
+    assert "provenance_and_reproducibility_hooks" in scenarios
+    assert "manuscript_and_artifact_drift_hooks" in scenarios
+    assert "Task Intake Hook" in scenarios["hook_aware_scientific_loop"].rule_terms
+    assert "Baseline Gate Hook" in scenarios["hook_aware_scientific_loop"].rule_terms
+    assert (
+        "Figure Provenance Hook"
+        in scenarios["provenance_and_reproducibility_hooks"].rule_terms
+    )
+    assert (
+        "Artifact Freshness Hook"
+        in scenarios["manuscript_and_artifact_drift_hooks"].rule_terms
     )

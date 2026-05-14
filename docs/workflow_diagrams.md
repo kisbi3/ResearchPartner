@@ -4,19 +4,41 @@
 
 ```mermaid
 flowchart LR
-    A["Intake"] --> B["Plan"]
-    B --> C["Specify model"]
-    C --> D["Check dimensions"]
-    D --> E["Baseline gate"]
-    E --> F["Execute small iteration"]
-    F --> G{"Anomaly?"}
-    G -->|yes| H["Classify anomaly"]
-    H --> F
-    G -->|no| I["Researcher review"]
-    I --> J["Claim gate"]
-    J --> K["Retrospective and lineage"]
-    K --> B
-    J --> L["Paper logic path"]
+    A["Orient"] --> B["Interview"]
+    B --> C["Specify"]
+    C --> D["Seed"]
+    D --> E["Validate"]
+    E --> F["Execute"]
+    F --> G["Evaluate"]
+    G --> H["Review"]
+    H --> I["Retrospect"]
+    I --> B
+    G --> J{"Anomaly or overclaim?"}
+    J -->|yes| B
+    H --> K["Paper logic path"]
+```
+
+## Scientific-Loop Hook Diagram
+
+```mermaid
+flowchart TB
+    O["Orient"] --> TH["Task Intake Hook"]
+    I["Interview"] --> AH["Ambiguity Hook"]
+    S["Specify"] --> AU["Assumption/Units Hook"]
+    S --> UC["Unit Conversion Hook"]
+    S --> AR["Approximation Regime Hook"]
+    SD["Seed"] --> GD["Graduate Test-Design Hook"]
+    V["Validate"] --> BG["Baseline Gate Hook"]
+    V --> NS["Numerical Stability Hook"]
+    V --> WV["Waiver Hook"]
+    E["Execute"] --> PC["Parameter Change Hook"]
+    E --> DL["Data Lineage Hook"]
+    E --> FP["Figure Provenance Hook"]
+    EV["Evaluate"] --> CS["Claim Strength Hook"]
+    EV --> AN["Anomaly Hook"]
+    R["Review"] --> AF["Artifact Freshness Hook"]
+    R --> MD["Manuscript Drift Hook"]
+    RT["Retrospect"] --> RH["Retrospective Hook"]
 ```
 
 ## Responsibility Diagram
@@ -63,10 +85,15 @@ flowchart TB
 
 ```mermaid
 flowchart LR
-    I["Interview"] --> S["Seed"]
-    S --> E["Execute"]
-    E --> V["Evaluate"]
-    V --> I
+    O["Orient"] --> I["Interview"]
+    I --> SP["Specify"]
+    SP --> S["Seed"]
+    S --> V["Validate"]
+    V --> E["Execute"]
+    E --> EV["Evaluate"]
+    EV --> R["Review"]
+    R --> RT["Retrospect"]
+    RT --> I
 ```
 
 ## Completion Conference Diagram

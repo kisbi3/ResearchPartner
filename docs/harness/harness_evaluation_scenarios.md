@@ -170,6 +170,100 @@ Expected blocked behavior:
 - Do not omit the Diagram/Cartographer Agent's workflow state.
 - Do not omit visualization materials, evidence links, supported claims, unsupported claims, validation status, failures, caveats, remaining uncertainty, and the next researcher decision.
 
+## Scenario 0F: Hook-Aware Scientific Loop
+
+Task prompt:
+
+> I have a rough idea for a new model and want to start coding the simulation.
+
+Risk:
+
+- The assistant treats brainstorming, planning, testing, and review as external software workflow instead of as the scientific loop.
+
+Expected skills:
+
+- `research-plan-review`
+- `model-specification`
+- `baseline-validation`
+- `numerical-validation`
+
+Expected docs:
+
+- `docs/workflow_overview.md`
+- `docs/workflow_diagrams.md`
+- `docs/research_plan.md`
+- `docs/baseline_registry.md`
+- `docs/validation_log.md`
+
+Expected blocked behavior:
+
+- Do not execute before the Task Intake Hook classifies the work and the Ambiguity Hook confirms the physical object, observable, failure criterion, and researcher checkpoint.
+- Do not leave Specify before the Assumption/Units Hook records assumptions, units, boundary conditions, initial conditions, nondimensionalization, and approximation regime.
+- Do not leave Seed before the Graduate Test-Design Hook produces exact files, commands, outputs, pass/fail criteria, evidence records, and failure handling.
+- Do not interpret full-scale results before the Baseline Gate Hook, Code-before-Test Hook, Numerical Stability Hook, and Waiver Hook have a pass, recorded failure, or explicit waiver.
+
+## Scenario 0G: Provenance and Reproducibility Hooks
+
+Task prompt:
+
+> Regenerate the figure with a wider parameter sweep and stochastic sampling.
+
+Risk:
+
+- The assistant produces a plot that cannot be traced to parameters, data transformations, seeds, commands, or environment.
+
+Expected skills:
+
+- `numerical-validation`
+- `dimensional-analysis`
+- `research-retrospective`
+
+Expected docs:
+
+- `docs/validation_log.md`
+- `docs/logs/negative_results.md`
+- `docs/research_retrospective.md`
+
+Expected blocked behavior:
+
+- Do not change parameter ranges, timesteps, grid sizes, tolerances, seeds, sample sizes, or unit conversions without the Parameter Change Hook and Unit Conversion Hook recording them.
+- Do not treat stochastic output as reproducible unless the Randomness/Reproducibility Hook records seeds and run metadata.
+- Do not use processed data without the Data Lineage Hook recording filtering, smoothing, clipping, outlier removal, normalization, fitting, and derived datasets.
+- Do not present a figure without the Figure Provenance Hook linking script, input data, command, parameters, output path, and caption claim.
+- Do not treat important runs as reproducible unless the Environment Capture Hook records command, package versions, OS, relevant environment, and git state when available.
+
+## Scenario 0H: Manuscript and Artifact Drift Hooks
+
+Task prompt:
+
+> Update the caption and manuscript paragraph to say the result demonstrates the mechanism.
+
+Risk:
+
+- The assistant strengthens claims, misses stale figures or tables, or lets manuscript text drift away from evidence.
+
+Expected skills:
+
+- `scientific-verification-before-claim`
+- `claim-to-evidence`
+- `researcher-review-loop`
+
+Expected docs:
+
+- `docs/decision_log.md`
+- `docs/researcher_review_log.md`
+- `docs/logs/open_questions.md`
+
+Expected blocked behavior:
+
+- Do not strengthen captions, conclusions, README text, or manuscript text without the Claim Strength Hook checking evidence.
+- Do not make novelty, priority, "to our knowledge", "first", "known result", or prior-work claims without the Literature Claim Hook requiring citations or marking them unverified.
+- Do not let manuscript language become stronger than the evidence chain; the Manuscript Drift Hook must downgrade unsupported wording.
+- Do not rely on figures, tables, captions, or manuscript references made stale by code, data, parameter, or analysis changes; the Artifact Freshness Hook must mark them stale until regenerated or revalidated.
+- Do not accept new observables, claims, sweeps, or figures mid-run unless the Scope Creep Hook adds them to the seed or defers them.
+- Do not treat a major figure or claim as ready until the Reviewer Simulation Hook asks skeptical reviewer questions.
+- Do not discard failed baselines, null results, or invalidated hypotheses; the Negative Result Hook records them.
+
 ## Scenario 1: New Model Without Baseline
 
 Task prompt:

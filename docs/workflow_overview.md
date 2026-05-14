@@ -34,20 +34,42 @@ Do not show the paper logic workflow as a default research dashboard before the 
 
 For substantial research iterations, keep a live Mermaid or workflow artifact current through a separate workflow-diagram agent or equivalent separate tracking pass. This live artifact should show the active step, gates, evidence links, blocked behaviors, and next researcher review checkpoint. It is a process-tracking artifact only and must not strengthen scientific claims beyond the evidence chain.
 
+## Scientific Loop Summary
+
+The live research loop is:
+
+```text
+Orient -> Interview -> Specify -> Seed -> Validate -> Execute -> Evaluate -> Review -> Retrospect
+    ^                                                                                 |
+    +----------------------------- Evolutionary Loop ---------------------------------+
+```
+
+This loop absorbs software-development discipline into scientific practice. Brainstorming is the Professor-led Interview/Specify phase; implementation planning is the Graduate-led Seed/Validate phase; coding is bounded Execute work; code review and claim review are part of Evaluate/Review; branch or iteration finishing is Retrospect and lineage capture.
+
 ## Workflow Summary
 
 | Step | Purpose | Primary Gate | Responsible Files |
 |---|---|---|---|
-| Intake | Decide new project vs existing retrofit | Do not rewrite old artifacts before inventory | `skills/existing-research-onboarding/SKILL.md`, `docs/adoption/existing_project_intake.md` |
-| Plan | Define question, model scope, observables, failure criteria | Plan has assumptions, units, baseline, claim path | `skills/research-plan-review/SKILL.md`, `docs/research_plan.md` |
-| Specify model | Make equations, variables, parameters, and assumptions explicit | No silent boundary, seed, unit, or approximation changes | `skills/model-specification/SKILL.md`, `docs/assumptions.md` |
-| Check dimensions | Verify units and nondimensionalization | Stop on dimensional inconsistency | `skills/dimensional-analysis/SKILL.md`, `PHYSICS.md` |
-| Baseline gate | Validate toy, known limit, reproduction, or conservation case | No full-scale interpretation without pass or waiver | `skills/baseline-validation/SKILL.md`, `docs/baseline_registry.md` |
-| Execute iteration | Run the smallest meaningful result | Record commands, parameters, seeds, outputs | `skills/numerical-validation/SKILL.md`, `docs/validation_log.md` |
-| Anomaly branch | Diagnose surprising behavior | Classify before patching | `skills/anomaly-debugging/SKILL.md`, `docs/logs/anomaly_log.md` |
-| Researcher review | Show reviewable result to the researcher | Separate observation, interpretation, speculation | `skills/researcher-review-loop/SKILL.md`, `docs/researcher_review_log.md` |
-| Claim gate | Convert result into safe wording | No claim without fresh or recorded evidence | `skills/scientific-verification-before-claim/SKILL.md`, `skills/claim-to-evidence/SKILL.md` |
-| Retrospective | Preserve lineage and reusable artifacts | Each iteration leaves a check, log, benchmark, or decision | `skills/research-retrospective/SKILL.md`, `docs/lineage/iteration_template.md` |
+| Orient | Classify task and choose roles | Task Intake Hook identifies scope and first professor question | `AGENTS.md`, `GEMINI.md`, `docs/workflow_overview.md` |
+| Interview | Clarify intent, assumptions, alternatives, and risk | Ambiguity Hook blocks execution when the research object is unclear | `skills/research-plan-review/SKILL.md`, `docs/research_plan.md` |
+| Specify | Define model, variables, units, regimes, observables, and failure criteria | Assumption/Units, Unit Conversion, and Approximation Regime Hooks are satisfied | `skills/model-specification/SKILL.md`, `skills/dimensional-analysis/SKILL.md`, `docs/assumptions.md` |
+| Seed | Convert the idea into the smallest testable research iteration | Graduate Test-Design Hook produces tasks with files, commands, outputs, and pass/fail criteria | `skills/research-plan-review/SKILL.md`, `docs/research_plan.md` |
+| Validate | Establish baseline, stability, reproducibility, and waiver status | Baseline Gate, Numerical Stability, Code-before-Test, and Waiver Hooks are satisfied | `skills/baseline-validation/SKILL.md`, `skills/numerical-validation/SKILL.md`, `docs/baseline_registry.md` |
+| Execute | Run bounded implementation, analysis, simulation, or plotting tasks | Parameter Change, Data Lineage, Randomness/Reproducibility, Figure Provenance, and Environment Capture Hooks record provenance | `skills/numerical-validation/SKILL.md`, `docs/validation_log.md` |
+| Evaluate | Separate observations, interpretation, speculation, and failures | Anomaly, Claim Strength, Literature Claim, Reviewer Simulation, and Negative Result Hooks check interpretation | `skills/anomaly-debugging/SKILL.md`, `skills/scientific-verification-before-claim/SKILL.md`, `skills/claim-to-evidence/SKILL.md` |
+| Review | Present reviewable evidence and limits to the researcher | Manuscript Drift, Artifact Freshness, Scope Creep, and Cartographer Hooks expose stale or unsupported material | `skills/researcher-review-loop/SKILL.md`, `docs/researcher_review_log.md` |
+| Retrospect | Preserve lineage, decisions, failures, and reusable checks | Retrospective Hook leaves a reusable artifact, decision, open question, or skill/template rule | `skills/research-retrospective/SKILL.md`, `docs/research_retrospective.md`, `docs/lineage/iteration_template.md` |
+
+## Hook Families
+
+The hooks are grouped by the risk they control:
+
+- Intake and scope: Task Intake Hook, Ambiguity Hook, Scope Creep Hook.
+- Physical specification: Assumption/Units Hook, Unit Conversion Hook, Approximation Regime Hook.
+- Validation and execution: Baseline Gate Hook, Graduate Test-Design Hook, Code-before-Test Hook, Numerical Stability Hook, Waiver Hook.
+- Provenance and reproducibility: Parameter Change Hook, Randomness/Reproducibility Hook, Data Lineage Hook, Figure Provenance Hook, Environment Capture Hook.
+- Evidence and claims: Claim Strength Hook, Literature Claim Hook, Manuscript Drift Hook, Artifact Freshness Hook, Reviewer Simulation Hook.
+- Failure and memory: Anomaly Hook, Negative Result Hook, Cartographer Hook, Retrospective Hook.
 
 ## Live Workflow Tracking
 
