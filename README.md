@@ -26,9 +26,99 @@ The harness generates an **Interactive Workflow Map** (`docs/workflow_map.html`)
 
 ---
 
-## 🛠 Usage by Platform
+## 🛠 Installation Guide
 
-Research Partner is designed to work seamlessly across major AI CLI environments. The AI will automatically pick up rules from the project root.
+Research Partner is installed by placing its instruction files, skill library, workflow documents, and helper scripts inside the root of the research project that should be governed by the harness. After installation, your AI coding or research CLI reads the local instructions first, uses the `skills/` directory for discipline-specific procedures, and writes workflow evidence into `docs/` and run-specific directories.
+
+### 1. Prerequisites
+
+- A local research project directory where the harness should run, for example `C:\MyPhysicsProject`.
+- Python 3.10 or newer available as `python` from the terminal. The bundled helper scripts use the Python standard library only; no `pip install` step is required for the harness itself.
+- An AI assistant that reads repository instructions:
+  - **Codex / Copilot-style agents** read `AGENTS.md`.
+  - **Gemini CLI** reads `GEMINI.md`.
+  - **Claude Code** can use `AGENTS.md` or a project-specific `CLAUDE.md` if you choose to add one.
+- Git is recommended but not required. It lets the assistant checkpoint coherent harness or research milestones after validation.
+
+### 2. Choose the Installation Target
+
+Install Research Partner into the root of the project whose scientific workflow you want to protect. The project root is the directory that contains, or will contain, your research code, data notes, figures, and manuscript materials.
+
+For a new project:
+
+```powershell
+mkdir C:\MyPhysicsProject
+cd C:\MyPhysicsProject
+```
+
+For an existing project:
+
+```powershell
+cd C:\ExistingPhysicsProject
+```
+
+Do not install run outputs back into the harness source repository. Run-specific evidence should live in a separate run directory, normally under a sibling root such as `C:\ResearchPartner-runs\YYYY-MM-DD-topic-name\`.
+
+### 3. Copy the Harness Files
+
+From this repository, copy these required items into the target project root:
+
+```text
+AGENTS.md
+GEMINI.md
+PHYSICS.md
+skills/
+docs/
+scripts/
+```
+
+Optional but useful items:
+
+```text
+README.md
+tests/
+.gitignore
+```
+
+Do not copy transient runtime artifacts such as `outputs/`, `__pycache__/`, `.pytest_cache/`, temporary run folders, or another repository's `.git/` directory.
+
+In PowerShell, from the Research Partner source directory:
+
+```powershell
+$SOURCE = "C:\ResearchPartner"
+$TARGET = "C:\MyPhysicsProject"
+
+Copy-Item "$SOURCE\AGENTS.md" "$TARGET\AGENTS.md" -Force
+Copy-Item "$SOURCE\GEMINI.md" "$TARGET\GEMINI.md" -Force
+Copy-Item "$SOURCE\PHYSICS.md" "$TARGET\PHYSICS.md" -Force
+Copy-Item "$SOURCE\skills" "$TARGET\skills" -Recurse -Force
+Copy-Item "$SOURCE\docs" "$TARGET\docs" -Recurse -Force
+Copy-Item "$SOURCE\scripts" "$TARGET\scripts" -Recurse -Force
+```
+
+If you later change the local harness contract, keep `AGENTS.md` and `GEMINI.md` synchronized. They are the same behavioral contract for different assistant runtimes.
+
+### 4. Verify the Installation
+
+Run these checks from the target project root:
+
+```powershell
+python scripts\evaluate_harness.py
+python scripts\validate_workflow_links.py
+python scripts\generate_workflow_map.py
+```
+
+Expected result:
+
+- The evaluation script should report the realistic research scenarios covered by the harness.
+- The link validator should not report broken workflow-document links.
+- `docs\workflow_map.html` and `docs\workflow_map.json` should be regenerated and reviewable.
+
+If your terminal cannot find `python`, try `py -3` in place of `python`.
+
+### 5. Confirm Platform Routing
+
+Research Partner works by giving each AI CLI a local instruction file plus a skill directory. The activation mechanism varies by tool:
 
 | Platform | Skill Invocation | Rule Discovery File |
 |---|---|---|
@@ -36,15 +126,41 @@ Research Partner is designed to work seamlessly across major AI CLI environments
 | **Claude Code** | `Skill(name="...")` | `CLAUDE.md` / `AGENTS.md` |
 | **Copilot CLI / Codex** | `skill(name="...")` | `AGENTS.md` |
 
-### Step-by-Step Setup
+After launching the assistant in the target project root, ask for a small workflow action before starting real research:
 
-1. **Initialization**: Copy the `skills/`, `docs/`, and `scripts/` directories along with `AGENTS.md`/`GEMINI.md` into your research project root.
-2. **Launch CLI**: Open your preferred terminal and launch the AI CLI (e.g., `gemini`, `claude`, or `gh copilot`).
-3. **Trigger the Workflow**:
-   - **Gemini CLI**: Simply state your goal: *"I want to analyze the stability of [Model Name]."* The AI will see `GEMINI.md` and should automatically call `activate_skill(name="model-specification")`.
-   - **Claude Code**: Ask: *"Use the model-specification skill to define my new system."* Claude will use its `Skill` tool to load the instructions.
-   - **Copilot CLI**: The assistant will leverage `AGENTS.md` to guide its behavior and will invoke `skill` as needed.
-4. **Follow the Gates**: The AI will guide you through recording assumptions in `docs/assumptions.md` and checking baselines before running any code.
+```text
+Use the research-plan-review skill to help me define a small validation target.
+```
+
+The assistant should classify the task, load the relevant skill, ask for assumptions or review checkpoints when needed, and avoid jumping directly into unsupported simulation or manuscript claims.
+
+### 6. Start the First Run
+
+For a new run-specific artifact set, use the scaffolder from the installed project root:
+
+```powershell
+python scripts\start_research_run.py --name "damped oscillator baseline"
+```
+
+This creates a dated run directory with the live workflow packet, Cartographer update template, literature workspace, outputs directory, and initial research documents. Use that run directory for evidence, figures, logs, and workflow state; keep the project root focused on reusable harness files, source code, and durable documentation.
+
+For an existing research project, begin with onboarding instead of reorganizing files:
+
+```powershell
+python scripts\audit_existing_project.py
+```
+
+Then use `docs\adoption\existing_results_inventory.md` and `docs\adoption\retrofit_validation_plan.md` to mark which figures, scripts, and claims are validated, partial, unknown, or not yet checked.
+
+### 7. Operating Rule After Installation
+
+Once installed, use the harness by asking the assistant to work inside the scientific loop:
+
+```text
+Orient -> Interview -> Specify -> Seed -> Validate -> Execute -> Evaluate -> Review -> Retrospect
+```
+
+The important behavior is not that every script runs automatically. The important behavior is that assumptions, units, baseline gates, parameters, evidence links, figure provenance, claim strength, and researcher review checkpoints stay visible before the project moves from code or plots into scientific interpretation.
 
 ---
 
