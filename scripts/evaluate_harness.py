@@ -56,6 +56,7 @@ SCENARIOS = [
             "scripts/extract_paper_text.py",
             "scripts/draft_paper_review.py",
             "scripts/process_paper_for_review.py",
+            "scripts/check_paper_review_quality.py",
         ),
         rule_terms=(
             "Literature Replanning Hook",
@@ -70,6 +71,7 @@ SCENARIOS = [
             "Machine-Assisted Draft From Extracted Text",
             "process_paper_for_review.py",
             "clickable links across the literature graph",
+            "check_paper_review_quality.py",
         ),
     ),
     Scenario(

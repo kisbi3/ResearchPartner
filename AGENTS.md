@@ -178,10 +178,11 @@ Use this loop between initial planning and full research execution whenever lite
 7. Use `python scripts/process_paper_for_review.py --run <run-dir> --paper-id <id> --title <title> --pdf <pdf-path>` when the standard scaffold, extraction, and provisional draft should be created in one step.
 8. Maintain clickable links across the literature graph: `literature/index.md` links to PDFs and review notes, review notes link to the index and replanning memo, and extracted text artifacts link back to the source PDF and review note. Keep run-relative code paths alongside Markdown links.
 9. Read the PDFs directly and write detailed, reusable paper review notes in `literature/reviews/`. Each important paper needs a section-by-section paper review, not a short abstract summary. The review should reconstruct research context, key concepts, methods, equations, assumptions, units, limitations, results, reusable details, and claims, and include a `Figure/Table-by-Figure/Table Review` for evidence-bearing artifacts.
-10. Build a novelty map comparing the proposed contribution against the reviewed papers. Mark novelty as supported, weak, contradicted, or unverified; unsupported novelty claims must remain unverified.
-11. Select reproduction targets from the literature: the smallest figure, equation, dataset, benchmark, or known limit that should be reproduced before new claims are pursued.
-12. Write or update `docs/replanning_memo.md` with the revised research plan, reproduction target, claim ceiling, validation gates, and open literature questions.
-13. Ask the researcher to review the PDF set, novelty map, reproduction target, and replanned execution before moving to full-scale work, unless the researcher explicitly waives the literature gate.
+10. Run `python scripts/check_paper_review_quality.py <review-path>` before using a review to update `docs/replanning_memo.md`. Failed checks must be fixed or explicitly waived before novelty or reproduction claims rely on that review.
+11. Build a novelty map comparing the proposed contribution against the reviewed papers. Mark novelty as supported, weak, contradicted, or unverified; unsupported novelty claims must remain unverified.
+12. Select reproduction targets from the literature: the smallest figure, equation, dataset, benchmark, or known limit that should be reproduced before new claims are pursued.
+13. Write or update `docs/replanning_memo.md` with the revised research plan, reproduction target, claim ceiling, validation gates, and open literature questions.
+14. Ask the researcher to review the PDF set, novelty map, reproduction target, and replanned execution before moving to full-scale work, unless the researcher explicitly waives the literature gate.
 
 ## Real-Time Workflow Diagram Agent
 

@@ -106,6 +106,7 @@ def test_literature_replanning_loop_scenario_is_evaluated():
     assert "scripts/extract_paper_text.py" in scenario.docs
     assert "scripts/draft_paper_review.py" in scenario.docs
     assert "scripts/process_paper_for_review.py" in scenario.docs
+    assert "scripts/check_paper_review_quality.py" in scenario.docs
     assert "Literature Replanning Hook" in scenario.rule_terms
     assert "researcher-provided PDFs" in scenario.rule_terms
     assert "novelty map" in scenario.rule_terms
@@ -115,3 +116,4 @@ def test_literature_replanning_loop_scenario_is_evaluated():
     assert "Machine-Assisted Draft From Extracted Text" in scenario.rule_terms
     assert "process_paper_for_review.py" in scenario.rule_terms
     assert "clickable links across the literature graph" in scenario.rule_terms
+    assert "check_paper_review_quality.py" in scenario.rule_terms

@@ -70,6 +70,7 @@ Use this before full execution when novelty, reproduction targets, or prior meth
 - A `Machine-Assisted Draft From Extracted Text` section may suggest candidate summary, method, result, figure/table, and reproduction leads, but it does not establish novelty or validate claims.
 - `scripts/process_paper_for_review.py` may create the standard review note, extracted-text artifact, and provisional draft in one step.
 - Keep clickable links across the literature graph and retain run-relative code paths beside the links so future agents can inspect details without guessing locations.
+- Run `scripts/check_paper_review_quality.py` before promoting review content into the replanning memo.
 - Reviews should reconstruct research context, key concepts, methods, equations, assumptions, units, figures/tables, limitations, novelty impact, and reproduction details.
 - Use a Figure/Table-by-Figure/Table Review for evidence that may support claims or reproduction targets.
 - Keep author claims, reviewer interpretation, and project implications separate.

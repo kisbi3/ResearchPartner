@@ -61,6 +61,8 @@ Use `scripts/process_paper_for_review.py` when the PDF is already in the run dir
 
 Maintain clickable links across the literature graph. The paper index should link to PDFs and review notes, each review note should link to the paper index and replanning memo, and extracted text artifacts should link back to the source PDF and review note. Keep run-relative code paths alongside Markdown links so future agents can inspect artifacts without guessing locations.
 
+Run `scripts/check_paper_review_quality.py` on important review notes before using them to update `docs/replanning_memo.md`. If the check fails, either complete the review or record an explicit waiver and keep novelty/reproduction claims provisional.
+
 ## Detailed Review Standard
 
 Each important paper review should be reusable by a future researcher. Include:
