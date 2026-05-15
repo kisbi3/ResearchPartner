@@ -20,6 +20,10 @@ CARTOGRAPHER_UPDATE_TEMPLATE = (
 )
 ORIENT_NOTE_TEMPLATE = ROOT / "docs" / "run_templates" / "orient_note_template.md"
 INTERVIEW_NOTES_TEMPLATE = ROOT / "docs" / "run_templates" / "interview_notes_template.md"
+MODEL_SPEC_TEMPLATE = ROOT / "docs" / "run_templates" / "model_spec_template.md"
+BASELINE_STRATEGY_TEMPLATE = (
+    ROOT / "docs" / "run_templates" / "baseline_strategy_template.md"
+)
 LITERATURE_REVIEW_TEMPLATE = ROOT / "docs" / "literature" / "literature_review_template.md"
 PAPER_REQUEST_TEMPLATE = ROOT / "docs" / "literature" / "paper_request_queue.md"
 REPLANNING_MEMO_TEMPLATE = ROOT / "docs" / "literature" / "replanning_memo_template.md"
@@ -57,14 +61,18 @@ def create_run(name: str, date_text: str | None = None, runs_root: Path | str = 
     docs_dir = run_path / "docs"
     outputs_dir = run_path / "outputs"
     literature_dir = run_path / "literature"
+    meetings_dir = run_path / "docs" / "meetings"
     docs_dir.mkdir(parents=True)
     outputs_dir.mkdir()
+    meetings_dir.mkdir()
     (literature_dir / "pdfs").mkdir(parents=True)
     (literature_dir / "reviews").mkdir()
     (literature_dir / "extracted_text").mkdir()
 
     shutil.copyfile(ORIENT_NOTE_TEMPLATE, docs_dir / "orient_note.md")
     shutil.copyfile(INTERVIEW_NOTES_TEMPLATE, docs_dir / "interview_notes.md")
+    shutil.copyfile(MODEL_SPEC_TEMPLATE, docs_dir / "model_spec.md")
+    shutil.copyfile(BASELINE_STRATEGY_TEMPLATE, docs_dir / "baseline_strategy.md")
     shutil.copyfile(LIVE_TEMPLATE, docs_dir / "live_workflow_diagram.md")
     shutil.copyfile(PACKET_TEMPLATE, run_path / "research_run_packet.md")
     shutil.copyfile(

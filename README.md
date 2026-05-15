@@ -128,6 +128,9 @@ Use these commands from the installed project root. The assistant should invoke 
 | Check contract sync | `python scripts\check_contract_sync.py` | Enforces byte-identical `AGENTS.md` and `GEMINI.md` so both runtimes follow the same contract |
 | Check orient gate | `python scripts\check_orient_recorded.py --run <run-dir>` | Blocks Seed, Execute, or Evaluate work unless `docs/orient_note.md` contains the task-intake output (classification, role, first question, researcher answer) |
 | Check interview gate | `python scripts\check_interview_recorded.py --run <run-dir>` | Blocks Seed or Execute work unless `docs/interview_notes.md` contains the professor-interview output (crystallized question, assumptions, agreed direction) |
+| Check literature gate | `python scripts\check_literature_reviewed.py --run <run-dir>` | Blocks model-specification or seed-design unless `docs/literature_review_plan.md` has `## Literature Gate Status: ready/waived`, or `docs/literature_skip_waiver.md` exists with a reason (lowers claim ceiling to `interpretation`) |
+| Check model gate | `python scripts\check_model_specified.py --run <run-dir>` | Blocks seed-design or execute unless `docs/model_spec.md` has physical system and governing equations, or `docs/model_skip_waiver.md` exists with a reason (lowers claim ceiling to `observation`) |
+| Check baseline strategy gate | `python scripts\check_baseline_strategy.py --run <run-dir>` | Blocks seed-design unless `docs/baseline_strategy.md` records the professor-graduate student decision (`variation` or `new model`) and a quantitative verification target. No skip waiver. |
 | Check baseline gate | `python scripts\check_baseline_gate.py --run <run-dir>` | Blocks downstream work unless `baseline_registry.md` has a `pass` entry, or a `waived` entry with claim ceiling lowered to `observation` in the live workflow |
 | Check figure provenance | `python scripts\check_figure_provenance.py --root <run-dir>` | Fails if any figure file lacks a sibling `*.provenance.md` or a matching entry in `figure_provenance.md` |
 
@@ -147,7 +150,7 @@ For substantial work, the harness behaves like a professor-led research group ra
 | Researcher | Stops coding and starts investigating | What evidence do we actually have? |
 | Architect | Identifies structural causes | If we started over, would we build it this way? |
 
-These stances support four operational roles: the Professor Orchestrator owns scientific judgment and claim discipline; Graduate Test-Design Agents turn the plan into validation tasks; Coding Subagents execute bounded implementation only after the validation strategy is clear; the Diagram/Cartographer Agent records workflow state without adding opinions or strengthening claims.
+These stances support five operational roles: the Professor Orchestrator owns scientific judgment and claim discipline; the Peer-Review Professor is an adversarial external reviewer invoked only within `meeting` sessions, with no project history, whose sole job is to find holes in claims; Graduate Test-Design Agents turn the plan into validation tasks; Coding Subagents execute bounded implementation only after the validation strategy is clear; the Diagram/Cartographer Agent records workflow state without adding opinions or strengthening claims.
 
 ### Installed Skills
 
@@ -170,6 +173,9 @@ The installer copies these skills into the target project's `skills/` directory.
 | `research-retrospective` | Ending an iteration, validation run, reproduction attempt, anomaly investigation, figure audit, manuscript revision, or review |
 | `existing-research-onboarding` | Adding the harness to a project that already has code, data, figures, simulations, notes, results, or manuscript claims |
 | `literature-review-planning` | Literature access, novelty assessment, researcher-provided PDFs, reproduction targets, or prior methods could change the plan |
+| `baseline-strategy` | After model-specification — professor-graduate student dialogue to decide variation vs. new model and fix the first verification target before seed-design begins |
+| `meeting` | "Does this make sense?" needs an outside perspective — convenes a structured multi-agent review (`--scope quick/review/full`, `--on "<question>"`). Invocable at any point in the workflow. |
+| `peer-review-professor` | Adversarial reviewer role used inside `meeting` sessions — fresh eyes only, no project history, finds holes in claims using five stances |
 | `harness-evaluation` | Checking whether the harness itself is useful, followed, lightweight enough, and effective across realistic scenarios |
 
 ### 1. Prerequisites

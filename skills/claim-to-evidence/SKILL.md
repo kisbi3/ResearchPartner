@@ -59,7 +59,17 @@ Mark a claim as risky if it:
 | Claim | Type | Evidence | Status | Revision |
 |---|---|---|---|---|
 
-Status options:
+## Meeting Trigger
+
+If any claim is typed as `Mechanistic interpretation`, `Universality claim`, or `Novelty claim` — or if its claim ceiling would be `mechanism` or above — recommend a meeting before finalizing:
+
+```
+Recommend: meeting --scope review --on "<the specific claim and its current evidence>"
+```
+
+Use `--scope review` (not `quick`) because the Peer-Review Professor's adversarial stance is specifically designed for this moment: a claim at `mechanism` or above asserts causation or generality, and those are exactly the claims most likely to be overclaimed under confirmation bias. The professor alone may be too familiar with the project to catch it.
+
+## Status options
 
 - Supported
 - Partially supported

@@ -51,6 +51,16 @@ Check:
 - limiting cases
 - known analytical benchmarks
 
+## Meeting Trigger
+
+If the Validation Status is `needs more validation` and the cause is unclear — especially if convergence, stability, or physical sanity checks give contradictory signals — recommend a meeting:
+
+```
+Recommend: meeting --scope quick --on "<which checks failed and what the conflicting signals are>"
+```
+
+When numerical results are internally inconsistent (e.g., passes convergence but fails conservation), the root cause is often in the model or implementation design rather than in the parameters. A second perspective before tuning tolerances or adding complexity prevents compounding a hidden error.
+
 ## Output Format
 
 ### Validation Status

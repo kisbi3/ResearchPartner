@@ -53,6 +53,18 @@ Prefer the smallest diagnostic:
 - check units for one equation
 - run one analytically solvable limit
 
+## Meeting Trigger
+
+Once an anomaly is classified and a hypothesis is formed, recommend a meeting before patching:
+
+```
+Recommend: meeting --scope quick --on "<anomaly class and current hypothesis>"
+```
+
+Anomaly interpretation is the highest-risk moment for tunnel vision — the classification that feels most obvious is often the one being unconsciously anchored to. A short exchange with the professor, before any code changes, frequently reveals an overlooked cause.
+
+Escalate to `--scope review` if the anomaly class is `unknown` after two diagnostic rounds, or if it could affect the core claim.
+
 ## Output Format
 
 ### Expected Behavior
