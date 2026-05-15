@@ -25,7 +25,7 @@
 **Files:**
 - Modify: `tests/test_evaluate_harness.py`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Replace the scenario tests with:
 
@@ -48,13 +48,13 @@ def test_harness_evaluator_has_twelve_scenarios():
     assert len(evaluator.SCENARIOS) == 12
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `python -m pytest tests/test_evaluate_harness.py -q`
 
 Expected: FAIL because the new scenario names are not present and the count is still 8.
 
-- [ ] **Step 3: Commit checkpoint if Git is available**
+- [x] **Step 3: Commit checkpoint if Git is available**
 
 Run:
 
@@ -70,7 +70,7 @@ If `git` is unavailable, record that in the final response.
 **Files:**
 - Modify: `scripts/evaluate_harness.py`
 
-- [ ] **Step 1: Add four scenarios**
+- [x] **Step 1: Add four scenarios**
 
 Add `Scenario(...)` entries for:
 
@@ -167,7 +167,7 @@ Scenario(
 )
 ```
 
-- [ ] **Step 2: Strengthen live workflow scenario terms**
+- [x] **Step 2: Strengthen live workflow scenario terms**
 
 Update the `live_workflow_diagram_agent` `rule_terms` to include:
 
@@ -179,7 +179,7 @@ Update the `live_workflow_diagram_agent` `rule_terms` to include:
 "must not strengthen scientific claims",
 ```
 
-- [ ] **Step 3: Run evaluator tests**
+- [x] **Step 3: Run evaluator tests**
 
 Run: `python -m pytest tests/test_evaluate_harness.py -q`
 
@@ -191,7 +191,7 @@ Expected: PASS after documentation terms are added in later tasks; until then, u
 - Modify: `AGENTS.md`
 - Modify: `GEMINI.md`
 
-- [ ] **Step 1: Add synchronized operating protocol**
+- [x] **Step 1: Add synchronized operating protocol**
 
 Insert the same Markdown section in both files after the role section:
 
@@ -230,7 +230,7 @@ The Professor Orchestrator should hold these stances when starting or reviewing 
 When a reproduction, validation, figure-generation, or other substantial task is complete and visualization artifacts are ready, the Professor Orchestrator must convene a completion conference with the graduate agents, coding subagents, and Diagram/Cartographer Agent. The final report to the user must summarize the meeting, the workflow state, the visualization materials, evidence links, supported claims, unsupported claims, validation status, and remaining uncertainty.
 ```
 
-- [ ] **Step 2: Verify synchronization**
+- [x] **Step 2: Verify synchronization**
 
 Run: `Compare-Object (Get-Content AGENTS.md) (Get-Content GEMINI.md)`
 
@@ -243,7 +243,7 @@ Expected: no output.
 - Modify: `docs/workflow_diagrams.md`
 - Modify: `docs/harness/harness_evaluation_scenarios.md`
 
-- [ ] **Step 1: Update workflow overview**
+- [x] **Step 1: Update workflow overview**
 
 Add sections named:
 
@@ -255,7 +255,7 @@ Add sections named:
 
 These sections must state that the Diagram/Cartographer Agent has no project-opinion authority and that it builds the live workflow by listening to the professor, graduate agents, and coding subagents.
 
-- [ ] **Step 2: Update workflow diagrams**
+- [x] **Step 2: Update workflow diagrams**
 
 Add Mermaid diagrams for:
 
@@ -283,7 +283,7 @@ flowchart TB
     M --> R["User Report"]
 ```
 
-- [ ] **Step 3: Update evaluation scenarios document**
+- [x] **Step 3: Update evaluation scenarios document**
 
 Add scenarios matching the Python evaluator names:
 
@@ -299,30 +299,30 @@ Each scenario must include task prompt, risk, expected skills, expected docs, an
 **Files:**
 - No direct file edits unless validation exposes a gap.
 
-- [ ] **Step 1: Check `plt.show()` was not introduced**
+- [x] **Step 1: Check `plt.show()` was not introduced**
 
 Run: `rg -n "plt\\.show\\("`
 
 Expected: no matches.
 
-- [ ] **Step 2: Verify instruction synchronization**
+- [x] **Step 2: Verify instruction synchronization**
 
 Run: `Compare-Object (Get-Content AGENTS.md) (Get-Content GEMINI.md)`
 
 Expected: no output.
 
-- [ ] **Step 3: Run tests**
+- [x] **Step 3: Run tests**
 
 Run: `python -m pytest tests/test_evaluate_harness.py tests/test_generate_workflow_map.py -q`
 
 Expected: PASS.
 
-- [ ] **Step 4: Run harness evaluator**
+- [x] **Step 4: Run harness evaluator**
 
 Run: `python scripts/evaluate_harness.py`
 
 Expected: no fail status in the report.
 
-- [ ] **Step 5: Record validation limits**
+- [x] **Step 5: Record validation limits**
 
 Final response must state this is a documentation-and-evaluation enforcement pass, not a full autonomous runtime-agent implementation.

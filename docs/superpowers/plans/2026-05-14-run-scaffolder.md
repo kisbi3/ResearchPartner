@@ -22,28 +22,28 @@
 
 ### Task 1: Scaffolder Tests
 
-- [ ] Write failing tests that import `scripts/start_research_run.py`.
-- [ ] Assert a run root contains `docs/live_workflow_diagram.md`, `research_run_packet.md`, expected docs, and `outputs/`.
-- [ ] Assert duplicate runs raise `FileExistsError`.
-- [ ] Assert names slugify to lowercase hyphenated names.
+- [x] Write failing tests that import `scripts/start_research_run.py`.
+- [x] Assert a run root contains `docs/live_workflow_diagram.md`, `research_run_packet.md`, expected docs, and `outputs/`.
+- [x] Assert duplicate runs raise `FileExistsError`.
+- [x] Assert names slugify to lowercase hyphenated names.
 
 ### Task 2: Scaffolder Implementation
 
-- [ ] Implement `slugify_name`.
-- [ ] Implement `create_run`.
-- [ ] Implement CLI parsing with `--name`, `--date`, and `--runs-root`.
-- [ ] Refuse overwrite by default.
+- [x] Implement `slugify_name`.
+- [x] Implement `create_run`.
+- [x] Implement CLI parsing with `--name`, `--date`, and `--runs-root`.
+- [x] Refuse overwrite by default.
 
 ### Task 3: Documentation and Evaluation
 
-- [ ] Add the command to `docs/workflow_overview.md`.
-- [ ] Add `scripts/start_research_run.py` to `docs/workflow_code_map.md`.
-- [ ] Add `scripts/start_research_run.py` to the live workflow evaluator scenario.
+- [x] Add the command to `docs/workflow_overview.md`.
+- [x] Add `scripts/start_research_run.py` to `docs/workflow_code_map.md`.
+- [x] Add `scripts/start_research_run.py` to the live workflow evaluator scenario.
 
 ### Task 4: Validation
 
-- [ ] Run `python -m pytest tests/test_start_research_run.py -q`.
-- [ ] Run `python -m pytest tests/test_evaluate_harness.py tests/test_generate_workflow_map.py tests/test_start_research_run.py -q`.
-- [ ] Run `python scripts/evaluate_harness.py`.
-- [ ] Run `python scripts/validate_workflow_links.py`.
-- [ ] Run `rg -n "plt\\.show\\(" -g "*.py" -g "*.ipynb"`.
+- [x] Run `python -m pytest tests/test_start_research_run.py -q`.
+- [x] Run `python -m pytest tests/test_evaluate_harness.py tests/test_generate_workflow_map.py tests/test_start_research_run.py -q`.
+- [x] Run `python scripts/evaluate_harness.py`.
+- [x] Run `python scripts/validate_workflow_links.py`.
+- [x] Run `rg -n "plt\\.show\\(" -g "*.py" -g "*.ipynb"`.

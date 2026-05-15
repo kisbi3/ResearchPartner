@@ -24,26 +24,26 @@
 
 ### Task 1: Test Evaluator Template Coverage
 
-- [ ] Add assertions that `live_workflow_diagram_agent` requires `docs/run_templates/live_workflow_diagram_template.md`.
-- [ ] Add assertions that `completion_conference_reporting` requires `docs/run_templates/research_run_packet_template.md`.
-- [ ] Run `python -m pytest tests/test_evaluate_harness.py -q` and expect failure before evaluator updates.
+- [x] Add assertions that `live_workflow_diagram_agent` requires `docs/run_templates/live_workflow_diagram_template.md`.
+- [x] Add assertions that `completion_conference_reporting` requires `docs/run_templates/research_run_packet_template.md`.
+- [x] Run `python -m pytest tests/test_evaluate_harness.py -q` and expect failure before evaluator updates.
 
 ### Task 2: Add Templates
 
-- [ ] Create `docs/run_templates/live_workflow_diagram_template.md`.
-- [ ] Create `docs/run_templates/research_run_packet_template.md`.
-- [ ] Keep the templates lightweight and explicit about supported versus unsupported claims.
+- [x] Create `docs/run_templates/live_workflow_diagram_template.md`.
+- [x] Create `docs/run_templates/research_run_packet_template.md`.
+- [x] Keep the templates lightweight and explicit about supported versus unsupported claims.
 
 ### Task 3: Link Templates in Docs and Evaluator
 
-- [ ] Update `docs/workflow_overview.md`.
-- [ ] Update `docs/workflow_code_map.md`.
-- [ ] Update `docs/harness/harness_evaluation_scenarios.md`.
-- [ ] Update `scripts/evaluate_harness.py`.
+- [x] Update `docs/workflow_overview.md`.
+- [x] Update `docs/workflow_code_map.md`.
+- [x] Update `docs/harness/harness_evaluation_scenarios.md`.
+- [x] Update `scripts/evaluate_harness.py`.
 
 ### Task 4: Validate
 
-- [ ] Run `Compare-Object (Get-Content AGENTS.md) (Get-Content GEMINI.md)`.
-- [ ] Run `rg -n "plt\\.show\\(" -g "*.py" -g "*.ipynb"`.
-- [ ] Run `python -m pytest tests/test_evaluate_harness.py tests/test_generate_workflow_map.py -q`.
-- [ ] Run `python scripts/evaluate_harness.py`.
+- [x] Run `Compare-Object (Get-Content AGENTS.md) (Get-Content GEMINI.md)`.
+- [x] Run `rg -n "plt\\.show\\(" -g "*.py" -g "*.ipynb"`.
+- [x] Run `python -m pytest tests/test_evaluate_harness.py tests/test_generate_workflow_map.py -q`.
+- [x] Run `python scripts/evaluate_harness.py`.
