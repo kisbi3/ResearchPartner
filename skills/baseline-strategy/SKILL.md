@@ -48,6 +48,16 @@ The professor uses stances fluidly:
 - **Simplifier** — push for the single most important number ("what is the one quantity this must reproduce?")
 - **Architect** — check whether the chosen target actually tests the part of the model that was changed
 
+## Meeting Trigger
+
+If the dialogue ends with a decision that was uncertain or contested — either party was not fully convinced — recommend a meeting before seed-design begins:
+
+```
+Recommend: meeting --scope quick --on "is the variation/new-model classification correct for <model name>?"
+```
+
+A misclassification at this stage sets Task 1 in the wrong direction: either spending time reproducing a parent result for a model that is not actually a variation, or skipping a reproduction check for a model that is. A five-minute quick check is far cheaper than a wasted first seed iteration.
+
 ## No Skip Waiver
 
 This step has no skip waiver. A baseline strategy decision is required before seed-design may proceed. The dialogue is typically 5–15 exchanges. The cost of skipping is a first seed task with no grounded verification target, which propagates as unverified assumption through every downstream result.

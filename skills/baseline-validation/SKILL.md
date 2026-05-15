@@ -57,6 +57,16 @@ When the researcher issues a waiver, the following steps are mandatory before pr
 
 Do not silently absorb a waiver into a log entry. The lowered claim ceiling must be visible in the workflow map before any Execute or Evaluate phase work begins.
 
+## Meeting Trigger
+
+If the result is `fail` or `partial`, recommend a meeting before proceeding:
+
+```
+Recommend: meeting --scope quick --on "<what failed and what the expected behavior was>"
+```
+
+A failed or partial baseline means the model, code, or variation/new-model classification may be wrong. This is exactly the moment when working alone risks anchoring to the wrong explanation. The meeting does not need to be long — even a quick exchange with the professor often surfaces the overlooked assumption.
+
 ## Output Format
 
 ### Baseline Target
