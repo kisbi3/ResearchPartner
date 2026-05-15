@@ -63,6 +63,11 @@ Professor Orchestrator
     │       │       runs via run_with_capture.py; checks against pre-set criteria;
     │       │       does NOT modify code or strengthen claims
     │       │
+    │       ├─ Cache-Log Auditor          ← spawned after Scientific Validator
+    │       │       runs audit_run_outputs.py (reuses _layout.py);
+    │       │       checks logs/ errors/ cache/ mechanically;
+    │       │       does NOT interpret results or modify code
+    │       │
     │       └─ Figure Agent (optional)    ← spawned for publication figures
     │               generates figures to outputs/figures/; records provenance;
     │               does NOT interpret results
@@ -78,6 +83,7 @@ Professor Orchestrator
 | Multiple seed tasks, no dependency | Professor Orchestrator | Graduate Student Agents in parallel |
 | Code needs to be written | Graduate Student | Implementation Agent |
 | Code needs to be run and verified | Graduate Student | Scientific Validator |
+| After Scientific Validator completes | Graduate Student | Cache-Log Auditor |
 | Publication-quality figures needed | Graduate Student | Figure Agent |
 | Workflow state changed | Any agent | Cartographer Agent |
 
@@ -143,12 +149,37 @@ Do NOT modify the code. Do NOT strengthen or weaken the scientific claim.
 Report back: pass/fail verdict, exact observed values, log file paths, anomalies if any.
 ```
 
+### Cache-Log Auditor Spawn Block
+
+When Graduate Student spawns a Cache-Log Auditor (always after Scientific Validator), the Agent() prompt must include:
+
+```
+You are a Cache-Log Auditor.
+Load skills/cache-log-auditor/SKILL.md to understand your role and constraints.
+
+Run directory: <absolute path>
+Script stem: <filename without .py>
+Log path: <log file path from Scientific Validator's report>
+Expected cache files (relative to run_dir):
+  - <cache/filename1.npy>   ← omit section if no cache files are required
+Min numeric lines: <N>      ← default 3 if not specified in task
+
+Run: python scripts/audit_run_outputs.py <run_dir> <stem> --log <log_path> \
+     [--expect-cache <rel_path> ...] [--min-numeric <N>]
+Evidence record: docs/gates/validation_log.md
+
+Do NOT run the research script. Do NOT interpret scientific content.
+Report back: PASS/WARN/FAIL verdict, log size and numeric line count, error file status,
+cache file status, any issues found.
+```
+
 ### Cross-Tier Prohibition
 
 | Agent | Prohibited action |
 |---|---|
 | Implementation Agent | Running code; judging scientific validity; modifying pass/fail criteria |
 | Scientific Validator | Modifying code; inventing new criteria; interpreting physical meaning |
+| Cache-Log Auditor | Running research scripts; interpreting scientific content; deciding whether to retry |
 | Graduate Student | Deciding claim ceiling; approving waivers; promoting claims beyond criteria |
 | Professor Orchestrator | Writing implementation code directly (must spawn Implementation Agent) |
 | Any Coding Subagent | Strengthening claim language without Professor approval |

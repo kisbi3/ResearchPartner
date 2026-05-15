@@ -48,6 +48,19 @@ Use `Agent()` with the Scientific Validator Spawn Block from `AGENTS.md`. Pass:
 
 Wait for Scientific Validator to report back pass/fail verdict, exact observed values, and log paths.
 
+### Step 3.5: Spawn Cache-Log Auditor
+
+After the Scientific Validator reports back, always spawn a Cache-Log Auditor. Pass:
+- The run directory.
+- The script stem (filename without `.py`).
+- The log path from the Validator's report (use `--log <path>` to avoid ambiguity).
+- Any `--expect-cache` patterns stated in your spawn prompt.
+
+The auditor runs `scripts/audit_run_outputs.py` — which reuses `scripts/_layout.py` for all path resolution — and returns PASS / WARN / FAIL based on log completeness, error file presence, and cache file existence.
+
+- **PASS or WARN**: proceed to Step 4. Log the WARN if any; record it in the evidence file.
+- **FAIL**: follow the on-failure instruction in your spawn prompt. A FAIL here (missing log, non-empty error file, missing required cache) is as serious as a scientific-criterion failure — do not silently continue.
+
 ### Step 4: Evaluate and report
 
 After receiving the Validator's report:
@@ -93,8 +106,9 @@ Write to the designated evidence file using this structure:
 
 Your final report must contain:
 1. One-paragraph summary of what was done and what was found.
-2. Pass / Fail / Anomaly verdict.
-3. Exact observed values vs. pass criterion.
-4. Evidence file path.
-5. Any anomalies, scope-creep events, or escalation items.
-6. Recommended next action (from the on-failure spec, or "proceed to next task" if pass).
+2. Pass / Fail / Anomaly verdict (scientific criterion from Scientific Validator).
+3. Cache-Log Audit verdict (PASS / WARN / FAIL from Cache-Log Auditor).
+4. Exact observed values vs. pass criterion.
+5. Evidence file path.
+6. Any anomalies, scope-creep events, or escalation items.
+7. Recommended next action (from the on-failure spec, or "proceed to next task" if all pass).

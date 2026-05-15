@@ -34,8 +34,23 @@ Every script must:
 - Accept parameters explicitly (no magic numbers buried in code).
 - Set and log random seeds if any stochastic element is present.
 - Save figures with `plt.savefig()` — never `plt.show()`.
-- Print a summary of key outputs to stdout (for log capture).
+- Print a **structured key-value summary** to stdout at the end so the Cache-Log Auditor can verify numeric output exists. Example:
+  ```
+  R_plus = 0.823
+  R_minus = 0.154
+  delta_R = 0.669
+  elapsed_s = 42.1
+  ```
 - Write outputs to the paths specified by the Graduate Student.
+- **Write intermediate arrays to `cache/`** for any computation that takes more than a few seconds to repeat (use `numpy.save`, `pickle`, or equivalent). Use `scripts/_layout.py → cache_dir()` for the path. Print the cache path to stdout so the Auditor can verify it.
+
+### Code reuse
+Before writing any utility function, check:
+1. Does an identical or equivalent function exist in another `src/` script in this run?
+2. Does `scripts/_layout.py` already provide the path you need?
+3. Does `scripts/run_with_capture.py` already handle the run/capture pattern you need?
+
+If yes, import or call the existing code rather than duplicating it. If you extract a shared helper, place it in `src/utils.py` and import it from both scripts. Report any reuse decisions in your Implementation Report.
 
 ### Equation fidelity
 - Implement the exact equation given. If you substitute an equivalent form, note it.

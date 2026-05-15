@@ -78,8 +78,9 @@ Evidence record: docs/gates/validation_log.md (append) + <any additional file>
 Spawn sub-agents:
 1. Implementation Agent (skills/implementation-agent/SKILL.md) to write the script.
 2. Scientific Validator (skills/scientific-validator/SKILL.md) to run and check results.
+3. Cache-Log Auditor (skills/cache-log-auditor/SKILL.md) to verify logs/ errors/ cache/ after Validator completes.
 
-Report back: one-paragraph summary, pass/fail verdict, observed values, evidence file path, anomalies if any.
+Report back: one-paragraph summary, scientific pass/fail verdict, cache-log audit verdict, observed values, evidence file path, anomalies if any.
 ```
 
 ## Sizing Rule
@@ -161,8 +162,9 @@ Evidence record: docs/gates/validation_log.md
 Spawn sub-agents:
 1. Implementation Agent (skills/implementation-agent/SKILL.md) to write the script.
 2. Scientific Validator (skills/scientific-validator/SKILL.md) to run and check.
+3. Cache-Log Auditor (skills/cache-log-auditor/SKILL.md) to verify logs/ errors/ cache/.
 
-Report back: one-paragraph summary, pass/fail verdict, observed values, evidence file path.
+Report back: one-paragraph summary, scientific pass/fail verdict, cache-log audit verdict, observed values, evidence file path.
 ```
 
 ### Dependency Map
