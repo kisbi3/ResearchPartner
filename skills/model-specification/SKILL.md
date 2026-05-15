@@ -97,4 +97,4 @@ Set to `ready` when all required components above are filled in `docs/model_spec
 
 ## Suggested Next Skill
 
-**`seed-design`** — to convert the specified model into concrete, bounded graduate-agent tasks.
+**`baseline-strategy`** — professor-graduate student dialogue to decide whether the model is a variation (requiring reproduction) or a new model (requiring analytical limit verification), and to fix the first verification target before seed-design begins.
