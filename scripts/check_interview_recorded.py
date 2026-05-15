@@ -2,11 +2,11 @@
 """Enforce the Interview Gate at the run level.
 
 The Interview Gate requires that the professor-interview skill output has been
-recorded in docs/interview_notes.md before Seed or Execute work begins.
+recorded in docs/gates/interview_notes.md before Seed or Execute work begins.
 
 Pass conditions for a given run directory:
 
-1. <run>/docs/interview_notes.md exists; AND
+1. <run>/docs/gates/interview_notes.md exists; AND
 2. The file contains non-placeholder content for all three required fields:
    Crystallized Research Question, Key Assumptions Surfaced, and
    Agreed Direction (i.e. each section has at least one non-empty,

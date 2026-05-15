@@ -160,6 +160,8 @@ Orient -> Interview -> Specify -> Seed -> Validate -> Execute -> Evaluate -> Rev
 
 이러한 스탠스들은 다섯 가지 운영 역할을 지원합니다. 교수 오케스트레이터(Professor Orchestrator)는 과학적 판단과 주장 규율을 담당합니다. 피어 리뷰 교수(Peer-Review Professor)는 `meeting` 세션에서만 활성화되는 외부 대립 검토자로, 프로젝트 히스토리 없이 라이브 워크플로 다이어그램과 공유된 artifact만 보고 주장의 허점을 찾습니다. 대학원생 테스트 설계 에이전트(Graduate Test-Design Agents)는 계획을 검증 작업으로 변환합니다. 코딩 하위 에이전트(Coding Subagents)는 검증 전략이 명확해진 후에만 제한된 구현을 실행합니다. 다이어그램/지도 제작자 에이전트(Diagram/Cartographer Agent)는 의견을 더하거나 주장을 강화하지 않고 워크플로우 상태만 기록합니다.
 
+큰 작업에서는 이 역할들이 *실제로 별도의 에이전트를 `Agent()` 도구로 spawn*하면서 강제됩니다 — 하나의 에이전트가 내부 페르소나를 바꿔 가며 흉내 내는 방식이 아닙니다. 구체적인 3계층 구조는 다음과 같습니다: **Professor Orchestrator** → **Graduate Student Agent(s)** (seed task 한 개당 한 명, 독립 task는 병렬 spawn) → **Implementation Agent** + **Scientific Validator** + **Cache-Log Auditor** (각 Graduate Student가 필요에 따라 spawn). Graduate Student는 task *유형*이 아니라 *단일 task instance*에 묶입니다 — "baseline 학생"과 "scan 학생"의 구분은 없습니다. spawn block 템플릿과 cross-tier 금지 규칙은 `AGENTS.md`의 "Agent Spawning Protocol" 섹션을 참조하세요.
+
 ### 설치되는 Skills
 
 설치 스크립트는 다음 skill들을 대상 프로젝트의 `skills/` 디렉터리에 복사합니다. 에이전트는 README를 전체 운영 매뉴얼처럼 외우는 것이 아니라, 필요한 시점에 해당 skill을 로드해야 합니다.
@@ -184,6 +186,10 @@ Orient -> Interview -> Specify -> Seed -> Validate -> Execute -> Evaluate -> Rev
 | `baseline-strategy` | model-specification 이후 — 교수-대학원생 대화로 variation vs. new model을 결정하고 seed-design 전에 첫 검증 타겟을 고정할 때 |
 | `meeting` | "이게 말이 되는가?"를 외부 관점으로 검증할 때 — `--scope quick/review/full`, `--on "<질문>"` 파라미터로 소집. 워크플로의 어느 시점에서도 호출 가능. |
 | `peer-review-professor` | `meeting` 세션 안에서 활성화되는 외부 대립 검토자 역할 — 프로젝트 히스토리 없이 5가지 스탠스로 주장의 허점을 찾음 |
+| `graduate-student` | spawn된 Graduate Student 에이전트가 로드함 — 하나의 seed task에 대한 실행 전략, sub-agent 조율, 이상 감지 에스컬레이션, evidence 기록을 담당 |
+| `implementation-agent` | spawn된 Implementation Agent가 로드함 — `src/`에 코드 작성만 담당; 코드 실행이나 결과 판단, 물리 해석은 하지 않음 |
+| `scientific-validator` | spawn된 Scientific Validator가 로드함 — `run_with_capture.py`로 스크립트를 실행하고 사전 정의된 pass/fail 기준을 기계적으로 적용; 코드 수정이나 claim 강화는 금지 |
+| `cache-log-auditor` | spawn된 Cache-Log Auditor가 로드함 (Scientific Validator 직후 항상 spawn) — `audit_run_outputs.py`로 `logs/`, `errors/`, `cache/`에 충분한 산출물이 남았는지 검증 |
 | `harness-evaluation` | 하네스 자체가 실제 연구 시나리오에서 잘 작동하는지 평가할 때 |
 
 ### 1. 전제 조건

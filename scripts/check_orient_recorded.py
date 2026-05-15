@@ -2,11 +2,13 @@
 """Enforce the Orient Gate at the run level.
 
 The Orient Gate requires that the task-intake skill output has been recorded
-in docs/orient_note.md before Seed, Execute, or Evaluate work begins.
+in docs/gates/orient_note.md before Seed, Execute, or Evaluate work begins.
+The exact path is resolved through scripts/_layout.py (orient_note()), so
+docstring paths stay in sync with the canonical run layout.
 
 Pass conditions for a given run directory:
 
-1. <run>/docs/orient_note.md exists; AND
+1. <run>/docs/gates/orient_note.md exists; AND
 2. The file contains non-placeholder content for all four required fields:
    Task Classification, Responsible Role, First Professor Question, and
    Researcher Answer (i.e. each section has at least one non-empty,

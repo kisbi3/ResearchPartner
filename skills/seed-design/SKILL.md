@@ -93,6 +93,17 @@ The first seed task must be the **smallest possible** executable step. Reject a 
 
 If the plan requires multiple tasks, list them in dependency order. Mark which tasks may run in parallel and which must be sequential.
 
+## Task-Student Mapping Rule
+
+**Each task in this seed corresponds to exactly one Graduate Student instance.** A Graduate Student is never reused across tasks, and a task is never split across multiple Graduate Students. Do not categorize tasks by "student type" (e.g. "baseline student tasks", "literature student tasks") — every Graduate Student has identical capabilities and is bound only to the single task they were spawned with.
+
+When Professor Orchestrator reads this seed and spawns Graduate Students, the spawning protocol is:
+
+- For every task with `depends_on: []` (no inbound dependency), Professor must spawn its Graduate Student in the **same assistant message** as every other independent task, using parallel `Agent()` tool calls in that one message.
+- A task with `depends_on: [Task K]` is spawned only after Task K's Graduate Student reports back.
+
+If your seed yields three independent tasks plus one dependent task, the expected spawning pattern is: one parallel batch of 3 Graduate Students, wait for those to return, then one more Graduate Student for the dependent task.
+
 ## Waiver Visibility
 
 If any seed task bypasses a baseline, unit check, stability check, or evidence gate by waiver, mark that task explicitly with a waiver block:
@@ -169,7 +180,17 @@ Report back: one-paragraph summary, scientific pass/fail verdict, cache-log audi
 
 ### Dependency Map
 
-A simple ordered list or diagram showing which tasks depend on others and which may run in parallel.
+A simple ordered list or diagram showing which tasks depend on others and which may run in parallel. Use this exact format so the Professor Orchestrator can read it mechanically:
+
+```
+Task 1  depends_on: []           parallel_batch: A
+Task 2  depends_on: []           parallel_batch: A
+Task 3  depends_on: []           parallel_batch: A
+Task 4  depends_on: [Task 1]     parallel_batch: B
+Task 5  depends_on: [Task 1, Task 2]   parallel_batch: B
+```
+
+**Spawning rule:** all tasks in `parallel_batch: A` MUST be spawned by Professor in a single assistant message with multiple parallel `Agent()` calls. `parallel_batch: B` is spawned only after batch A's Graduate Students all report back. Sequential single-task spawning across messages, when no dependency forces it, is a workflow violation.
 
 ### Researcher Checkpoint
 

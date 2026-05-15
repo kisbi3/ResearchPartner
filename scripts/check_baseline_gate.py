@@ -9,10 +9,10 @@ lowered to "observation" before any downstream Execute/Evaluate work begins.
 
 Pass conditions for a given run directory:
 
-1. <run>/docs/baseline_registry.md contains a markdown table row with
+1. <run>/docs/gates/baseline_registry.md contains a markdown table row with
    Status=pass; OR
-2. <run>/docs/baseline_registry.md contains Status=waived AND
-   <run>/docs/live_workflow_diagram.md contains both "claim ceiling" and
+2. <run>/docs/gates/baseline_registry.md contains Status=waived AND
+   <run>/docs/process/live_workflow_diagram.md contains both "claim ceiling" and
    "observation" (case-insensitive).
 
 All other states fail.

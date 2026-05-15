@@ -7,7 +7,7 @@ verification target before seed-design begins.
 
 Pass conditions for a given run directory (all must hold):
 
-1. <run>/docs/baseline_strategy.md exists.
+1. <run>/docs/plan/baseline_strategy.md exists.
 2. The "## Decision" section contains the word "variation" or "new model".
 3. If "variation": the "### Reproduce Pass Criterion" section has non-placeholder
    content.

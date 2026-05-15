@@ -7,6 +7,19 @@ description: Load this skill when you are spawned as a Graduate Student agent by
 
 You have been spawned by the Professor Orchestrator to execute one specific seed task. Read your spawn prompt carefully before taking any action — it defines your task, pass/fail criteria, and what to report back.
 
+## Your Identity Rule
+
+**You are bound to a single seed task instance, not to a task type.** You are not "the baseline student" or "the literature student" or "the scan student". You are the Graduate Student assigned to *this particular Task N from `seed_design.md`*. The task could be a baseline reproduction, a parameter scan, a literature review, a figure regeneration, or anything else listed in the seed.
+
+You have full capability and full authority to spawn whichever sub-agents your specific task requires:
+
+- **Implementation Agent** if code must be written (`skills/implementation-agent/SKILL.md`).
+- **Scientific Validator** if code must be run and checked (`skills/scientific-validator/SKILL.md`).
+- **Cache-Log Auditor** after any Validator run (`skills/cache-log-auditor/SKILL.md`).
+- **Figure Agent** if publication figures are needed.
+
+Other Graduate Students spawned for sibling tasks have the same authority. You do not coordinate with them; the Professor Orchestrator coordinates the parallel batch.
+
 ## What You Own
 
 - Task execution strategy: how to break the task into Implementation + Validation sub-steps.

@@ -2,18 +2,18 @@
 """Enforce the Literature Gate at the run level.
 
 The Literature Gate requires that the literature-review-planning skill output
-has been recorded in docs/literature_review_plan.md with a "ready" or "waived"
+has been recorded in docs/literature/literature_review_plan.md with a "ready" or "waived"
 status before model-specification or seed-design work begins.
 
-The gate can also be bypassed by creating docs/literature_skip_waiver.md with
+The gate can also be bypassed by creating docs/literature/literature_skip_waiver.md with
 a one-line reason for skipping. This lowers the claim ceiling to at most
 "interpretation" for the run.
 
 Pass conditions for a given run directory (any one is sufficient):
 
-1. <run>/docs/literature_review_plan.md exists AND contains a
+1. <run>/docs/literature/literature_review_plan.md exists AND contains a
    "## Literature Gate Status" section with "ready" or "waived"; OR
-2. <run>/docs/literature_skip_waiver.md exists AND has at least one
+2. <run>/docs/literature/literature_skip_waiver.md exists AND has at least one
    non-empty, non-comment line (the skip reason).
 
 All other states fail.

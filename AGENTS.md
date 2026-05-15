@@ -87,6 +87,41 @@ Professor Orchestrator
 | Publication-quality figures needed | Graduate Student | Figure Agent |
 | Workflow state changed | Any agent | Cartographer Agent |
 
+### Parallel Task Spawning Rule
+
+**One seed task = one Graduate Student.** This is a 1:1 mapping. Never collapse multiple tasks into a single Graduate Student; never split a single task across multiple Graduate Students.
+
+**Graduate Students are not specialized by task type.** Every Graduate Student is a full-stack research executor with identical capabilities. There is no "baseline student", "scan student", "literature student", or "figure student". The student is bound to one task *instance* (e.g. "Task 3: reproduce Fig. 4 of Guo 2026") — not to a task *category*. Whatever sub-agents that task needs (Implementation Agent, Scientific Validator, Cache-Log Auditor, Figure Agent), the same Graduate Student spawns them.
+
+**Anti-pattern (forbidden):**
+
+```
+Professor Orchestrator
+    ├─ Graduate Student A  →  always does baseline work
+    ├─ Graduate Student B  →  always does literature work
+    └─ Graduate Student C  →  always does scan work
+```
+
+This is wrong for two reasons: (1) it implies role specialization that the harness does not define, and (2) it usually means Professor spawned them sequentially rather than in parallel.
+
+**Correct pattern:**
+
+```
+Professor Orchestrator
+    │
+    ├─ Graduate Student #1  →  Task 1 (reproduce baseline) ─┐
+    ├─ Graduate Student #2  →  Task 2 (scan ε grid)         ├─ all spawned in a
+    └─ Graduate Student #3  →  Task 3 (compute order param) ─┘  single message
+                                                                with three parallel
+                                                                Agent() calls
+```
+
+Each `#N` is a distinct ephemeral agent instance, not a person with a specialty. All three have the same skill load (`skills/graduate-student/SKILL.md`) and the same authority to spawn Implementation Agent / Scientific Validator / Cache-Log Auditor as their individual task requires.
+
+**How to spawn in parallel:** when the dependency map in `seed_design.md` shows tasks with no inbound dependency on each other, the Professor Orchestrator must issue them in **one assistant message containing multiple `Agent()` tool calls**. Sequential `Agent()` calls across multiple messages defeat the parallelism even when no dependency exists.
+
+A task with `depends_on: [Task 1]` is spawned only after Task 1's Graduate Student reports back. A task with `depends_on: []` is spawned in the same parallel batch as every other independent task.
+
 ### Graduate Student Spawn Block
 
 When Professor spawns a Graduate Student, the Agent() prompt must include:
