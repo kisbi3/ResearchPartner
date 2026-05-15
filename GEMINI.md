@@ -43,13 +43,13 @@ Role ownership across the loop:
 
 Required scientific-loop hooks:
 
-- **Task Intake Hook**: classify the work before action as new model, existing project, simulation, figure, manuscript claim, bug/anomaly, maintenance, or harness evaluation; identify the responsible role and first professor question.
+- **Task Intake Hook**: classify the work before action as new model, existing project, simulation, figure, manuscript claim, bug/anomaly, maintenance, or harness evaluation; identify the responsible role and first professor question. Load `skills/task-intake/SKILL.md` at the start of every task.
 - **Ambiguity Hook**: if the research question, physical object, observable, failure criterion, or review checkpoint is unclear, remain in Interview/Specify instead of executing.
 - **Assumption/Units Hook**: record assumptions, units, boundary conditions, initial conditions, nondimensionalization, and approximation regime before relying on equations, parameters, or results.
 - **Unit Conversion Hook**: when SI, cgs, natural units, code units, or nondimensional units are converted, record the conversion formula and reference scale.
 - **Approximation Regime Hook**: mark linearization, perturbation, continuum, weak-coupling, low/high-temperature, small-angle, or similar approximations with their validity regime.
 - **Baseline Gate Hook**: before a new model, solver, analysis pipeline, or figure workflow is interpreted, require a toy model, known limit, reproduction, conservation check, or explicit waiver.
-- **Graduate Test-Design Hook**: before coding begins, require graduate-agent tasks with exact files, commands, inputs, outputs, pass/fail criteria, evidence records, and failure handling.
+- **Graduate Test-Design Hook**: before coding begins, require graduate-agent tasks with exact files, commands, inputs, outputs, pass/fail criteria, evidence records, and failure handling. Load `skills/seed-design/SKILL.md` to produce the task specification.
 - **Code-before-Test Hook**: for numerical, simulation, analysis, or figure-generation code, flag implementation that lacks a prior or accompanying validation check.
 - **Numerical Stability Hook**: when solvers, timesteps, grids, tolerances, convergence criteria, sampling, or fitting routines are involved, require stability, convergence, uncertainty, or sensitivity checks.
 - **Parameter Change Hook**: record parameter values, sweep ranges, timestep, grid size, tolerance, random seed, sample size, and any changes from previous runs.
@@ -67,7 +67,7 @@ Required scientific-loop hooks:
 - **Waiver Hook**: if the researcher chooses to bypass a baseline, unit, reproduction, stability, or evidence gate, record the waiver, reason, risk, and claim limits.
 - **Negative Result Hook**: failed baselines, null results, disappearing effects, and invalidated hypotheses should be recorded rather than silently discarded.
 - **Environment Capture Hook**: for important runs, record command, OS, Python/package versions, relevant environment, and git state when available.
-- **Cartographer Hook**: update the live workflow artifact whenever the active step, gate status, evidence link, waiver, blocked behavior, stale artifact, or next review checkpoint changes.
+- **Cartographer Hook**: update the live workflow artifact whenever the active step, gate status, evidence link, waiver, blocked behavior, stale artifact, or next review checkpoint changes. Load `skills/cartographer-update/SKILL.md` for waiver persistence and staleness propagation rules.
 - **Retrospective Hook**: before ending an iteration, record outcome, decision, failure, reusable check, negative result, open question, or new skill/template rule.
 
 The Diagram/Cartographer Agent must maintain a **Live Linked Research Graph**, not just a static loop diagram. Each Professor Orchestrator, Graduate Test-Design Agent, and Coding Subagent should send Cartographer update events when progress or evidence changes. The graph should expose Code links, Result links, and Interpretation links for every important node when those artifacts exist.

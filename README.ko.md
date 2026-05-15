@@ -158,15 +158,18 @@ Orient -> Interview -> Specify -> Seed -> Validate -> Execute -> Evaluate -> Rev
 
 | Skill | 언제 쓰는가 |
 | --- | --- |
+| `task-intake` | 모든 연구 작업의 시작 시점 — 작업 유형을 분류하고, 연구 역할을 배정하고, 실행 전에 교수의 첫 질문을 꺼낸다 (Orient 단계) |
 | `research-plan-review` | 큰 시뮬레이션, 분석 workflow, figure set, reproduction, manuscript claim 전략을 실행하기 전 |
 | `model-specification` | 물리 모델, 변수, 방정식, 가정, 파라미터, 제약, validity regime을 정의하거나 검토할 때 |
 | `dimensional-analysis` | 방정식, 물리 파라미터, 단위, scaling law, 무차원화, dimensionless group이 등장할 때 |
 | `baseline-validation` | 새 모델, solver, 분석 pipeline, figure workflow, 해석에 toy model, known limit, benchmark, reproduction check가 필요할 때 |
+| `seed-design` | 승인된 연구 계획을 파일, 명령어, 입력, 출력, 통과/실패 기준, 실패 처리가 포함된 대학원생 에이전트 작업으로 변환할 때 (Seed 단계) |
 | `numerical-validation` | simulation, numerical solver, convergence, stability, computational validation을 실행, 수정, 해석할 때 |
 | `claim-to-evidence` | 초록, 서론, 결과, 토론, 결론, caption, 원고 문장 등 claim과 evidence를 연결해야 할 때 |
 | `scientific-verification-before-claim` | 방정식, simulation, figure, data, citation에 의존하는 주장을 만들거나 강화하기 전 |
 | `anomaly-debugging` | 결과, simulation, plot, fit, derivation, unit check, conservation law, reproduction이 예상과 다를 때 |
 | `researcher-review-loop` | 중간 결과를 보여주고 다음 행동을 결정하거나 연구자 결정을 기록할 때 |
+| `cartographer-update` | 활성 단계가 바뀌거나, 게이트 통과/차단, waiver 발행, artifact 오염, 연구자 checkpoint 도달 시 라이브 워크플로우 상태를 업데이트할 때 |
 | `research-retrospective` | iteration, validation run, reproduction, anomaly investigation, figure audit, manuscript revision이 끝났을 때 |
 | `existing-research-onboarding` | 이미 code, data, figure, simulation, note, result, manuscript claim이 있는 프로젝트에 하네스를 붙일 때 |
 | `literature-review-planning` | novelty, prior methods, reproduction target, 연구자 제공 PDF가 연구 방향을 바꿀 수 있을 때 |
