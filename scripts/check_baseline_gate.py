@@ -24,6 +24,12 @@ import argparse
 import sys
 from pathlib import Path
 
+_SCRIPTS_DIR = Path(__file__).resolve().parent
+sys.path.insert(0, str(_SCRIPTS_DIR))
+from _layout import (  # noqa: E402
+    baseline_registry as _baseline_registry,
+    live_workflow_diagram as _live_workflow,
+)
 
 VALID_STATUSES = {"planned", "pass", "fail", "partial", "waived"}
 
@@ -66,7 +72,7 @@ def parse_statuses(text: str) -> list[str]:
 
 
 def check_run(run_dir: Path) -> tuple[int, list[str]]:
-    registry = run_dir / "docs" / "baseline_registry.md"
+    registry = _baseline_registry(run_dir)
     if not registry.exists():
         return 1, [f"Missing baseline registry: {registry}"]
 
@@ -77,7 +83,7 @@ def check_run(run_dir: Path) -> tuple[int, list[str]]:
         return 0, ["Baseline gate passed: at least one Status=pass entry recorded."]
 
     if "waived" in statuses:
-        live = run_dir / "docs" / "live_workflow_diagram.md"
+        live = _live_workflow(run_dir)
         if not live.exists():
             return 1, [
                 "Waiver recorded in baseline_registry.md but "
@@ -112,7 +118,7 @@ def main(argv: list[str] | None = None) -> int:
         "--run",
         required=True,
         type=Path,
-        help="Path to the run directory (must contain docs/baseline_registry.md).",
+        help="Path to the run directory (must contain docs/gates/baseline_registry.md).",
     )
     args = parser.parse_args(argv if argv is not None else [])
     code, messages = check_run(args.run)

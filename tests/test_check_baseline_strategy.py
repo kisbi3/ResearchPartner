@@ -18,10 +18,10 @@ def load_checker():
 
 def make_run(tmp_path: Path, strategy_body: str | None) -> Path:
     run = tmp_path / "run"
-    docs = run / "docs"
-    docs.mkdir(parents=True)
+    plan = run / "docs" / "plan"
+    plan.mkdir(parents=True)
     if strategy_body is not None:
-        (docs / "baseline_strategy.md").write_text(strategy_body, encoding="utf-8")
+        (plan / "baseline_strategy.md").write_text(strategy_body, encoding="utf-8")
     return run
 
 

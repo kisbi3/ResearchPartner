@@ -21,6 +21,9 @@ import argparse
 import sys
 from pathlib import Path
 
+_SCRIPTS_DIR = Path(__file__).resolve().parent
+sys.path.insert(0, str(_SCRIPTS_DIR))
+from _layout import interview_notes as _interview_notes  # noqa: E402
 
 REQUIRED_SECTIONS = [
     "## Crystallized Research Question",
@@ -47,12 +50,12 @@ def _section_has_content(text: str, heading: str) -> bool:
 
 
 def check_run(run_dir: Path) -> tuple[int, list[str]]:
-    interview = run_dir / "docs" / "interview_notes.md"
+    interview = _interview_notes(run_dir)
     if not interview.exists():
         return 1, [
             f"Missing interview notes: {interview}\n"
             "Run the professor-interview skill and record its output in "
-            "docs/interview_notes.md before Seed or Execute work begins."
+            "docs/gates/interview_notes.md before Seed or Execute work begins."
         ]
 
     text = interview.read_text(encoding="utf-8")
@@ -80,7 +83,7 @@ def main(argv: list[str] | None = None) -> int:
         "--run",
         required=True,
         type=Path,
-        help="Path to the run directory (must contain docs/interview_notes.md).",
+        help="Path to the run directory (must contain docs/gates/interview_notes.md).",
     )
     args = parser.parse_args(argv if argv is not None else [])
     code, messages = check_run(args.run)

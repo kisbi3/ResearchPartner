@@ -1,0 +1,77 @@
+# Research Run: (fill in run name)
+
+Run slug: (fill in `YYYY-MM-DD-<slug>`)
+Layout version: 2
+Started: (fill in date)
+
+---
+
+## Quick Navigation
+
+| Category | Path | Key files |
+|---|---|---|
+| **Gate artifacts** | `docs/gates/` | orient_note.md · interview_notes.md · seed_design.md · baseline_registry.md · validation_log.md |
+| **Planning / Spec** | `docs/plan/` | research_plan.md · model_spec.md · baseline_strategy.md |
+| **Process / Tracking** | `docs/process/` | live_workflow_diagram.md · researcher_review_log.md · research_retrospective.md |
+| **Literature meta** | `docs/literature/` | literature_review_plan.md · paper_request_queue.md · replanning_memo.md |
+| **Literature files** | `literature/` | pdfs/ · reviews/ · extracted_text/ · index.md |
+| **Code** | `src/` | all executable scripts — run via `scripts/run_with_capture.py` |
+| **Final results** | `outputs/` | figures/ · data/ · tables/ |
+| **Cache** | `cache/` | recomputable intermediates — safe to delete |
+| **Logs** | `logs/` | stdout captures: `<YYYY-MM-DD-HHMM>-<script>.log` |
+| **Error logs** | `errors/` | stderr / tracebacks: `<YYYY-MM-DD-HHMM>-<script>.err` |
+
+---
+
+## Run Status
+
+- Phase: (orient / interview / seed / execute / evaluate / review / done)
+- Claim ceiling: (observation / interpretation / mechanism / generalization)
+- Active gate: (name of gate currently being worked on)
+- Researcher Checkpoint: (pending / done on YYYY-MM-DD)
+
+---
+
+## How to Run Code
+
+Always use the capture wrapper to ensure stdout/stderr are preserved:
+
+```bash
+python scripts/run_with_capture.py <run_dir> src/<script>.py [args]
+```
+
+Example:
+```bash
+python scripts/run_with_capture.py C:/ResearchPartner-runs/my-run src/simulate.py
+```
+
+---
+
+## Gate Check Commands
+
+```bash
+# Orient gate
+python scripts/check_orient_recorded.py --run <run_dir>
+
+# Interview gate
+python scripts/check_interview_recorded.py --run <run_dir>
+
+# Literature gate
+python scripts/check_literature_reviewed.py --run <run_dir>
+
+# Model gate
+python scripts/check_model_specified.py --run <run_dir>
+
+# Baseline gate
+python scripts/check_baseline_gate.py --run <run_dir>
+
+# Baseline strategy gate
+python scripts/check_baseline_strategy.py --run <run_dir>
+```
+
+---
+
+## gitignore Policy
+
+`cache/`, `logs/`, `errors/`, and `literature/pdfs/` are listed in `.gitignore`
+and are NOT committed. All other directories are committed.
