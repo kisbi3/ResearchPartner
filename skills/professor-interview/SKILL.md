@@ -92,17 +92,29 @@ Use this structure:
 
 Do not write a full transcript. The goal is a compact, readable record — the crystallized state, not the path to it.
 
-## Next Skill Guidance
+## Next Skill
 
-Choose the next skill based on what the crystallized question reveals:
+After the interview is complete, the next skill is always **`literature-review-planning`**.
 
-| Next question | Suggested skill |
-|---|---|
-| What has been done before on this? | `literature-review-planning` |
-| What is the physical model? | `model-specification` |
-| How do we validate any approach? | `research-plan-review` |
-| What is the smallest runnable test? | `seed-design` |
-| Something surprising is already happening | `anomaly-debugging` |
+This applies even if the researcher believes the literature is already known. The literature skill provides an explicit gate and a skip waiver mechanism — if the literature review is truly not needed, the researcher records a one-line reason in `docs/literature_skip_waiver.md` and the gate passes without doing the full review.
+
+The full default chain is:
+
+```
+professor-interview → literature-review-planning → model-specification → seed-design
+```
+
+Each step can be skipped with an explicit waiver file and a stated reason:
+
+- `docs/literature_skip_waiver.md` — skips `literature-review-planning`
+- `docs/model_skip_waiver.md` — skips `model-specification`
+
+Skipping lowers the claim ceiling: literature skip → ceiling at most `interpretation`; model skip → ceiling at most `observation`.
+
+The only exceptions to starting with `literature-review-planning`:
+
+- Task type is **Anomaly / bug**: go to `anomaly-debugging` first
+- Task type is **Existing project onboarding**: go to `existing-research-onboarding` first
 
 ## Gate Rule
 

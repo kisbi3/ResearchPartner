@@ -128,6 +128,8 @@ Use these commands from the installed project root. The assistant should invoke 
 | Check contract sync | `python scripts\check_contract_sync.py` | Enforces byte-identical `AGENTS.md` and `GEMINI.md` so both runtimes follow the same contract |
 | Check orient gate | `python scripts\check_orient_recorded.py --run <run-dir>` | Blocks Seed, Execute, or Evaluate work unless `docs/orient_note.md` contains the task-intake output (classification, role, first question, researcher answer) |
 | Check interview gate | `python scripts\check_interview_recorded.py --run <run-dir>` | Blocks Seed or Execute work unless `docs/interview_notes.md` contains the professor-interview output (crystallized question, assumptions, agreed direction) |
+| Check literature gate | `python scripts\check_literature_reviewed.py --run <run-dir>` | Blocks model-specification or seed-design unless `docs/literature_review_plan.md` has `## Literature Gate Status: ready/waived`, or `docs/literature_skip_waiver.md` exists with a reason (lowers claim ceiling to `interpretation`) |
+| Check model gate | `python scripts\check_model_specified.py --run <run-dir>` | Blocks seed-design or execute unless `docs/model_spec.md` has physical system and governing equations, or `docs/model_skip_waiver.md` exists with a reason (lowers claim ceiling to `observation`) |
 | Check baseline gate | `python scripts\check_baseline_gate.py --run <run-dir>` | Blocks downstream work unless `baseline_registry.md` has a `pass` entry, or a `waived` entry with claim ceiling lowered to `observation` in the live workflow |
 | Check figure provenance | `python scripts\check_figure_provenance.py --root <run-dir>` | Fails if any figure file lacks a sibling `*.provenance.md` or a matching entry in `figure_provenance.md` |
 

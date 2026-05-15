@@ -5,7 +5,23 @@ description: Use before full research execution when a project needs literature 
 
 # Literature Review Planning Skill
 
-Use this skill between initial research planning and full execution. The goal is not to let an LLM invent a literature review; the goal is to make the researcher's paper access and judgment part of the workflow before simulations, figures, or manuscript claims begin.
+Use this skill between professor-interview and model-specification.
+
+## Prerequisites
+
+Before starting:
+
+1. Confirm `docs/interview_notes.md` exists and the Interview Gate passes (`python scripts/check_interview_recorded.py --run <run-dir>`). If not, complete the professor-interview skill first.
+
+## Skipping This Step
+
+If the literature review is genuinely not needed for this iteration (e.g. reproducing a known result with well-understood prior work), the researcher may skip this step by creating `docs/literature_skip_waiver.md` with a one-line reason:
+
+```
+Skipping literature review: reproducing Fourier (1822) heat equation — prior work is fully known and no novelty is claimed.
+```
+
+The Literature Gate (`python scripts/check_literature_reviewed.py --run <run-dir>`) passes on either a completed review or a waiver file with content. A skip lowers the claim ceiling to at most `interpretation` for this run. The goal is not to let an LLM invent a literature review; the goal is to make the researcher's paper access and judgment part of the workflow before simulations, figures, or manuscript claims begin.
 
 ## Goal
 
@@ -110,3 +126,11 @@ Name the smallest result that should be reproduced and why it is sufficient for 
 ### Revised Research Plan
 
 State what changed in assumptions, observables, baselines, validation, and claim ceiling.
+
+### Literature Gate Status
+
+Set this to one of: `ready` (review complete and plan revised) or `waived` (with explicit reason). Write this section into `docs/literature_review_plan.md` in the run directory. The Literature Gate (`python scripts/check_literature_reviewed.py --run <run-dir>`) checks this section before model-specification or seed-design work begins.
+
+## Suggested Next Skill
+
+**`model-specification`** — to define the physical model, variables, equations, and approximation regime informed by the literature review.

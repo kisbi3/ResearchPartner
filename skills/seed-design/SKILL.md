@@ -11,16 +11,18 @@ Use this skill after `research-plan-review` marks a plan as `ready`. It converts
 
 Produce the smallest set of concrete, unambiguous tasks that can validate or advance the approved research plan. Each task must carry enough detail that a Coding Subagent can start without asking clarifying questions.
 
-## Required Inputs
+## Prerequisites
 
 Confirm all of the following before running this skill:
 
-1. `research-plan-review` has marked the plan `ready`.
-2. The baseline validation target is identified.
-3. The observables and failure criteria are defined.
-4. The claim-to-evidence path is stated.
+1. The Interview Gate passes: `python scripts/check_interview_recorded.py --run <run-dir>`. If not, complete the professor-interview skill first.
+2. The Literature Gate passes: `python scripts/check_literature_reviewed.py --run <run-dir>`. If not, complete literature-review-planning or create `docs/literature_skip_waiver.md` with a reason.
+3. The Model Gate passes: `python scripts/check_model_specified.py --run <run-dir>`. If not, complete model-specification or create `docs/model_skip_waiver.md` with a reason.
+4. The baseline validation target is identified.
+5. The observables and failure criteria are defined.
+6. The claim-to-evidence path is stated.
 
-If any of these are missing, return to `research-plan-review` first.
+If any gate is unresolved, return to the appropriate skill before proceeding. Waivers lower the claim ceiling: literature skip → at most `interpretation`; model skip → at most `observation`.
 
 ## Task Structure
 

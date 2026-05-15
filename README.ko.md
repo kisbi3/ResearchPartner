@@ -136,6 +136,8 @@ Orient -> Interview -> Specify -> Seed -> Validate -> Execute -> Evaluate -> Rev
 | 계약 동기화 검증 | `python scripts\check_contract_sync.py` | `AGENTS.md`와 `GEMINI.md`가 바이트 단위로 동일하도록 강제하여 두 런타임이 같은 계약을 따르게 보장 |
 | Orient 게이트 검증 | `python scripts\check_orient_recorded.py --run <run-dir>` | `docs/orient_note.md`에 task-intake 산출물(분류, 역할, 첫 질문, 연구자 답변)이 기록되지 않으면 Seed, Execute, Evaluate 작업 차단 |
 | Interview 게이트 검증 | `python scripts\check_interview_recorded.py --run <run-dir>` | `docs/interview_notes.md`에 professor-interview 산출물(결정화된 연구 질문, 가정, 합의된 방향)이 기록되지 않으면 Seed, Execute 작업 차단 |
+| Literature 게이트 검증 | `python scripts\check_literature_reviewed.py --run <run-dir>` | `docs/literature_review_plan.md`에 `## Literature Gate Status: ready/waived`가 없거나 `docs/literature_skip_waiver.md`가 없으면 model-specification 또는 seed-design 차단 (스킵 시 claim ceiling → `interpretation`) |
+| Model 게이트 검증 | `python scripts\check_model_specified.py --run <run-dir>` | `docs/model_spec.md`에 물리 시스템과 지배 방정식이 없거나 `docs/model_skip_waiver.md`가 없으면 seed-design 또는 execute 차단 (스킵 시 claim ceiling → `observation`) |
 | Baseline 게이트 검증 | `python scripts\check_baseline_gate.py --run <run-dir>` | `baseline_registry.md`에 `pass` 항목이 없거나, `waived` 항목이 있어도 라이브 워크플로의 claim ceiling이 `observation`으로 강등되지 않으면 후속 작업 차단 |
 | Figure provenance 검증 | `python scripts\check_figure_provenance.py --root <run-dir>` | 모든 figure 파일에 형제 `*.provenance.md` 또는 `figure_provenance.md`의 매칭 엔트리가 없으면 실패 |
 
