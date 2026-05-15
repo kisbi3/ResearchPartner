@@ -38,14 +38,49 @@ Do not design Task 1 as any other kind of work (e.g., parameter sweep, new featu
 Each seed task must specify:
 
 1. **Title**: a short imperative description of the task.
-2. **Role**: Graduate Test-Design Agent, Coding Subagent, or Professor Orchestrator.
+2. **Role**: Graduate Student Agent (owns execution), Implementation Agent (code), Scientific Validator (run+check), or Professor Orchestrator.
 3. **Input files**: exact paths to code, data, parameter files, or prior output files.
-4. **Command**: the exact command to run, including arguments and flags.
+4. **Script to write**: exact path under `src/` for the Implementation Agent.
 5. **Expected output**: exact file names, log entries, figure paths, or printed values.
 6. **Pass criterion**: the specific condition that means this task succeeded.
 7. **Fail criterion**: the specific condition that means this task failed and must not proceed.
 8. **On failure**: what to do when the fail criterion is met — stop and escalate, log and continue, or retry with a stated change.
 9. **Evidence record**: the file or log entry that will document the result for the Cartographer.
+10. **Graduate Student Spawn Block**: the pre-formatted Agent() prompt the Professor uses to spawn a Graduate Student for this task (see format below).
+
+### Graduate Student Spawn Block Format
+
+Each task must end with a spawn block that Professor can use directly as the `prompt` argument to `Agent()`:
+
+```
+#### Graduate Student Spawn Block — Task N
+
+You are a Graduate Student agent in a physics research group.
+Load skills/graduate-student/SKILL.md to understand your role and constraints.
+
+Run directory: <absolute path to run directory>
+
+Task: <task title>
+<2-3 sentence description of what to accomplish>
+
+Implementation spec:
+- Script to write: src/<filename>.py
+- Equations: <exact equations with source>
+- Parameters: <exact values with units>
+- Algorithm: <method, timestep, convergence criterion>
+- Outputs: <file paths the script must produce>
+
+Pass criterion: <exact measurable criterion>
+Fail criterion: <exact measurable criterion>
+On failure: <escalate to Professor / log-and-continue / retry with [stated change]>
+Evidence record: docs/gates/validation_log.md (append) + <any additional file>
+
+Spawn sub-agents:
+1. Implementation Agent (skills/implementation-agent/SKILL.md) to write the script.
+2. Scientific Validator (skills/scientific-validator/SKILL.md) to run and check results.
+
+Report back: one-paragraph summary, pass/fail verdict, observed values, evidence file path, anomalies if any.
+```
 
 ## Sizing Rule
 
@@ -91,14 +126,44 @@ For each task:
 
 #### Task N: [Title]
 
-- **Role**:
+- **Role**: Graduate Student Agent
 - **Inputs**:
-- **Command**:
+- **Script to write**: `src/<filename>.py`
 - **Expected output**:
 - **Pass criterion**:
 - **Fail criterion**:
 - **On failure**:
 - **Evidence record**:
+
+#### Graduate Student Spawn Block — Task N
+
+```
+You are a Graduate Student agent in a physics research group.
+Load skills/graduate-student/SKILL.md to understand your role and constraints.
+
+Run directory: <absolute path>
+
+Task: [Title]
+[2-3 sentence description]
+
+Implementation spec:
+- Script to write: src/<filename>.py
+- Equations: <equations>
+- Parameters: <values with units>
+- Algorithm: <method>
+- Outputs: <file paths>
+
+Pass criterion: <exact criterion>
+Fail criterion: <exact criterion>
+On failure: <action>
+Evidence record: docs/gates/validation_log.md
+
+Spawn sub-agents:
+1. Implementation Agent (skills/implementation-agent/SKILL.md) to write the script.
+2. Scientific Validator (skills/scientific-validator/SKILL.md) to run and check.
+
+Report back: one-paragraph summary, pass/fail verdict, observed values, evidence file path.
+```
 
 ### Dependency Map
 
