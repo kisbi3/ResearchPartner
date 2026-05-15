@@ -17,8 +17,47 @@ def load_generator():
     return module
 
 
-def test_default_build_data_contains_only_live_research_workflow():
+LIVE_WORKFLOW_FIXTURE = """\
+# Live Workflow
+
+## Active Step
+
+- Current step: Running validation experiments
+
+## Gate Status
+
+| Gate | Status | Note |
+|---|---|---|
+| Baseline | pass | Toy baseline validated |
+| Refinement trend | pass | Convergence trend established |
+| Fixed ratio convergence | pass | Order confirmed |
+| Multi mode validation | fail | Multi-mode tests failing |
+| Positivity sanity | pass | Positivity confirmed |
+| Dirichlet boundary | pass | Boundary conditions met |
+| Anomaly probe | pass | No anomalies detected |
+| Claim gate | pass | Claims scoped |
+
+## Evidence Links
+
+- `docs/convergence_sweep.csv`
+
+## Next Review Checkpoint
+
+- Researcher decision needed: review multi-mode failure
+"""
+
+
+def _make_live_run(tmp_path, monkeypatch, generator):
+    runs_root = tmp_path / "ResearchPartner-runs"
+    run_docs = runs_root / "2026-05-15-fixture-run" / "docs"
+    run_docs.mkdir(parents=True)
+    (run_docs / "live_workflow_diagram.md").write_text(LIVE_WORKFLOW_FIXTURE, encoding="utf-8")
+    monkeypatch.setattr(generator, "RUNS_ROOT", runs_root)
+
+
+def test_default_build_data_contains_only_live_research_workflow(tmp_path, monkeypatch):
     generator = load_generator()
+    _make_live_run(tmp_path, monkeypatch, generator)
 
     data = generator.build_data()
 
@@ -29,8 +68,9 @@ def test_default_build_data_contains_only_live_research_workflow():
     assert any("convergence_sweep.csv" in item["path"] for node in data["maps"][0]["nodes"] for item in node["responsible"])
 
 
-def test_live_nodes_include_result_summaries_and_images():
+def test_live_nodes_include_result_summaries_and_images(tmp_path, monkeypatch):
     generator = load_generator()
+    _make_live_run(tmp_path, monkeypatch, generator)
 
     nodes = {node["id"]: node for node in generator.build_data()["maps"][0]["nodes"]}
 
