@@ -50,14 +50,14 @@ This loop absorbs software-development discipline into scientific practice. Brai
 
 | Step | Purpose | Primary Gate | Responsible Files |
 |---|---|---|---|
-| Orient | Classify task and choose roles | Task Intake Hook identifies scope and first professor question | `AGENTS.md`, `GEMINI.md`, `docs/workflow_overview.md` |
+| Orient | Classify task and choose roles | Task Intake Hook identifies scope and first professor question | `skills/task-intake/SKILL.md`, `AGENTS.md`, `GEMINI.md`, `docs/workflow_overview.md` |
 | Interview | Clarify intent, assumptions, alternatives, and risk | Ambiguity Hook blocks execution when the research object is unclear | `skills/research-plan-review/SKILL.md`, `docs/research_plan.md` |
 | Specify | Define model, variables, units, regimes, observables, and failure criteria | Assumption/Units, Unit Conversion, and Approximation Regime Hooks are satisfied | `skills/model-specification/SKILL.md`, `skills/dimensional-analysis/SKILL.md`, `docs/assumptions.md` |
-| Seed | Convert the idea into the smallest testable research iteration | Graduate Test-Design Hook produces tasks with files, commands, outputs, and pass/fail criteria | `skills/research-plan-review/SKILL.md`, `docs/research_plan.md` |
+| Seed | Convert the idea into the smallest testable research iteration | Graduate Test-Design Hook produces tasks with files, commands, outputs, and pass/fail criteria | `skills/seed-design/SKILL.md`, `skills/research-plan-review/SKILL.md`, `docs/research_plan.md` |
 | Validate | Establish baseline, stability, reproducibility, and waiver status | Baseline Gate, Numerical Stability, Code-before-Test, and Waiver Hooks are satisfied | `skills/baseline-validation/SKILL.md`, `skills/numerical-validation/SKILL.md`, `docs/baseline_registry.md` |
 | Execute | Run bounded implementation, analysis, simulation, or plotting tasks | Parameter Change, Data Lineage, Randomness/Reproducibility, Figure Provenance, and Environment Capture Hooks record provenance | `skills/numerical-validation/SKILL.md`, `docs/validation_log.md` |
 | Evaluate | Separate observations, interpretation, speculation, and failures | Anomaly, Claim Strength, Literature Claim, Reviewer Simulation, and Negative Result Hooks check interpretation | `skills/anomaly-debugging/SKILL.md`, `skills/scientific-verification-before-claim/SKILL.md`, `skills/claim-to-evidence/SKILL.md` |
-| Review | Present reviewable evidence and limits to the researcher | Manuscript Drift, Artifact Freshness, Scope Creep, and Cartographer Hooks expose stale or unsupported material | `skills/researcher-review-loop/SKILL.md`, `docs/researcher_review_log.md` |
+| Review | Present reviewable evidence and limits to the researcher | Manuscript Drift, Artifact Freshness, Scope Creep, and Cartographer Hooks expose stale or unsupported material | `skills/cartographer-update/SKILL.md`, `skills/researcher-review-loop/SKILL.md`, `docs/researcher_review_log.md` |
 | Retrospect | Preserve lineage, decisions, failures, and reusable checks | Retrospective Hook leaves a reusable artifact, decision, open question, or skill/template rule | `skills/research-retrospective/SKILL.md`, `docs/research_retrospective.md`, `docs/lineage/iteration_template.md` |
 
 ## Hook Families

@@ -150,15 +150,18 @@ The installer copies these skills into the target project's `skills/` directory.
 
 | Skill | Use It When |
 |---|---|
+| `task-intake` | Starting any research task — classifies the work type, assigns research roles, and surfaces the first professor question before execution begins (Orient phase) |
 | `research-plan-review` | Planning a substantial simulation, analysis workflow, figure set, reproduction attempt, or manuscript-claim strategy |
 | `model-specification` | Defining or reviewing a physical model, variables, equations, assumptions, parameters, constraints, or validity regime |
 | `dimensional-analysis` | Equations, units, scaling laws, nondimensionalization, or dimensionless groups are involved |
 | `baseline-validation` | A model, solver, analysis pipeline, figure workflow, or interpretation needs a toy model, known limit, benchmark, or reproduction check |
+| `seed-design` | Converting an approved research plan into concrete graduate-agent tasks with files, commands, inputs, outputs, pass/fail criteria, and failure handling (Seed phase) |
 | `numerical-validation` | Running, modifying, or interpreting simulations, solvers, convergence checks, stability checks, or computational validation |
 | `claim-to-evidence` | Reviewing manuscript text, captions, abstracts, conclusions, or any scientific claim that needs evidence mapping |
 | `scientific-verification-before-claim` | Making, strengthening, publishing, summarizing, captioning, or editing a claim based on equations, simulations, figures, data, or citations |
 | `anomaly-debugging` | A result, simulation, plot, fit, derivation, unit check, conservation law, or reproduction behaves unexpectedly |
 | `researcher-review-loop` | Presenting intermediate results, deciding next steps, comparing iterations, or recording researcher decisions |
+| `cartographer-update` | Updating live workflow state when the active phase changes, a gate passes or blocks, a waiver is issued, an artifact becomes stale, or a researcher checkpoint is reached |
 | `research-retrospective` | Ending an iteration, validation run, reproduction attempt, anomaly investigation, figure audit, manuscript revision, or review |
 | `existing-research-onboarding` | Adding the harness to a project that already has code, data, figures, simulations, notes, results, or manuscript claims |
 | `literature-review-planning` | Literature access, novelty assessment, researcher-provided PDFs, reproduction targets, or prior methods could change the plan |
