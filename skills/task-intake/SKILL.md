@@ -67,6 +67,17 @@ Do not proceed to Interview, Specify, Seed, Validate, or Execute before:
 
 If the task scope is unclear, classify what is known, mark uncertain categories as **unclear**, and ask the first professor question about the unclear scope.
 
+## Orient Note
+
+If a run directory exists (`ResearchPartner-runs/YYYY-MM-DD-<slug>/`), write
+the output below into `docs/orient_note.md` inside that run directory.
+This file is the artifact checked by `scripts/check_orient_recorded.py` before
+Seed, Execute, or Evaluate work may begin.
+
+If no run directory exists yet, remind the researcher to create one with
+`python scripts/start_research_run.py --name "<topic>"` so the orient note
+can be recorded before execution starts.
+
 ## Output Format
 
 ### Task Type

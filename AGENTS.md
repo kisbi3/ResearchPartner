@@ -48,6 +48,7 @@ Required scientific-loop hooks:
 - **Assumption/Units Hook**: record assumptions, units, boundary conditions, initial conditions, nondimensionalization, and approximation regime before relying on equations, parameters, or results.
 - **Unit Conversion Hook**: when SI, cgs, natural units, code units, or nondimensional units are converted, record the conversion formula and reference scale.
 - **Approximation Regime Hook**: mark linearization, perturbation, continuum, weak-coupling, low/high-temperature, small-angle, or similar approximations with their validity regime.
+- **Orient Gate Hook**: after the task-intake skill runs, write its output (task classification, responsible role, first professor question, researcher answer, suggested next skill) to `docs/orient_note.md` in the run directory. Enforce with `python scripts/check_orient_recorded.py --run <run-dir>` before Seed, Execute, or Evaluate work begins.
 - **Baseline Gate Hook**: before a new model, solver, analysis pipeline, or figure workflow is interpreted, require a toy model, known limit, reproduction, conservation check, or explicit waiver. Enforce with `python scripts/check_baseline_gate.py --run <run-dir>` before Execute or Evaluate phase work begins.
 - **Graduate Test-Design Hook**: before coding begins, require graduate-agent tasks with exact files, commands, inputs, outputs, pass/fail criteria, evidence records, and failure handling. Load `skills/seed-design/SKILL.md` to produce the task specification.
 - **Code-before-Test Hook**: for numerical, simulation, analysis, or figure-generation code, flag implementation that lacks a prior or accompanying validation check.
@@ -113,33 +114,7 @@ When a reproduction, validation, figure-generation, or other substantial task is
 
 ## Before Starting Any Task
 
-Classify the task as one or more of:
-
-- Baseline validation
-- Workflow visualization
-- Research plan review
-- Literature replanning
-- Model specification
-- Dimensional analysis
-- Analytical derivation
-- Numerical simulation
-- Data analysis
-- Parameter estimation
-- Figure generation
-- Figure audit
-- Literature review
-- Manuscript writing
-- Manuscript criticism
-- Scientific claim verification
-- Anomaly debugging
-- Research retrospective
-- Researcher review
-- Existing research onboarding
-- Harness evaluation
-- Reproducibility check
-- Code maintenance
-
-Then read the relevant skill file in `skills/`.
+Load `skills/task-intake/SKILL.md` and follow its classification, role assignment, and first-question protocol before any other action. The skill defines the canonical task categories, responsible roles, and which skill to invoke next.
 
 ## Harness Evaluation
 
