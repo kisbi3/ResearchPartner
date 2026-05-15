@@ -98,12 +98,13 @@ The single most important clarifying question before execution begins.
 
 ### Suggested Next Skill
 
-The skill to invoke after the first professor question is answered:
+For most new research tasks, the next skill is `professor-interview`. This is the brainstorming dialogue that crystallizes the research question before Specify, Seed, or literature work begins.
 
-- `research-plan-review` — most planning and interview work
-- `model-specification` — model definition or equation changes
-- `existing-research-onboarding` — adoption work
-- `literature-review-planning` — novelty or reproduction planning
-- `anomaly-debugging` — anomaly classification
-- `seed-design` — converting an approved plan into concrete tasks
-- `harness-evaluation` — harness self-assessment
+Use `professor-interview` when the task is: New model, Simulation, Analysis, Figure, Manuscript claim, Literature, Reproduction, or Anomaly / bug.
+
+Use a different next skill only in these cases:
+
+- `existing-research-onboarding` — Existing project onboarding tasks
+- `harness-evaluation` — Harness evaluation or Maintenance tasks
+- `anomaly-debugging` — when an anomaly requires immediate reproduction before the research question can be crystallized
+- `seed-design` — when the task is already fully specified and only needs a concrete task list (rare at Orient phase)

@@ -135,6 +135,7 @@ Orient -> Interview -> Specify -> Seed -> Validate -> Execute -> Evaluate -> Rev
 | 논문 리뷰 확인 | `python scripts\check_paper_review_quality.py <review-path>` | 약한 논문 노트가 참신성이나 재현 주장의 근거가 되기 전에 차단 |
 | 계약 동기화 검증 | `python scripts\check_contract_sync.py` | `AGENTS.md`와 `GEMINI.md`가 바이트 단위로 동일하도록 강제하여 두 런타임이 같은 계약을 따르게 보장 |
 | Orient 게이트 검증 | `python scripts\check_orient_recorded.py --run <run-dir>` | `docs/orient_note.md`에 task-intake 산출물(분류, 역할, 첫 질문, 연구자 답변)이 기록되지 않으면 Seed, Execute, Evaluate 작업 차단 |
+| Interview 게이트 검증 | `python scripts\check_interview_recorded.py --run <run-dir>` | `docs/interview_notes.md`에 professor-interview 산출물(결정화된 연구 질문, 가정, 합의된 방향)이 기록되지 않으면 Seed, Execute 작업 차단 |
 | Baseline 게이트 검증 | `python scripts\check_baseline_gate.py --run <run-dir>` | `baseline_registry.md`에 `pass` 항목이 없거나, `waived` 항목이 있어도 라이브 워크플로의 claim ceiling이 `observation`으로 강등되지 않으면 후속 작업 차단 |
 | Figure provenance 검증 | `python scripts\check_figure_provenance.py --root <run-dir>` | 모든 figure 파일에 형제 `*.provenance.md` 또는 `figure_provenance.md`의 매칭 엔트리가 없으면 실패 |
 
