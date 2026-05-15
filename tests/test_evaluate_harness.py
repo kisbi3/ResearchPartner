@@ -31,7 +31,7 @@ def test_multi_agent_orchestration_scenarios_are_evaluated():
 def test_harness_evaluator_includes_hook_scenarios():
     evaluator = load_evaluator()
 
-    assert len(evaluator.SCENARIOS) == 18
+    assert len(evaluator.SCENARIOS) == 21
 
 
 def test_orchestration_scenarios_require_run_templates():
@@ -97,6 +97,16 @@ def test_user_facing_documentation_scenario_is_evaluated():
     assert "Evidence Strength" in scenario.rule_terms
     assert "Artifact Preview" in scenario.rule_terms
     assert "Staleness propagation" in scenario.rule_terms
+
+
+def test_new_skill_scenarios_are_evaluated():
+    evaluator = load_evaluator()
+
+    names = [scenario.name for scenario in evaluator.SCENARIOS]
+
+    assert "task_intake_orient_phase" in names
+    assert "seed_design_graduate_tasks" in names
+    assert "cartographer_update_waiver_staleness" in names
 
 
 def test_literature_replanning_loop_scenario_is_evaluated():
