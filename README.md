@@ -150,7 +150,7 @@ For substantial work, the harness behaves like a professor-led research group ra
 | Researcher | Stops coding and starts investigating | What evidence do we actually have? |
 | Architect | Identifies structural causes | If we started over, would we build it this way? |
 
-These stances support four operational roles: the Professor Orchestrator owns scientific judgment and claim discipline; Graduate Test-Design Agents turn the plan into validation tasks; Coding Subagents execute bounded implementation only after the validation strategy is clear; the Diagram/Cartographer Agent records workflow state without adding opinions or strengthening claims.
+These stances support five operational roles: the Professor Orchestrator owns scientific judgment and claim discipline; the Peer-Review Professor is an adversarial external reviewer invoked only within `meeting` sessions, with no project history, whose sole job is to find holes in claims; Graduate Test-Design Agents turn the plan into validation tasks; Coding Subagents execute bounded implementation only after the validation strategy is clear; the Diagram/Cartographer Agent records workflow state without adding opinions or strengthening claims.
 
 ### Installed Skills
 
@@ -173,6 +173,9 @@ The installer copies these skills into the target project's `skills/` directory.
 | `research-retrospective` | Ending an iteration, validation run, reproduction attempt, anomaly investigation, figure audit, manuscript revision, or review |
 | `existing-research-onboarding` | Adding the harness to a project that already has code, data, figures, simulations, notes, results, or manuscript claims |
 | `literature-review-planning` | Literature access, novelty assessment, researcher-provided PDFs, reproduction targets, or prior methods could change the plan |
+| `baseline-strategy` | After model-specification — professor-graduate student dialogue to decide variation vs. new model and fix the first verification target before seed-design begins |
+| `meeting` | "Does this make sense?" needs an outside perspective — convenes a structured multi-agent review (`--scope quick/review/full`, `--on "<question>"`). Invocable at any point in the workflow. |
+| `peer-review-professor` | Adversarial reviewer role used inside `meeting` sessions — fresh eyes only, no project history, finds holes in claims using five stances |
 | `harness-evaluation` | Checking whether the harness itself is useful, followed, lightweight enough, and effective across realistic scenarios |
 
 ### 1. Prerequisites

@@ -61,8 +61,10 @@ def create_run(name: str, date_text: str | None = None, runs_root: Path | str = 
     docs_dir = run_path / "docs"
     outputs_dir = run_path / "outputs"
     literature_dir = run_path / "literature"
+    meetings_dir = run_path / "docs" / "meetings"
     docs_dir.mkdir(parents=True)
     outputs_dir.mkdir()
+    meetings_dir.mkdir()
     (literature_dir / "pdfs").mkdir(parents=True)
     (literature_dir / "reviews").mkdir()
     (literature_dir / "extracted_text").mkdir()

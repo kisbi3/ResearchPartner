@@ -158,7 +158,7 @@ Orient -> Interview -> Specify -> Seed -> Validate -> Execute -> Evaluate -> Rev
 | 연구자 | 코딩을 멈추고 조사를 시작함. | "우리에게 실제로 있는 증거는 무엇입니까?" |
 | 아키텍트 | 구조적 원인을 파악함. | "우리가 처음부터 다시 시작한다면, 이런 방식으로 구축했을까요?" |
 
-이러한 스탠스들은 네 가지 운영 역할을 지원합니다. 교수 오케스트레이터(Professor Orchestrator)는 과학적 판단과 주장 규율을 담당합니다. 대학원생 테스트 설계 에이전트(Graduate Test-Design Agents)는 계획을 검증 작업으로 변환합니다. 코딩 하위 에이전트(Coding Subagents)는 검증 전략이 명확해진 후에만 제한된 구현을 실행합니다. 다이어그램/지도 제작자 에이전트(Diagram/Cartographer Agent)는 의견을 더하거나 주장을 강화하지 않고 워크플로우 상태만 기록합니다.
+이러한 스탠스들은 다섯 가지 운영 역할을 지원합니다. 교수 오케스트레이터(Professor Orchestrator)는 과학적 판단과 주장 규율을 담당합니다. 피어 리뷰 교수(Peer-Review Professor)는 `meeting` 세션에서만 활성화되는 외부 대립 검토자로, 프로젝트 히스토리 없이 라이브 워크플로 다이어그램과 공유된 artifact만 보고 주장의 허점을 찾습니다. 대학원생 테스트 설계 에이전트(Graduate Test-Design Agents)는 계획을 검증 작업으로 변환합니다. 코딩 하위 에이전트(Coding Subagents)는 검증 전략이 명확해진 후에만 제한된 구현을 실행합니다. 다이어그램/지도 제작자 에이전트(Diagram/Cartographer Agent)는 의견을 더하거나 주장을 강화하지 않고 워크플로우 상태만 기록합니다.
 
 ### 설치되는 Skills
 
@@ -181,6 +181,9 @@ Orient -> Interview -> Specify -> Seed -> Validate -> Execute -> Evaluate -> Rev
 | `research-retrospective` | iteration, validation run, reproduction, anomaly investigation, figure audit, manuscript revision이 끝났을 때 |
 | `existing-research-onboarding` | 이미 code, data, figure, simulation, note, result, manuscript claim이 있는 프로젝트에 하네스를 붙일 때 |
 | `literature-review-planning` | novelty, prior methods, reproduction target, 연구자 제공 PDF가 연구 방향을 바꿀 수 있을 때 |
+| `baseline-strategy` | model-specification 이후 — 교수-대학원생 대화로 variation vs. new model을 결정하고 seed-design 전에 첫 검증 타겟을 고정할 때 |
+| `meeting` | "이게 말이 되는가?"를 외부 관점으로 검증할 때 — `--scope quick/review/full`, `--on "<질문>"` 파라미터로 소집. 워크플로의 어느 시점에서도 호출 가능. |
+| `peer-review-professor` | `meeting` 세션 안에서 활성화되는 외부 대립 검토자 역할 — 프로젝트 히스토리 없이 5가지 스탠스로 주장의 허점을 찾음 |
 | `harness-evaluation` | 하네스 자체가 실제 연구 시나리오에서 잘 작동하는지 평가할 때 |
 
 ### 1. 전제 조건
