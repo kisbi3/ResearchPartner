@@ -3,7 +3,7 @@
 ## Local Instructions
 
 - Do not use `plt.show()`. Save figures to files instead.
-- If you add instructions to `AGENTS.md`, add the identical instructions to `GEMINI.md`; these files must stay synchronized.
+- If you add instructions to `AGENTS.md`, add the identical instructions to `GEMINI.md`; these files must stay synchronized. Enforce with `python scripts/check_contract_sync.py` before each commit.
 - If you add, remove, rename, or materially change a harness feature, script, skill, command, workflow, installation behavior, or user-facing capability, update `README.md` and `README.ko.md` in the same checkpoint so the public project description stays current.
 - Commit at coherent checkpoints when Git is available. Before committing, run relevant validation, summarize the scope, and do not include unrelated user changes.
 
@@ -48,14 +48,14 @@ Required scientific-loop hooks:
 - **Assumption/Units Hook**: record assumptions, units, boundary conditions, initial conditions, nondimensionalization, and approximation regime before relying on equations, parameters, or results.
 - **Unit Conversion Hook**: when SI, cgs, natural units, code units, or nondimensional units are converted, record the conversion formula and reference scale.
 - **Approximation Regime Hook**: mark linearization, perturbation, continuum, weak-coupling, low/high-temperature, small-angle, or similar approximations with their validity regime.
-- **Baseline Gate Hook**: before a new model, solver, analysis pipeline, or figure workflow is interpreted, require a toy model, known limit, reproduction, conservation check, or explicit waiver.
+- **Baseline Gate Hook**: before a new model, solver, analysis pipeline, or figure workflow is interpreted, require a toy model, known limit, reproduction, conservation check, or explicit waiver. Enforce with `python scripts/check_baseline_gate.py --run <run-dir>` before Execute or Evaluate phase work begins.
 - **Graduate Test-Design Hook**: before coding begins, require graduate-agent tasks with exact files, commands, inputs, outputs, pass/fail criteria, evidence records, and failure handling. Load `skills/seed-design/SKILL.md` to produce the task specification.
 - **Code-before-Test Hook**: for numerical, simulation, analysis, or figure-generation code, flag implementation that lacks a prior or accompanying validation check.
 - **Numerical Stability Hook**: when solvers, timesteps, grids, tolerances, convergence criteria, sampling, or fitting routines are involved, require stability, convergence, uncertainty, or sensitivity checks.
 - **Parameter Change Hook**: record parameter values, sweep ranges, timestep, grid size, tolerance, random seed, sample size, and any changes from previous runs.
 - **Randomness/Reproducibility Hook**: for stochastic sampling, Monte Carlo, bootstrap, train/test split, randomized initialization, or noise, record seeds and run metadata; seedless results are provisional.
 - **Data Lineage Hook**: record raw data, processed data, filters, smoothing, clipping, outlier removal, normalization, fits, and derived datasets.
-- **Figure Provenance Hook**: every figure should trace to script, input data, command, parameters, output path, and caption claim.
+- **Figure Provenance Hook**: every figure should trace to script, input data, command, parameters, output path, and caption claim. Enforce with `python scripts/check_figure_provenance.py --root <run-dir>` after figures are produced.
 - **Claim Strength Hook**: when claims, captions, conclusions, README text, or manuscript text change, check wording strength against evidence and downgrade unsupported language.
 - **Literature Claim Hook**: novelty, priority, "to our knowledge", "first", "known result", and prior-work claims require citations or must be marked as unverified.
 - **Literature Replanning Hook**: before full research execution when novelty, prior methods, or reproduction targets matter, run an iterative literature review and replanning loop. The Professor Orchestrator must request researcher-provided PDFs when access requires an institutional account, review the papers directly, build a novelty map, choose reproduction targets, and revise the plan before coding or full-scale analysis.

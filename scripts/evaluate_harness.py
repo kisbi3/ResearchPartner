@@ -380,6 +380,44 @@ SCENARIOS = [
             "same checkpoint",
         ),
     ),
+    Scenario(
+        name="task_intake_orient_phase",
+        skills=("skills/task-intake/SKILL.md",),
+        docs=("docs/workflow_overview.md",),
+        rule_terms=(
+            "skills/task-intake/SKILL.md",
+            "Task Intake Hook",
+            "first professor question",
+            "Orient phase",
+            "assigns research roles",
+        ),
+    ),
+    Scenario(
+        name="seed_design_graduate_tasks",
+        skills=(
+            "skills/seed-design/SKILL.md",
+            "skills/research-plan-review/SKILL.md",
+        ),
+        docs=("docs/research_plan.md",),
+        rule_terms=(
+            "skills/seed-design/SKILL.md",
+            "Graduate Test-Design Hook",
+            "concrete graduate-agent tasks",
+            "pass/fail criteria",
+            "Seed phase",
+        ),
+    ),
+    Scenario(
+        name="cartographer_update_waiver_staleness",
+        skills=("skills/cartographer-update/SKILL.md",),
+        docs=("docs/run_templates/cartographer_update_template.md",),
+        rule_terms=(
+            "skills/cartographer-update/SKILL.md",
+            "Cartographer Hook",
+            "waiver persistence",
+            "staleness propagation",
+        ),
+    ),
 ]
 
 
