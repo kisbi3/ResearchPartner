@@ -42,6 +42,183 @@ Role ownership across the loop:
 - **Coding Subagents** own bounded Execute tasks after the validation strategy is clear. They may implement, analyze, or plot, but they only report commands, parameters, seeds, files, outputs, validation status, and failures.
 - **Diagram/Cartographer Agent** owns live workflow state only: active step, gate status, evidence links, blocked behaviors, waivers, stale artifacts, and next researcher review checkpoint.
 
+## Agent Spawning Protocol
+
+Roles are enforced by actually spawning separate agents using the `Agent()` tool — not by a single agent switching internal personas. This section defines the concrete 3-tier hierarchy and the exact spawn protocol.
+
+### 3-Tier Hierarchy
+
+```
+Professor Orchestrator
+    │   owns: scientific judgment, gate approval, claim ceiling, waiver decisions
+    │
+    ├─ Graduate Student Agent(s)          ← spawned per seed task
+    │       │   owns: task execution strategy, anomaly escalation,
+    │       │          evidence reporting, sub-agent coordination
+    │       │
+    │       ├─ Implementation Agent       ← spawned when code must be written
+    │       │       writes code to src/; does NOT run or judge results
+    │       │
+    │       ├─ Scientific Validator       ← spawned to run and check results
+    │       │       runs via run_with_capture.py; checks against pre-set criteria;
+    │       │       does NOT modify code or strengthen claims
+    │       │
+    │       ├─ Cache-Log Auditor          ← spawned after Scientific Validator
+    │       │       runs audit_run_outputs.py (reuses _layout.py);
+    │       │       checks logs/ errors/ cache/ mechanically;
+    │       │       does NOT interpret results or modify code
+    │       │
+    │       └─ Figure Agent (optional)    ← spawned for publication figures
+    │               generates figures to outputs/figures/; records provenance;
+    │               does NOT interpret results
+    │
+    └─ Diagram/Cartographer Agent         ← spawned to update live workflow
+```
+
+### When to Spawn
+
+| Situation | Who spawns | What to spawn |
+|---|---|---|
+| Seed task ready to execute | Professor Orchestrator | Graduate Student Agent |
+| Multiple seed tasks, no dependency | Professor Orchestrator | Graduate Student Agents in parallel |
+| Code needs to be written | Graduate Student | Implementation Agent |
+| Code needs to be run and verified | Graduate Student | Scientific Validator |
+| After Scientific Validator completes | Graduate Student | Cache-Log Auditor |
+| Publication-quality figures needed | Graduate Student | Figure Agent |
+| Workflow state changed | Any agent | Cartographer Agent |
+
+### Parallel Task Spawning Rule
+
+**One seed task = one Graduate Student.** This is a 1:1 mapping. Never collapse multiple tasks into a single Graduate Student; never split a single task across multiple Graduate Students.
+
+**Graduate Students are not specialized by task type.** Every Graduate Student is a full-stack research executor with identical capabilities. There is no "baseline student", "scan student", "literature student", or "figure student". The student is bound to one task *instance* (e.g. "Task 3: reproduce Fig. 4 of Guo 2026") — not to a task *category*. Whatever sub-agents that task needs (Implementation Agent, Scientific Validator, Cache-Log Auditor, Figure Agent), the same Graduate Student spawns them.
+
+**Anti-pattern (forbidden):**
+
+```
+Professor Orchestrator
+    ├─ Graduate Student A  →  always does baseline work
+    ├─ Graduate Student B  →  always does literature work
+    └─ Graduate Student C  →  always does scan work
+```
+
+This is wrong for two reasons: (1) it implies role specialization that the harness does not define, and (2) it usually means Professor spawned them sequentially rather than in parallel.
+
+**Correct pattern:**
+
+```
+Professor Orchestrator
+    │
+    ├─ Graduate Student #1  →  Task 1 (reproduce baseline) ─┐
+    ├─ Graduate Student #2  →  Task 2 (scan ε grid)         ├─ all spawned in a
+    └─ Graduate Student #3  →  Task 3 (compute order param) ─┘  single message
+                                                                with three parallel
+                                                                Agent() calls
+```
+
+Each `#N` is a distinct ephemeral agent instance, not a person with a specialty. All three have the same skill load (`skills/graduate-student/SKILL.md`) and the same authority to spawn Implementation Agent / Scientific Validator / Cache-Log Auditor as their individual task requires.
+
+**How to spawn in parallel:** when the dependency map in `seed_design.md` shows tasks with no inbound dependency on each other, the Professor Orchestrator must issue them in **one assistant message containing multiple `Agent()` tool calls**. Sequential `Agent()` calls across multiple messages defeat the parallelism even when no dependency exists.
+
+A task with `depends_on: [Task 1]` is spawned only after Task 1's Graduate Student reports back. A task with `depends_on: []` is spawned in the same parallel batch as every other independent task.
+
+### Graduate Student Spawn Block
+
+When Professor spawns a Graduate Student, the Agent() prompt must include:
+
+```
+You are a Graduate Student agent in a physics research group.
+Load skills/graduate-student/SKILL.md to understand your role and constraints.
+
+Run directory: <absolute path>
+Task: <copy exact task block from seed_design.md>
+Pass criterion: <exact criterion>
+Fail criterion: <exact criterion>
+On failure: <escalate / log-and-continue / retry with [change]>
+Evidence record: <file to write result into>
+
+Available tools: scripts/run_with_capture.py
+Spawn sub-agents using Agent() for implementation (skills/implementation-agent/SKILL.md)
+and validation (skills/scientific-validator/SKILL.md).
+Report back: one-paragraph summary, pass/fail verdict, evidence file path, anomalies if any.
+```
+
+### Implementation Agent Spawn Block
+
+When Graduate Student spawns an Implementation Agent, the Agent() prompt must include:
+
+```
+You are an Implementation Agent.
+Load skills/implementation-agent/SKILL.md to understand your role and constraints.
+
+Run directory: <absolute path>
+Write to: src/<filename>.py
+Specification:
+  - Equations: <exact equations>
+  - Parameters: <exact parameters with units>
+  - Algorithm: <method, step size, stopping criterion>
+  - Inputs: <what the script should accept>
+  - Outputs: <what the script should produce and where>
+  - Style: no plt.show(); save figures to outputs/figures/
+
+Do NOT run the code. Do NOT judge whether results are correct.
+Report back: file path written, brief implementation summary, any decisions made.
+```
+
+### Scientific Validator Spawn Block
+
+When Graduate Student spawns a Scientific Validator, the Agent() prompt must include:
+
+```
+You are a Scientific Validator.
+Load skills/scientific-validator/SKILL.md to understand your role and constraints.
+
+Run directory: <absolute path>
+Script to validate: src/<filename>.py
+Run command: python scripts/run_with_capture.py <run_dir> src/<filename>.py [args]
+Pass criterion: <exact criterion — do not invent new criteria>
+Fail criterion: <exact criterion>
+Evidence record: <file to write result into>
+
+Do NOT modify the code. Do NOT strengthen or weaken the scientific claim.
+Report back: pass/fail verdict, exact observed values, log file paths, anomalies if any.
+```
+
+### Cache-Log Auditor Spawn Block
+
+When Graduate Student spawns a Cache-Log Auditor (always after Scientific Validator), the Agent() prompt must include:
+
+```
+You are a Cache-Log Auditor.
+Load skills/cache-log-auditor/SKILL.md to understand your role and constraints.
+
+Run directory: <absolute path>
+Script stem: <filename without .py>
+Log path: <log file path from Scientific Validator's report>
+Expected cache files (relative to run_dir):
+  - <cache/filename1.npy>   ← omit section if no cache files are required
+Min numeric lines: <N>      ← default 3 if not specified in task
+
+Run: python scripts/audit_run_outputs.py <run_dir> <stem> --log <log_path> \
+     [--expect-cache <rel_path> ...] [--min-numeric <N>]
+Evidence record: docs/gates/validation_log.md
+
+Do NOT run the research script. Do NOT interpret scientific content.
+Report back: PASS/WARN/FAIL verdict, log size and numeric line count, error file status,
+cache file status, any issues found.
+```
+
+### Cross-Tier Prohibition
+
+| Agent | Prohibited action |
+|---|---|
+| Implementation Agent | Running code; judging scientific validity; modifying pass/fail criteria |
+| Scientific Validator | Modifying code; inventing new criteria; interpreting physical meaning |
+| Cache-Log Auditor | Running research scripts; interpreting scientific content; deciding whether to retry |
+| Graduate Student | Deciding claim ceiling; approving waivers; promoting claims beyond criteria |
+| Professor Orchestrator | Writing implementation code directly (must spawn Implementation Agent) |
+| Any Coding Subagent | Strengthening claim language without Professor approval |
+
 Required scientific-loop hooks:
 
 - **Task Intake Hook**: classify the work before action as new model, existing project, simulation, figure, manuscript claim, bug/anomaly, maintenance, or harness evaluation; identify the responsible role and first professor question. Load `skills/task-intake/SKILL.md` at the start of every task.

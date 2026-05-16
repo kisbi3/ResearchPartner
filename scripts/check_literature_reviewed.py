@@ -2,18 +2,18 @@
 """Enforce the Literature Gate at the run level.
 
 The Literature Gate requires that the literature-review-planning skill output
-has been recorded in docs/literature_review_plan.md with a "ready" or "waived"
+has been recorded in docs/literature/literature_review_plan.md with a "ready" or "waived"
 status before model-specification or seed-design work begins.
 
-The gate can also be bypassed by creating docs/literature_skip_waiver.md with
+The gate can also be bypassed by creating docs/literature/literature_skip_waiver.md with
 a one-line reason for skipping. This lowers the claim ceiling to at most
 "interpretation" for the run.
 
 Pass conditions for a given run directory (any one is sufficient):
 
-1. <run>/docs/literature_review_plan.md exists AND contains a
+1. <run>/docs/literature/literature_review_plan.md exists AND contains a
    "## Literature Gate Status" section with "ready" or "waived"; OR
-2. <run>/docs/literature_skip_waiver.md exists AND has at least one
+2. <run>/docs/literature/literature_skip_waiver.md exists AND has at least one
    non-empty, non-comment line (the skip reason).
 
 All other states fail.
@@ -24,6 +24,13 @@ from __future__ import annotations
 import argparse
 import sys
 from pathlib import Path
+
+_SCRIPTS_DIR = Path(__file__).resolve().parent
+sys.path.insert(0, str(_SCRIPTS_DIR))
+from _layout import (  # noqa: E402
+    literature_review_plan as _lit_review_plan,
+    literature_skip_waiver as _lit_skip_waiver,
+)
 
 
 def _section_has_content(text: str, heading: str) -> bool:
@@ -70,19 +77,19 @@ def _has_real_content(path: Path) -> bool:
 
 
 def check_run(run_dir: Path) -> tuple[int, list[str]]:
-    waiver = run_dir / "docs" / "literature_skip_waiver.md"
+    waiver = _lit_skip_waiver(run_dir)
     if waiver.exists() and _has_real_content(waiver):
         return 0, [
             "Literature gate passed via skip waiver. "
             "Claim ceiling is at most 'interpretation' for this run."
         ]
 
-    plan = run_dir / "docs" / "literature_review_plan.md"
+    plan = _lit_review_plan(run_dir)
     if not plan.exists():
         return 1, [
             f"Missing literature review plan: {plan}\n"
             "Run the literature-review-planning skill and record its output, "
-            "or create docs/literature_skip_waiver.md with a one-line reason "
+            "or create docs/literature/literature_skip_waiver.md with a one-line reason "
             "to skip the literature review."
         ]
 
@@ -93,7 +100,7 @@ def check_run(run_dir: Path) -> tuple[int, list[str]]:
             "literature_review_plan.md exists but '## Literature Gate Status' "
             "section is missing or blank.\n"
             "Complete the literature-review-planning skill and set the status "
-            "to 'ready' or 'waived', or create docs/literature_skip_waiver.md "
+            "to 'ready' or 'waived', or create docs/literature/literature_skip_waiver.md "
             "with a skip reason."
         ]
 
@@ -115,7 +122,7 @@ def main(argv: list[str] | None = None) -> int:
         "--run",
         required=True,
         type=Path,
-        help="Path to the run directory (must contain docs/literature_review_plan.md).",
+        help="Path to the run directory (must contain docs/literature/literature_review_plan.md).",
     )
     args = parser.parse_args(argv if argv is not None else [])
     code, messages = check_run(args.run)

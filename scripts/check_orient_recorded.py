@@ -2,11 +2,13 @@
 """Enforce the Orient Gate at the run level.
 
 The Orient Gate requires that the task-intake skill output has been recorded
-in docs/orient_note.md before Seed, Execute, or Evaluate work begins.
+in docs/gates/orient_note.md before Seed, Execute, or Evaluate work begins.
+The exact path is resolved through scripts/_layout.py (orient_note()), so
+docstring paths stay in sync with the canonical run layout.
 
 Pass conditions for a given run directory:
 
-1. <run>/docs/orient_note.md exists; AND
+1. <run>/docs/gates/orient_note.md exists; AND
 2. The file contains non-placeholder content for all four required fields:
    Task Classification, Responsible Role, First Professor Question, and
    Researcher Answer (i.e. each section has at least one non-empty,
@@ -21,6 +23,9 @@ import argparse
 import sys
 from pathlib import Path
 
+_SCRIPTS_DIR = Path(__file__).resolve().parent
+sys.path.insert(0, str(_SCRIPTS_DIR))
+from _layout import orient_note as _orient_note  # noqa: E402
 
 REQUIRED_SECTIONS = [
     "## Task Classification",
@@ -48,12 +53,12 @@ def _section_has_content(text: str, heading: str) -> bool:
 
 
 def check_run(run_dir: Path) -> tuple[int, list[str]]:
-    orient = run_dir / "docs" / "orient_note.md"
+    orient = _orient_note(run_dir)
     if not orient.exists():
         return 1, [
             f"Missing orient note: {orient}\n"
             "Run the task-intake skill and record its output in "
-            "docs/orient_note.md before Seed, Execute, or Evaluate work begins."
+            "docs/gates/orient_note.md before Seed, Execute, or Evaluate work begins."
         ]
 
     text = orient.read_text(encoding="utf-8")
@@ -81,7 +86,7 @@ def main(argv: list[str] | None = None) -> int:
         "--run",
         required=True,
         type=Path,
-        help="Path to the run directory (must contain docs/orient_note.md).",
+        help="Path to the run directory (must contain docs/gates/orient_note.md).",
     )
     args = parser.parse_args(argv if argv is not None else [])
     code, messages = check_run(args.run)

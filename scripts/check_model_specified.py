@@ -2,18 +2,18 @@
 """Enforce the Model Gate at the run level.
 
 The Model Gate requires that the model-specification skill output has been
-recorded in docs/model_spec.md with physical system and governing equations
+recorded in docs/plan/model_spec.md with physical system and governing equations
 defined before seed-design or execute work begins.
 
-The gate can also be bypassed by creating docs/model_skip_waiver.md with
+The gate can also be bypassed by creating docs/plan/model_skip_waiver.md with
 a one-line reason for skipping. This lowers the claim ceiling to at most
 "observation" for the run.
 
 Pass conditions for a given run directory (any one is sufficient):
 
-1. <run>/docs/model_spec.md exists AND contains non-placeholder content in
+1. <run>/docs/plan/model_spec.md exists AND contains non-placeholder content in
    both "## Physical System" and "## Governing Equations" sections; OR
-2. <run>/docs/model_skip_waiver.md exists AND has at least one
+2. <run>/docs/plan/model_skip_waiver.md exists AND has at least one
    non-empty, non-comment line (the skip reason).
 
 All other states fail.
@@ -25,6 +25,12 @@ import argparse
 import sys
 from pathlib import Path
 
+_SCRIPTS_DIR = Path(__file__).resolve().parent
+sys.path.insert(0, str(_SCRIPTS_DIR))
+from _layout import (  # noqa: E402
+    model_spec as _model_spec,
+    model_skip_waiver as _model_skip_waiver,
+)
 
 REQUIRED_SECTIONS = [
     "## Physical System",
@@ -60,19 +66,19 @@ def _has_real_content(path: Path) -> bool:
 
 
 def check_run(run_dir: Path) -> tuple[int, list[str]]:
-    waiver = run_dir / "docs" / "model_skip_waiver.md"
+    waiver = _model_skip_waiver(run_dir)
     if waiver.exists() and _has_real_content(waiver):
         return 0, [
             "Model gate passed via skip waiver. "
             "Claim ceiling is at most 'observation' for this run."
         ]
 
-    spec = run_dir / "docs" / "model_spec.md"
+    spec = _model_spec(run_dir)
     if not spec.exists():
         return 1, [
             f"Missing model specification: {spec}\n"
             "Run the model-specification skill and record its output in "
-            "docs/model_spec.md, or create docs/model_skip_waiver.md with "
+            "docs/plan/model_spec.md, or create docs/plan/model_skip_waiver.md with "
             "a one-line reason to skip model specification."
         ]
 
@@ -101,7 +107,7 @@ def main(argv: list[str] | None = None) -> int:
         "--run",
         required=True,
         type=Path,
-        help="Path to the run directory (must contain docs/model_spec.md).",
+        help="Path to the run directory (must contain docs/plan/model_spec.md).",
     )
     args = parser.parse_args(argv if argv is not None else [])
     code, messages = check_run(args.run)

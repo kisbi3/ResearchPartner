@@ -34,24 +34,54 @@ def test_create_run_copies_templates_and_initial_docs(tmp_path):
     )
 
     assert run_path == tmp_path / "2026-05-14-1d-diffusion-mode-decay"
-    assert (run_path / "docs" / "live_workflow_diagram.md").exists()
-    assert (run_path / "docs" / "cartographer_update_template.md").exists()
-    assert (run_path / "research_run_packet.md").exists()
-    assert (run_path / "outputs").is_dir()
+
+    # ── Gate artifacts (docs/gates/) ─────────────────────────────────────────
+    assert (run_path / "docs" / "gates" / "orient_note.md").exists()
+    assert (run_path / "docs" / "gates" / "interview_notes.md").exists()
+    assert (run_path / "docs" / "gates" / "baseline_registry.md").exists()
+    assert (run_path / "docs" / "gates" / "validation_log.md").exists()
+
+    # ── Plan artifacts (docs/plan/) ───────────────────────────────────────────
+    assert (run_path / "docs" / "plan" / "research_plan.md").exists()
+    assert (run_path / "docs" / "plan" / "model_spec.md").exists()
+    assert (run_path / "docs" / "plan" / "baseline_strategy.md").exists()
+
+    # ── Process artifacts (docs/process/) ────────────────────────────────────
+    assert (run_path / "docs" / "process" / "live_workflow_diagram.md").exists()
+    assert (run_path / "docs" / "process" / "cartographer_update_template.md").exists()
+    assert (run_path / "docs" / "process" / "researcher_review_log.md").exists()
+    assert (run_path / "docs" / "process" / "research_retrospective.md").exists()
+
+    # ── Literature meta (docs/literature/) ───────────────────────────────────
+    assert (run_path / "docs" / "literature" / "literature_review_plan.md").exists()
+    assert (run_path / "docs" / "literature" / "paper_request_queue.md").exists()
+    assert (run_path / "docs" / "literature" / "replanning_memo.md").exists()
+
+    # ── Literature files ──────────────────────────────────────────────────────
     assert (run_path / "literature" / "pdfs").is_dir()
     assert (run_path / "literature" / "reviews").is_dir()
     assert (run_path / "literature" / "extracted_text").is_dir()
     assert (run_path / "literature" / "index.md").exists()
-    assert (run_path / "docs" / "research_plan.md").exists()
-    assert (run_path / "docs" / "literature_review_plan.md").exists()
-    assert (run_path / "docs" / "paper_request_queue.md").exists()
-    assert (run_path / "docs" / "replanning_memo.md").exists()
-    assert (run_path / "docs" / "baseline_registry.md").exists()
-    assert (run_path / "docs" / "validation_log.md").exists()
-    assert (run_path / "docs" / "researcher_review_log.md").exists()
-    assert (run_path / "docs" / "research_retrospective.md").exists()
 
-    workflow = (run_path / "docs" / "live_workflow_diagram.md").read_text(encoding="utf-8")
+    # ── Runtime directories ───────────────────────────────────────────────────
+    assert (run_path / "src").is_dir()
+    assert (run_path / "outputs" / "figures").is_dir()
+    assert (run_path / "outputs" / "data").is_dir()
+    assert (run_path / "outputs" / "tables").is_dir()
+    assert (run_path / "cache").is_dir()
+    assert (run_path / "logs").is_dir()
+    assert (run_path / "errors").is_dir()
+
+    # ── Root files ────────────────────────────────────────────────────────────
+    assert (run_path / "research_run_packet.md").exists()
+    assert (run_path / ".gitignore").exists()
+
+    gitignore = (run_path / ".gitignore").read_text(encoding="utf-8")
+    assert "cache/" in gitignore
+    assert "logs/" in gitignore
+    assert "errors/" in gitignore
+
+    workflow = (run_path / "docs" / "process" / "live_workflow_diagram.md").read_text(encoding="utf-8")
     packet = (run_path / "research_run_packet.md").read_text(encoding="utf-8")
     assert "Diagram/Cartographer Agent" in workflow
     assert "Cartographer Update Events" in workflow
@@ -68,7 +98,7 @@ def test_create_run_copies_templates_and_initial_docs(tmp_path):
     assert "Result links" in packet
     assert "Interpretation links" in packet
 
-    review_plan = (run_path / "docs" / "literature_review_plan.md").read_text(
+    review_plan = (run_path / "docs" / "literature" / "literature_review_plan.md").read_text(
         encoding="utf-8"
     )
     assert "Detailed Paper Review Notes" in review_plan

@@ -418,6 +418,30 @@ SCENARIOS = [
             "staleness propagation",
         ),
     ),
+    Scenario(
+        name="multi_agent_spawn_protocol",
+        skills=(
+            "skills/graduate-student/SKILL.md",
+            "skills/implementation-agent/SKILL.md",
+            "skills/scientific-validator/SKILL.md",
+            "skills/cache-log-auditor/SKILL.md",
+            "skills/seed-design/SKILL.md",
+        ),
+        docs=(
+            "scripts/_layout.py",
+            "scripts/run_with_capture.py",
+            "scripts/audit_run_outputs.py",
+        ),
+        rule_terms=(
+            "Agent Spawning Protocol",
+            "3-Tier Hierarchy",
+            "Parallel Task Spawning Rule",
+            "One seed task = one Graduate Student",
+            "Graduate Students are not specialized by task type",
+            "Cache-Log Auditor",
+            "Cross-Tier Prohibition",
+        ),
+    ),
 ]
 
 

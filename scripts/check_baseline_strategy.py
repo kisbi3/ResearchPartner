@@ -7,7 +7,7 @@ verification target before seed-design begins.
 
 Pass conditions for a given run directory (all must hold):
 
-1. <run>/docs/baseline_strategy.md exists.
+1. <run>/docs/plan/baseline_strategy.md exists.
 2. The "## Decision" section contains the word "variation" or "new model".
 3. If "variation": the "### Reproduce Pass Criterion" section has non-placeholder
    content.
@@ -22,6 +22,10 @@ from __future__ import annotations
 import argparse
 import sys
 from pathlib import Path
+
+_SCRIPTS_DIR = Path(__file__).resolve().parent
+sys.path.insert(0, str(_SCRIPTS_DIR))
+from _layout import baseline_strategy as _baseline_strategy  # noqa: E402
 
 
 def _section_text(text: str, heading: str) -> str:
@@ -93,12 +97,12 @@ def _new_model_target_ok(text: str) -> bool:
 
 
 def check_run(run_dir: Path) -> tuple[int, list[str]]:
-    strategy = run_dir / "docs" / "baseline_strategy.md"
+    strategy = _baseline_strategy(run_dir)
     if not strategy.exists():
         return 1, [
             f"Missing baseline strategy: {strategy}\n"
             "Run the baseline-strategy skill (professor-graduate student dialogue) "
-            "and record the decision in docs/baseline_strategy.md."
+            "and record the decision in docs/plan/baseline_strategy.md."
         ]
 
     text = strategy.read_text(encoding="utf-8")
@@ -140,7 +144,7 @@ def main(argv: list[str] | None = None) -> int:
         "--run",
         required=True,
         type=Path,
-        help="Path to the run directory (must contain docs/baseline_strategy.md).",
+        help="Path to the run directory (must contain docs/plan/baseline_strategy.md).",
     )
     args = parser.parse_args(argv if argv is not None else [])
     code, messages = check_run(args.run)

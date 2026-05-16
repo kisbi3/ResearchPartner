@@ -152,6 +152,8 @@ For substantial work, the harness behaves like a professor-led research group ra
 
 These stances support five operational roles: the Professor Orchestrator owns scientific judgment and claim discipline; the Peer-Review Professor is an adversarial external reviewer invoked only within `meeting` sessions, with no project history, whose sole job is to find holes in claims; Graduate Test-Design Agents turn the plan into validation tasks; Coding Subagents execute bounded implementation only after the validation strategy is clear; the Diagram/Cartographer Agent records workflow state without adding opinions or strengthening claims.
 
+For substantial work, these roles are enforced by *actually spawning separate agents* using the `Agent()` tool — not by one agent switching personas internally. The concrete 3-tier hierarchy is: **Professor Orchestrator** → **Graduate Student Agent(s)** (one per seed task, spawned in parallel when independent) → **Implementation Agent** + **Scientific Validator** + **Cache-Log Auditor** (spawned by each Graduate Student as needed). Graduate Students are bound to a single task instance, not to a task type — there is no "baseline student" vs "scan student". See the "Agent Spawning Protocol" section of `AGENTS.md` for the spawn block templates and cross-tier prohibitions.
+
 ### Installed Skills
 
 The installer copies these skills into the target project's `skills/` directory. The assistant should load them on demand instead of treating the README as the full operating manual.
@@ -176,6 +178,10 @@ The installer copies these skills into the target project's `skills/` directory.
 | `baseline-strategy` | After model-specification — professor-graduate student dialogue to decide variation vs. new model and fix the first verification target before seed-design begins |
 | `meeting` | "Does this make sense?" needs an outside perspective — convenes a structured multi-agent review (`--scope quick/review/full`, `--on "<question>"`). Invocable at any point in the workflow. |
 | `peer-review-professor` | Adversarial reviewer role used inside `meeting` sessions — fresh eyes only, no project history, finds holes in claims using five stances |
+| `graduate-student` | Loaded by a spawned Graduate Student agent — owns one seed task's execution strategy, sub-agent coordination, anomaly escalation, and evidence reporting |
+| `implementation-agent` | Loaded by a spawned Implementation Agent — writes code to `src/` only; does not run code, judge results, or interpret physics |
+| `scientific-validator` | Loaded by a spawned Scientific Validator — runs scripts via `run_with_capture.py`, applies pre-set pass/fail criteria mechanically, does not modify code or strengthen claims |
+| `cache-log-auditor` | Loaded by a spawned Cache-Log Auditor (always after Scientific Validator) — runs `audit_run_outputs.py` to verify that `logs/`, `errors/`, and `cache/` contain sufficient artifacts |
 | `harness-evaluation` | Checking whether the harness itself is useful, followed, lightweight enough, and effective across realistic scenarios |
 
 ### 1. Prerequisites

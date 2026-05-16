@@ -18,12 +18,14 @@ def load_checker():
 
 def make_run(tmp_path: Path, registry_body: str | None, live_body: str | None = None) -> Path:
     run = tmp_path / "run"
-    docs = run / "docs"
-    docs.mkdir(parents=True)
+    gates = run / "docs" / "gates"
+    process = run / "docs" / "process"
+    gates.mkdir(parents=True)
+    process.mkdir(parents=True)
     if registry_body is not None:
-        (docs / "baseline_registry.md").write_text(registry_body, encoding="utf-8")
+        (gates / "baseline_registry.md").write_text(registry_body, encoding="utf-8")
     if live_body is not None:
-        (docs / "live_workflow_diagram.md").write_text(live_body, encoding="utf-8")
+        (process / "live_workflow_diagram.md").write_text(live_body, encoding="utf-8")
     return run
 
 
@@ -37,7 +39,8 @@ REGISTRY_HEADER = (
 def test_missing_registry_fails(tmp_path):
     checker = load_checker()
     run = tmp_path / "run"
-    (run / "docs").mkdir(parents=True)
+    (run / "docs" / "gates").mkdir(parents=True)
+    (run / "docs" / "process").mkdir(parents=True)
     code, _ = checker.check_run(run)
     assert code == 1
 
@@ -134,5 +137,6 @@ def test_main_cli_pass(tmp_path):
 def test_main_cli_fail(tmp_path):
     checker = load_checker()
     run = tmp_path / "run"
-    (run / "docs").mkdir(parents=True)
+    (run / "docs" / "gates").mkdir(parents=True)
+    (run / "docs" / "process").mkdir(parents=True)
     assert checker.main(["--run", str(run)]) == 1

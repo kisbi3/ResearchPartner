@@ -2,11 +2,11 @@
 """Enforce the Interview Gate at the run level.
 
 The Interview Gate requires that the professor-interview skill output has been
-recorded in docs/interview_notes.md before Seed or Execute work begins.
+recorded in docs/gates/interview_notes.md before Seed or Execute work begins.
 
 Pass conditions for a given run directory:
 
-1. <run>/docs/interview_notes.md exists; AND
+1. <run>/docs/gates/interview_notes.md exists; AND
 2. The file contains non-placeholder content for all three required fields:
    Crystallized Research Question, Key Assumptions Surfaced, and
    Agreed Direction (i.e. each section has at least one non-empty,
@@ -21,6 +21,9 @@ import argparse
 import sys
 from pathlib import Path
 
+_SCRIPTS_DIR = Path(__file__).resolve().parent
+sys.path.insert(0, str(_SCRIPTS_DIR))
+from _layout import interview_notes as _interview_notes  # noqa: E402
 
 REQUIRED_SECTIONS = [
     "## Crystallized Research Question",
@@ -47,12 +50,12 @@ def _section_has_content(text: str, heading: str) -> bool:
 
 
 def check_run(run_dir: Path) -> tuple[int, list[str]]:
-    interview = run_dir / "docs" / "interview_notes.md"
+    interview = _interview_notes(run_dir)
     if not interview.exists():
         return 1, [
             f"Missing interview notes: {interview}\n"
             "Run the professor-interview skill and record its output in "
-            "docs/interview_notes.md before Seed or Execute work begins."
+            "docs/gates/interview_notes.md before Seed or Execute work begins."
         ]
 
     text = interview.read_text(encoding="utf-8")
@@ -80,7 +83,7 @@ def main(argv: list[str] | None = None) -> int:
         "--run",
         required=True,
         type=Path,
-        help="Path to the run directory (must contain docs/interview_notes.md).",
+        help="Path to the run directory (must contain docs/gates/interview_notes.md).",
     )
     args = parser.parse_args(argv if argv is not None else [])
     code, messages = check_run(args.run)
