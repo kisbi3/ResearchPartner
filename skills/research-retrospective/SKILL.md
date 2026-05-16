@@ -19,6 +19,8 @@ When a full research stage (Stage 0 literature review, Stage 1 algorithm validat
 
 Record the meeting in `docs/process/research_retrospective.md` under a dated `## Stage N Meeting` heading. This is a blocking step — do not begin the next stage until the meeting record exists.
 
+After the meeting, also write a **Stage Checkpoint** with `python scripts/write_stage_checkpoint.py --run <run-dir> --stage N [--title "<short title>"]`. This produces `docs/checkpoints/stage_N_checkpoint.md` — a compact (~60 lines) hand-off file listing the stage gate status, key inputs/outputs, ~10 key scalar numbers, a one-paragraph result, the ≤3 files the next stage should load, open questions carried forward, and reusable artifacts. The next stage's agent must load **this checkpoint only** for routine work; raw outputs (JSON, per-model fits, per-trial logs) stay on disk and are opened only when a specific number needs deeper inspection. Treat the checkpoint as the stage hand-off contract — if more than three files must be loaded together, the stage boundary itself is too coupled and should be reconsidered.
+
 ## Core Rule
 
 Every research iteration should leave behind a reusable artifact, check, benchmark, log entry, template, or decision record.
