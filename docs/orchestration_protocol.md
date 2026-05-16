@@ -119,13 +119,18 @@ Spawn each tier with the appropriate model to balance quality and cost:
 
 **Run-level override**: create `config/agent_models.yaml` in the run directory to override defaults per role. The Professor Orchestrator reads this file before spawning agents. See `scripts/templates/agent_models.yaml` for the template.
 
-### Graduate Student Spawn Block
+### Spawn Block Templates
 
-When Professor spawns a Graduate Student, the Agent() prompt must include:
+Every spawn block carries only what the *parent* knows that the child does not: the role label, the load instruction, and the run-specific inputs. Constraints, prohibitions, and report formats are owned by each role's `skills/<role>/SKILL.md` — do not duplicate them in the spawn prompt.
+
+#### Graduate Student
+
+Use `model: "sonnet"`.
 
 ```
 You are a Graduate Student agent in a physics research group.
-Load skills/graduate-student/SKILL.md to understand your role and constraints.
+Load skills/graduate-student/SKILL.md — it defines your role, constraints,
+report format, and sub-agent spawning rules.
 
 Run directory: <absolute path>
 Task: <copy exact task block from seed_design.md>
@@ -133,22 +138,16 @@ Pass criterion: <exact criterion>
 Fail criterion: <exact criterion>
 On failure: <escalate / log-and-continue / retry with [change]>
 Evidence record: <file to write result into>
-
-Available tools: scripts/run_with_capture.py
-Spawn sub-agents using Agent() for implementation (skills/implementation-agent/SKILL.md)
-and validation (skills/scientific-validator/SKILL.md).
-Report back: one-paragraph summary, pass/fail verdict, evidence file path, anomalies if any.
 ```
 
-Use `model: "sonnet"` when calling Agent() for a Graduate Student.
+#### Implementation Agent
 
-### Implementation Agent Spawn Block
-
-When Graduate Student spawns an Implementation Agent, the Agent() prompt must include:
+Use `model: "haiku"`.
 
 ```
 You are an Implementation Agent.
-Load skills/implementation-agent/SKILL.md to understand your role and constraints.
+Load skills/implementation-agent/SKILL.md — it defines your role, constraints,
+and report format.
 
 Run directory: <absolute path>
 Write to: src/<filename>.py
@@ -158,21 +157,16 @@ Specification:
   - Algorithm: <method, step size, stopping criterion>
   - Inputs: <what the script should accept>
   - Outputs: <what the script should produce and where>
-  - Style: no plt.show(); save figures to outputs/figures/
-
-Do NOT run the code. Do NOT judge whether results are correct.
-Report back: file path written, brief implementation summary, any decisions made.
 ```
 
-Use `model: "haiku"` when calling Agent() for an Implementation Agent.
+#### Scientific Validator
 
-### Scientific Validator Spawn Block
-
-When Graduate Student spawns a Scientific Validator, the Agent() prompt must include:
+Use `model: "sonnet"`.
 
 ```
 You are a Scientific Validator.
-Load skills/scientific-validator/SKILL.md to understand your role and constraints.
+Load skills/scientific-validator/SKILL.md — it defines your role, constraints,
+and report format.
 
 Run directory: <absolute path>
 Script to validate: src/<filename>.py
@@ -180,18 +174,16 @@ Run command: python scripts/run_with_capture.py <run_dir> src/<filename>.py [arg
 Pass criterion: <exact criterion — do not invent new criteria>
 Fail criterion: <exact criterion>
 Evidence record: <file to write result into>
-
-Do NOT modify the code. Do NOT strengthen or weaken the scientific claim.
-Report back: pass/fail verdict, exact observed values, log file paths, anomalies if any.
 ```
 
-### Cache-Log Auditor Spawn Block
+#### Cache-Log Auditor
 
-When Graduate Student spawns a Cache-Log Auditor (always after Scientific Validator), the Agent() prompt must include:
+Use `model: "haiku"`. Spawn always after Scientific Validator.
 
 ```
 You are a Cache-Log Auditor.
-Load skills/cache-log-auditor/SKILL.md to understand your role and constraints.
+Load skills/cache-log-auditor/SKILL.md — it defines your role, constraints,
+and report format.
 
 Run directory: <absolute path>
 Script stem: <filename without .py>
@@ -203,10 +195,6 @@ Min numeric lines: <N>      ← default 3 if not specified in task
 Run: python scripts/audit_run_outputs.py <run_dir> <stem> --log <log_path> \
      [--expect-cache <rel_path> ...] [--min-numeric <N>]
 Evidence record: docs/gates/validation_log.md
-
-Do NOT run the research script. Do NOT interpret scientific content.
-Report back: PASS/WARN/FAIL verdict, log size and numeric line count, error file status,
-cache file status, any issues found.
 ```
 
 ### Cross-Tier Prohibition
