@@ -163,6 +163,46 @@ Use:
 
 The workflow map should connect each step to the code or document that owns the responsibility.
 
+## Workflow Diagram Rules
+
+The live workflow diagram (`docs/live_workflow_diagram.md` inside the active run directory) must be kept current in real time. Violations leave the researcher blind to run state.
+
+**Mandatory actions for the Professor Orchestrator and all subagents:**
+
+1. **Before starting any substantial task** (Agent spawn, experiment run, literature review, gate check):
+   ```
+   python scripts/update_workflow_diagram.py \
+       --event start \
+       --step "Short description of this task" \
+       --agent "your-agent-name"
+   ```
+
+2. **After completing a task** (success or failure):
+   ```
+   python scripts/update_workflow_diagram.py \
+       --event complete \          # or: error, blocked
+       --step "Same description as on start" \
+       --agent "your-agent-name"
+   ```
+
+3. **When a gate changes status**, add `--gate` and `--gate-status`:
+   ```
+   python scripts/update_workflow_diagram.py \
+       --event complete \
+       --step "Stage 2 — synthetic experiments" \
+       --agent "professor-orchestrator" \
+       --gate "Test-design seed" \
+       --gate-status pass
+   ```
+
+**Allowed `--gate-status` values:** `pending`, `in_progress`, `pass`, `fail`, `blocked`, `waived`, `partial`
+
+**Allowed `--event` values:** `start`, `in_progress`, `complete`, `error`, `blocked`
+
+**If no active run exists** (`live_workflow_diagram.md` not found), run `scripts/start_research_run.py` first to scaffold the run directory before spawning research agents.
+
+These calls are enforced automatically by the PreToolUse/PostToolUse hooks in `.claude/settings.local.json` for Agent tool calls. Direct Bash experiment runs must call the script manually.
+
 ## Compound Research Discipline
 
 Every research iteration should make later iterations easier.

@@ -1,0 +1,32 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Path \"C:\\\\ResearchPartner\\\\.claude\\\\worktrees\\\\quirky-hugle-7329ce\" -Recurse -Directory)",
+      "Bash(Select-Object -First 30 FullName)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Agent",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python scripts/workflow_hooks.py pre"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Agent",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python scripts/workflow_hooks.py post"
+          }
+        ]
+      }
+    ]
+  }
+}
