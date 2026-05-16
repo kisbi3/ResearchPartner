@@ -12,19 +12,20 @@ The Diagram/Cartographer Agent listens to the Professor Orchestrator, Graduate T
 
 ## Workflow Diagram
 
+Node labels show gate status emoji as they update: 🔄 in_progress · ✓ pass · ◑ partial · ❌ fail · ⛔ blocked · ⚠ waived
+
 ```mermaid
 flowchart LR
     O["Orient"] --> I["Interview"]
     I --> SP["Specify"]
-    SP --> L["Literature Replanning"]
+    SP --> L["Literature\nReplanning"]
     L --> SP
-    L --> S["Seed"]
-    S --> V["Validate"]
-    V --> E["Execute"]
-    E --> EV["Evaluate"]
-    EV --> R["Review"]
-    R --> RT["Retrospect"]
-    RT --> I
+    L --> S["Seed / Stage 1"]
+    S --> V["Stage 2\nSynthetic"]
+    V --> E["Stage 3\nReal Data"]
+    E --> EV["Stage 4\nMechanism"]
+    EV --> R["Retrospective"]
+    R --> RT["User Report"]
 ```
 
 ## Gate Status
@@ -41,7 +42,12 @@ flowchart LR
 | Completion conference | pending |  |
 | User report | pending |  |
 
-Allowed status values: `pending`, `pass`, `partial`, `fail`, `blocked`, `waived`.
+Allowed status values: `pending`, `in_progress` 🔄, `pass` ✓, `partial` ◑, `fail` ❌, `blocked` ⛔, `waived` ⚠.
+
+Update gate status in real time with:
+```
+python scripts/update_workflow_diagram.py --event start --step "..." --agent "..." --gate "Gate Name" --gate-status in_progress
+```
 
 ## Evidence Links
 
@@ -140,3 +146,8 @@ Use `preview: thumbnail`, `preview: table_head`, or `preview: log_tail` as the A
 - Researcher decision needed:
 - Question to ask:
 - Smallest useful next action:
+
+## Real-Time Event Log
+
+<!-- Auto-updated by scripts/update_workflow_diagram.py via PreToolUse/PostToolUse hooks -->
+
