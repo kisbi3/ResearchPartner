@@ -26,7 +26,10 @@ def latest_live_workflow_path() -> Path | None:
     if not RUNS_ROOT.exists():
         return None
     candidates = sorted(
-        RUNS_ROOT.glob("*/docs/live_workflow_diagram.md"),
+        [
+            *RUNS_ROOT.glob("*/docs/process/live_workflow_diagram.md"),
+            *RUNS_ROOT.glob("*/docs/live_workflow_diagram.md"),
+        ],
         key=lambda path: path.stat().st_mtime,
         reverse=True,
     )
@@ -416,7 +419,7 @@ def placeholder_live_workflow_map() -> dict:
         "title": "Live Research Workflow: no active run",
         "description": (
             "No live workflow artifact was found. Start or update a run under "
-            "ResearchPartner-runs/*/docs/live_workflow_diagram.md."
+            "ResearchPartner-runs/*/docs/process/live_workflow_diagram.md."
         ),
         "nodes": [
             {

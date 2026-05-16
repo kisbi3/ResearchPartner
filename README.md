@@ -116,7 +116,7 @@ Use these commands from the installed project root. The assistant should invoke 
 |---|---|---|
 | Install harness | `python -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/kisbi3/ResearchPartner/main/scripts/install.py').read())"` | Installs instructions, skills, docs, and scripts into the current project |
 | Refresh harness | Same install command with `--force` | Overwrites managed harness files intentionally |
-| Start run | `python scripts\start_research_run.py --name "topic name"` | Creates a dated run packet under a sibling `ResearchPartner-runs` root |
+| Start run | `python scripts\start_research_run.py --name "topic name"` | Creates a dated run packet under a sibling `ResearchPartner-runs` root, including `docs\process\live_workflow_diagram.md` |
 | Audit existing project | `python scripts\audit_existing_project.py` | Inventories scripts, figures, outputs, and validation gaps before retrofit |
 | Evaluate harness | `python scripts\evaluate_harness.py` | Checks realistic scenarios for correct skills, gates, and blocked behaviors |
 | Validate links | `python scripts\validate_workflow_links.py` | Checks workflow-document links |
@@ -272,7 +272,7 @@ For a new run-specific artifact set, use the scaffolder from the installed proje
 python scripts\start_research_run.py --name "damped oscillator baseline"
 ```
 
-This creates a dated run directory with the live workflow packet, Cartographer update template, literature workspace, outputs directory, and initial research documents. Use that run directory for evidence, figures, logs, and workflow state; keep the project root focused on reusable harness files, source code, and durable documentation.
+This creates a dated run directory with the live workflow at `docs\process\live_workflow_diagram.md`, Cartographer update template, literature workspace, outputs directory, and initial research documents. Use that run directory for evidence, figures, logs, and workflow state; keep the project root focused on reusable harness files, source code, and durable documentation. Run `python scripts\generate_workflow_map.py` after Cartographer updates to refresh the central `docs\workflow_map.html`; older runs that used `docs\live_workflow_diagram.md` are still supported as a fallback.
 
 For an existing research project, begin with onboarding instead of reorganizing files:
 

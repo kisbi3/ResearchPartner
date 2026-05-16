@@ -22,7 +22,7 @@ Start a new run-specific artifact set from the harness templates with:
 python scripts/start_research_run.py --name 1d-diffusion-mode-decay
 ```
 
-The run scaffolder creates a sibling `ResearchPartner-runs/YYYY-MM-DD-<slug>/` directory with `docs/live_workflow_diagram.md`, `research_run_packet.md`, initial run docs, and `outputs/`.
+The run scaffolder creates a sibling `ResearchPartner-runs/YYYY-MM-DD-<slug>/` directory with `docs/process/live_workflow_diagram.md`, `research_run_packet.md`, initial run docs, and `outputs/`.
 
 When the researcher explicitly starts manuscript planning, generate the paper logic workflow for review:
 
@@ -153,7 +153,7 @@ Open `docs/workflow_map.html` in a browser. Click any node to see:
 - responsible docs
 - responsible scripts
 
-The default HTML is generated from the latest `ResearchPartner-runs/*/docs/live_workflow_diagram.md` artifact by:
+The default HTML is generated from the latest `ResearchPartner-runs/*/docs/process/live_workflow_diagram.md` artifact, with legacy fallback for older `docs/live_workflow_diagram.md` runs, by:
 
 ```bash
 python scripts/generate_workflow_map.py

@@ -1,5 +1,6 @@
 import importlib.util
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -53,6 +54,37 @@ def _make_live_run(tmp_path, monkeypatch, generator):
     run_docs.mkdir(parents=True)
     (run_docs / "live_workflow_diagram.md").write_text(LIVE_WORKFLOW_FIXTURE, encoding="utf-8")
     monkeypatch.setattr(generator, "RUNS_ROOT", runs_root)
+
+
+def test_latest_live_workflow_path_reads_current_scaffold_layout(tmp_path, monkeypatch):
+    generator = load_generator()
+    runs_root = tmp_path / "ResearchPartner-runs"
+    run_docs = runs_root / "2026-05-17-current-layout" / "docs" / "process"
+    run_docs.mkdir(parents=True)
+    live_path = run_docs / "live_workflow_diagram.md"
+    live_path.write_text(LIVE_WORKFLOW_FIXTURE, encoding="utf-8")
+    monkeypatch.setattr(generator, "RUNS_ROOT", runs_root)
+
+    assert generator.latest_live_workflow_path() == live_path
+    assert generator.build_data()["maps"][0]["id"] == "live_research_run"
+
+
+def test_latest_live_workflow_path_prefers_newest_current_or_legacy_layout(tmp_path, monkeypatch):
+    generator = load_generator()
+    runs_root = tmp_path / "ResearchPartner-runs"
+    legacy_docs = runs_root / "2026-05-16-legacy-layout" / "docs"
+    current_docs = runs_root / "2026-05-17-current-layout" / "docs" / "process"
+    legacy_docs.mkdir(parents=True)
+    current_docs.mkdir(parents=True)
+    legacy_path = legacy_docs / "live_workflow_diagram.md"
+    current_path = current_docs / "live_workflow_diagram.md"
+    legacy_path.write_text(LIVE_WORKFLOW_FIXTURE, encoding="utf-8")
+    current_path.write_text(LIVE_WORKFLOW_FIXTURE, encoding="utf-8")
+    os.utime(legacy_path, (1_700_000_000, 1_700_000_000))
+    os.utime(current_path, (1_800_000_000, 1_800_000_000))
+    monkeypatch.setattr(generator, "RUNS_ROOT", runs_root)
+
+    assert generator.latest_live_workflow_path() == current_path
 
 
 def test_default_build_data_contains_only_live_research_workflow(tmp_path, monkeypatch):

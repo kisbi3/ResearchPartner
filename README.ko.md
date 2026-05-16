@@ -124,7 +124,7 @@ Orient -> Interview -> Specify -> Seed -> Validate -> Execute -> Evaluate -> Rev
 | --- | --- | --- |
 | 하네스 설치 | `python -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/kisbi3/ResearchPartner/main/scripts/install.py').read())"` | 지침, 스킬, 문서, 스크립트를 현재 프로젝트에 설치 |
 | 하네스 새로고침 | 위 설치 명령어에 `--force` 추가 | 관리되는 하네스 파일을 의도적으로 덮어씀 |
-| 실행 시작 | `python scripts\start_research_run.py --name "topic name"` | 상위 `ResearchPartner-runs` 루트 아래에 날짜가 지정된 실행 패킷 생성 |
+| 실행 시작 | `python scripts\start_research_run.py --name "topic name"` | 상위 `ResearchPartner-runs` 루트 아래에 날짜가 지정된 실행 패킷 생성, `docs\process\live_workflow_diagram.md` 포함 |
 | 기존 프로젝트 감사 | `python scripts\audit_existing_project.py` | 레트로핏 전 스크립트, 그림, 출력, 검증 누락 항목의 인벤토리 작성 |
 | 하네스 평가 | `python scripts\evaluate_harness.py` | 올바른 스킬, 게이트 및 차단된 동작에 대한 현실적인 시나리오 확인 |
 | 링크 검증 | `python scripts\validate_workflow_links.py` | 워크플로우 문서 링크 확인 |
@@ -287,7 +287,7 @@ python scripts\start_research_run.py --name "damped oscillator baseline"
 
 ```
 
-이렇게 하면 실시간 워크플로우 패킷, Cartographer(지도 제작자) 업데이트 템플릿, 문헌 작업 공간, 출력 디렉토리, 초기 연구 문서가 포함된 날짜별 실행 디렉토리가 생성됩니다. 증거, 그림, 로그 및 워크플로우 상태는 해당 실행 디렉토리를 사용하고, 프로젝트 루트는 재사용 가능한 하네스 파일, 소스 코드 및 지속 가능한 문서에만 집중하세요.
+이렇게 하면 `docs\process\live_workflow_diagram.md`의 실시간 워크플로우, Cartographer(지도 제작자) 업데이트 템플릿, 문헌 작업 공간, 출력 디렉토리, 초기 연구 문서가 포함된 날짜별 실행 디렉토리가 생성됩니다. 증거, 그림, 로그 및 워크플로우 상태는 해당 실행 디렉토리를 사용하고, 프로젝트 루트는 재사용 가능한 하네스 파일, 소스 코드 및 지속 가능한 문서에만 집중하세요. Cartographer 업데이트 후 중앙 `docs\workflow_map.html`을 새로고침하려면 `python scripts\generate_workflow_map.py`를 실행하세요. 예전 실행에서 사용한 `docs\live_workflow_diagram.md` 경로도 fallback으로 계속 지원됩니다.
 
 기존 연구 프로젝트의 경우 파일 재구성이 아닌 온보딩부터 시작하세요:
 

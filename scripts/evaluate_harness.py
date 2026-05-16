@@ -103,6 +103,21 @@ SCENARIOS = [
         ),
     ),
     Scenario(
+        name="live_workflow_map_scaffold_integration",
+        skills=("skills/cartographer-update/SKILL.md",),
+        docs=(
+            "scripts/start_research_run.py",
+            "scripts/generate_workflow_map.py",
+            "tests/test_generate_workflow_map.py",
+            "docs/workflow_overview.md",
+        ),
+        rule_terms=(
+            "docs\\process\\live_workflow_diagram.md",
+            "generate_workflow_map.py",
+            "fallback",
+        ),
+    ),
+    Scenario(
         name="professor_orchestration",
         skills=(
             "skills/research-plan-review/SKILL.md",
