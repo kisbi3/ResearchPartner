@@ -42,6 +42,21 @@ Create one detailed note per important paper in `literature/reviews/`. Do not wr
 - Status: reading / reviewed / needs reread / blocked by missing PDF
 - Project role: foundation / closest prior work / benchmark / method / review / contradiction
 
+### Context Summary
+
+This block is the single source of truth for `literature/summary.md`. Keep one short line per field so the Professor Orchestrator can load all paper summaries together without loading full reviews. Do not delete the HTML markers — `scripts/compile_literature_summary.py` reads between them.
+
+<!-- context-summary:start -->
+- **Paper ID**:
+- **Title**:
+- **Role in project**: foundation / closest prior / benchmark / method / contradiction
+- **Claim ceiling this paper can support**: observation / interpretation / mechanism / generalization / unsupported
+- **Novelty impact on our planned claim**: supports / weakens / contradicts / unrelated / unverified
+- **Reproduction target**: figure/equation/dataset; pass criterion:
+- **One-sentence takeaway**:
+- **When NOT to rely on this paper**:
+<!-- context-summary:end -->
+
 ### 0. Executive Summary
 
 - One-paragraph summary:

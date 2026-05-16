@@ -76,6 +76,21 @@ def build_review_note(
 - Status: reading
 - Project role: {role}
 
+## Context Summary
+
+This block is the single source of truth for `literature/summary.md`. Keep it concise (one short line per field) so the Professor Orchestrator can load all paper summaries together without loading full reviews. Do not delete the HTML markers; `compile_literature_summary.py` reads between them.
+
+<!-- context-summary:start -->
+- **Paper ID**: {paper_id}
+- **Title**: {title}
+- **Role in project**: <foundation / closest prior / benchmark / method / contradiction>
+- **Claim ceiling this paper can support**: <observation / interpretation / mechanism / generalization / unsupported>
+- **Novelty impact on our planned claim**: <supports / weakens / contradicts / unrelated / unverified>
+- **Reproduction target**: <figure/equation/dataset>; pass criterion: <criterion or 확인 필요>
+- **One-sentence takeaway**: <one sentence>
+- **When NOT to rely on this paper**: <one short caveat or 확인 필요>
+<!-- context-summary:end -->
+
 ## 0. Executive Summary
 
 - One-paragraph summary:
