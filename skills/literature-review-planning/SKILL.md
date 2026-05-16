@@ -42,7 +42,14 @@ Repeat this loop until the Professor Orchestrator marks the plan ready or the re
 
 ## Paper Request Rules
 
-The Professor Orchestrator should request papers by category rather than guessing that the current set is complete:
+Before asking the researcher for any paper, the Professor Orchestrator must first attempt web discovery:
+
+1. **Web search first**: use the WebSearch tool (arXiv, Semantic Scholar, Google Scholar, publisher sites) to identify the exact title, authors, year, venue, and DOI or arXiv ID for each paper in the needed category.
+2. **Check open access**: if a paper has an arXiv preprint or is available on PubMed Central or an open-access journal, fetch it directly using WebFetch. Do not request it from the researcher.
+3. **Escalate only what is paywalled**: only add papers to `docs/paper_request_queue.md` when they cannot be retrieved without institutional access. The queue entry must include the confirmed title, authors, year, DOI or arXiv ID, and the reason direct access failed — never a vague category like "a paper about X probably exists."
+4. **No unverified requests**: do not ask the researcher to find a paper whose title or authors are unknown. If a web search cannot identify the paper, record it as an open literature question in `docs/replanning_memo.md` instead.
+
+Paper categories to cover:
 
 - Foundational model or method papers
 - Closest competing results
@@ -51,7 +58,7 @@ The Professor Orchestrator should request papers by category rather than guessin
 - Recent papers likely to affect novelty
 - Papers that contain figures, datasets, equations, or parameter regimes the project plans to compare against
 
-If PDFs are missing, mark the literature evidence as `missing` or `pending_review`; do not replace unavailable papers with unsupported summaries.
+If PDFs are missing after web search, mark the literature evidence as `missing` or `pending_review`; do not replace unavailable papers with unsupported summaries.
 
 ## Required Artifacts
 
@@ -78,6 +85,20 @@ Use `scripts/process_paper_for_review.py` when the PDF is already in the run dir
 Maintain clickable links across the literature graph. The paper index should link to PDFs and review notes, each review note should link to the paper index and replanning memo, and extracted text artifacts should link back to the source PDF and review note. Keep run-relative code paths alongside Markdown links so future agents can inspect artifacts without guessing locations.
 
 Run `scripts/check_paper_review_quality.py` on important review notes before using them to update `docs/replanning_memo.md`. If the check fails, either complete the review or record an explicit waiver and keep novelty/reproduction claims provisional.
+
+## Review Agent Rules
+
+When running graduate-student agents to write paper reviews in parallel:
+
+- **Maximum 5 agents in one parallel batch** — never exceed this limit to avoid usage-rate failures.
+- **Read template via tool**: the grad-student agent must read `docs/process/review_template.md` using the Read tool before writing. Do not paste the template inline in the spawn prompt — the prompt would grow too large and the agent would use a stale copy.
+- **Professor evaluation tracking**: after each professor evaluation (pass or fail), record the result immediately in `docs/process/researcher_review_log.md` using this table format:
+
+  | Date | Paper ID | M1 | M2 | M3 | M4 | M5 | M6 | M7 | 판정 | 비고 |
+  |---|---|---|---|---|---|---|---|---|---|---|
+  | YYYY-MM-DD | XX | ✓/✗/– | … | … | … | … | … | … | PASS/FAIL | notes |
+
+  M1–M7 are the mandatory rubric criteria from `docs/process/review_rubric.md`. Every evaluation must appear in this log, including inline evaluations done in the main context.
 
 ## Detailed Review Standard
 

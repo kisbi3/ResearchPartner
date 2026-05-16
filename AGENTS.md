@@ -122,6 +122,20 @@ Each `#N` is a distinct ephemeral agent instance, not a person with a specialty.
 
 A task with `depends_on: [Task 1]` is spawned only after Task 1's Graduate Student reports back. A task with `depends_on: []` is spawned in the same parallel batch as every other independent task.
 
+### Agent Model Hierarchy
+
+Spawn each tier with the appropriate model to balance quality and cost:
+
+| Tier | Role | Recommended model | Reason |
+|---|---|---|---|
+| Professor Orchestrator | Main context | sonnet or higher | High-level judgment, gate decisions, claim discipline |
+| Graduate Student | Task execution + sub-agent coordination | `model: "sonnet"` | Reads papers, interprets physics, escalates anomalies |
+| Implementation Agent | Code writing only | `model: "haiku"` | Spec is fully defined; no physical judgment needed |
+| Scientific Validator | Run code + check criteria | `model: "sonnet"` | Must correctly apply pass/fail criteria |
+| Cache-Log Auditor | Log/cache verification | `model: "haiku"` | Mechanical checklist; no interpretation |
+
+**Run-level override**: create `config/agent_models.yaml` in the run directory to override defaults per role. The Professor Orchestrator reads this file before spawning agents. See `scripts/templates/agent_models.yaml` for the template.
+
 ### Graduate Student Spawn Block
 
 When Professor spawns a Graduate Student, the Agent() prompt must include:
@@ -142,6 +156,8 @@ Spawn sub-agents using Agent() for implementation (skills/implementation-agent/S
 and validation (skills/scientific-validator/SKILL.md).
 Report back: one-paragraph summary, pass/fail verdict, evidence file path, anomalies if any.
 ```
+
+Use `model: "sonnet"` when calling Agent() for a Graduate Student.
 
 ### Implementation Agent Spawn Block
 
@@ -164,6 +180,8 @@ Specification:
 Do NOT run the code. Do NOT judge whether results are correct.
 Report back: file path written, brief implementation summary, any decisions made.
 ```
+
+Use `model: "haiku"` when calling Agent() for an Implementation Agent.
 
 ### Scientific Validator Spawn Block
 
@@ -332,7 +350,7 @@ Before substantial simulations, analyses, figure sets, reproduction attempts, or
 Use this loop between initial planning and full research execution whenever literature access, novelty, reproduction targets, or prior methods could change the research direction. This loop may repeat several times before coding, simulation, figure generation, or manuscript drafting begins.
 
 1. The Professor Orchestrator frames the literature need: research question, physical system, observable, candidate claim, and why literature could change the plan.
-2. The Professor Orchestrator asks the researcher to collect specific papers or paper categories as PDFs, especially papers requiring school, library, or institutional access that the LLM cannot retrieve directly.
+2. The Professor Orchestrator runs a web discovery pass before requesting anything from the researcher: use WebSearch (arXiv, Semantic Scholar, Google Scholar, publisher sites) to confirm the exact title, authors, year, venue, and DOI or arXiv ID for each needed paper; fetch open-access copies directly with WebFetch when available. Only papers that cannot be retrieved without institutional access are added to `docs/paper_request_queue.md`, and each entry must include the confirmed citation and the reason direct access failed. Do not ask the researcher to find a paper whose identity has not been confirmed by web search.
 3. Store researcher-provided PDFs in the run-local `literature/pdfs/` directory. Track requests in `docs/paper_request_queue.md` and the read status in `docs/literature_review_plan.md`.
 4. Use `python scripts/scaffold_paper_review.py --run <run-dir> --paper-id <id> --title <title>` when adding a paper to initialize its review note and update `literature/index.md`.
 5. Use `python scripts/extract_paper_text.py --run <run-dir> --paper-id <id> --pdf <pdf-path> --review <review-path>` when a text extraction artifact would help review. PDF text extraction is a reading aid, not evidence by itself; verify equations, figures, captions, tables, and claims against the PDF.

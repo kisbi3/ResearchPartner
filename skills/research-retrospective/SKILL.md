@@ -7,6 +7,18 @@ description: Use after a physics research iteration, validation run, reproductio
 
 Use this skill after an iteration to preserve what was learned and make the next iteration easier.
 
+## Stage Completion Meeting
+
+When a full research stage (Stage 0 literature review, Stage 1 algorithm validation, Stage 2 experiments, etc.) completes, convene a researcher meeting before starting the next stage. The meeting agenda must cover:
+
+1. **Completion table**: list every task, its pass/fail status, and the evidence file.
+2. **Numerical results summary**: key numeric outputs from validation (e.g. χ² p-values, relative errors).
+3. **Harness evaluation**: did the agent pipeline work as designed? Identify failures (usage limits, wrong models, skipped logs).
+4. **Design changes**: list any harness, template, or workflow rule changes triggered by this stage.
+5. **Stage gate decision**: explicitly confirm or deny the gate for the next stage.
+
+Record the meeting in `docs/process/research_retrospective.md` under a dated `## Stage N Meeting` heading. This is a blocking step — do not begin the next stage until the meeting record exists.
+
 ## Core Rule
 
 Every research iteration should leave behind a reusable artifact, check, benchmark, log entry, template, or decision record.

@@ -1,0 +1,52 @@
+# Agent Model Configuration
+# ============================================================
+# Copy this file to <run_dir>/config/agent_models.yaml to
+# override the default model for each agent role.
+# The Professor Orchestrator reads this file before spawning.
+#
+# Available values:
+#   "opus"   — most capable. Complex reasoning, design decisions.
+#   "sonnet" — balanced. Literature review, analysis, validation.
+#   "haiku"  — fastest/cheapest. Fully-specified mechanical tasks.
+#
+# Changes take effect on the next agent spawn.
+# ============================================================
+
+roles:
+
+  # Literature review agent
+  # Task: read full paper → write 9-section review → YAML frontmatter
+  # Recommended: sonnet (paper reading + reasoning required)
+  grad_student_review: "sonnet"
+
+  # Code implementation agent
+  # Task: write one clearly-specified function/script
+  # Recommended: haiku (spec is fully defined, cost savings)
+  code_implementer: "haiku"
+
+  # Data analysis agent
+  # Task: statistical computation, figure generation, result interpretation
+  # Recommended: sonnet
+  data_analysis: "sonnet"
+
+  # Scientific validator agent
+  # Task: run code, check pass/fail criteria, record evidence
+  # Recommended: sonnet (must correctly interpret criteria)
+  scientific_validator: "sonnet"
+
+  # Cache-log auditor agent
+  # Task: mechanical checklist — log completeness, error files, cache existence
+  # Recommended: haiku (no physical interpretation needed)
+  cache_log_auditor: "haiku"
+
+  # Professor review agent (if spawned separately)
+  # Task: M1-M7 rubric evaluation, feedback writing
+  # Recommended: sonnet or higher
+  professor_review: "sonnet"
+
+# ============================================================
+# Orchestrator model (main context): set via Claude Code command
+#   /model claude-opus-4-7    ← most powerful (complex design)
+#   /model claude-sonnet-4-6  ← balanced (default)
+#   /model claude-haiku-4-5   ← fastest/cheapest
+# ============================================================
