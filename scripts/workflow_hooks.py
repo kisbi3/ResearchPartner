@@ -43,6 +43,10 @@ SIGNAL_ARTIFACTS = {
 }
 
 
+FIGURE_EXTS = (".png", ".pdf", ".svg", ".jpg", ".jpeg")
+CACHE_EXTS = (".npy", ".npz", ".pkl", ".pickle", ".joblib")
+
+
 def signal_for(file_path_str: str):
     """Return (event, gate, gate_status, run_dir) if path matches a signal artifact."""
     if not file_path_str:
@@ -62,6 +66,15 @@ def signal_for(file_path_str: str):
             # docs/meetings/YYYY-MM-DD-*.md is a meeting record signal
             if rel.startswith("docs/meetings/") and rel.endswith(".md"):
                 return (f"Meeting recorded ({Path(rel).stem})", None, None, run_dir)
+            # outputs/figures/*.png|pdf|svg|jpg → "Figure generated"
+            if rel.startswith("outputs/figures/") and rel.lower().endswith(FIGURE_EXTS):
+                return (f"Figure generated ({Path(rel).name})", "Visualization", "in_progress", run_dir)
+            # errors/*.err → "Error file created" (negative signal — does NOT advance any gate)
+            if rel.startswith("errors/") and rel.endswith(".err"):
+                return (f"Error file created ({Path(rel).name})", None, None, run_dir)
+            # cache/*.npy|npz|pkl|pickle|joblib → "Cache artifact written"
+            if rel.startswith("cache/") and rel.lower().endswith(CACHE_EXTS):
+                return (f"Cache artifact written ({Path(rel).name})", None, None, run_dir)
             if rel in SIGNAL_ARTIFACTS:
                 ev, gate, gs = SIGNAL_ARTIFACTS[rel]
                 return (ev, gate, gs, run_dir)

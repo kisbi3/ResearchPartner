@@ -7,15 +7,27 @@ Before the Lead Agent promotes a run's claim ceiling above
 column) and counts ``pass`` entries; it refuses promotions whose pass count
 is below the threshold for the target ceiling.
 
-Ceilings and thresholds:
+Ceilings and thresholds (count + diversity):
     observation     -> 0 pass entries (always allowed)
     interpretation  -> >= 1 pass
-    mechanism       -> >= 2 pass
-    generalization  -> >= 3 pass
+    mechanism       -> >= 2 pass AND >= 1 baseline-class check
+                       (baseline classes: toy_model, reproduction,
+                        analytical, conservation, dimensional)
+    generalization  -> >= 3 pass spanning >= 2 distinct check categories
+
+The diversity requirement reflects scientific practice: a "mechanism"
+claim is stronger than aggregated observations only when it survives at
+least one principled sanity check, and a "generalization" claim should
+survive on more than one kind of test.
 
 The validation log row format:
     | Date | Check | Target | Status | Evidence |
     | YYYY-MM-DD | toy_model | linear_limit | pass | outputs/toy.png |
+
+The Check cell carries the check category. Recognized baseline-class
+labels (case-insensitive, substring match):
+    toy_model, toy, reproduction, repro, analytical, analytic,
+    conservation, dimensional, dimensions, known_limit
 
 Exit codes:
 - 0: promotion allowed (or already at observation)
@@ -35,11 +47,18 @@ THRESHOLDS = {
     "generalization": 3,
 }
 
+BASELINE_CLASS_KEYWORDS = (
+    "toy_model", "toy", "reproduction", "repro",
+    "analytical", "analytic", "conservation",
+    "dimensional", "dimensions", "known_limit",
+)
 
-def count_pass_entries(log_path: Path) -> int:
+
+def parse_pass_entries(log_path: Path) -> list[str]:
+    """Return the Check (category) cell of each pass row."""
     if not log_path.is_file():
-        return 0
-    n = 0
+        return []
+    checks: list[str] = []
     for line in log_path.read_text(encoding="utf-8").splitlines():
         cells = [c.strip() for c in line.strip().strip("|").split("|")]
         if len(cells) < 4:
@@ -47,8 +66,16 @@ def count_pass_entries(log_path: Path) -> int:
         if cells[0] == "Date" or "---" in cells[0]:
             continue
         if cells[3].lower() == "pass":
-            n += 1
-    return n
+            checks.append(cells[1].lower())
+    return checks
+
+
+def has_baseline_class(checks: list[str]) -> bool:
+    return any(any(kw in c for kw in BASELINE_CLASS_KEYWORDS) for c in checks)
+
+
+def distinct_check_count(checks: list[str]) -> int:
+    return len({c for c in checks if c})
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -71,24 +98,58 @@ def main(argv: list[str] | None = None) -> int:
     target = args.target.lower()
     required = THRESHOLDS[target]
     log = run_dir / "docs" / "gates" / "validation_log.md"
-    pass_count = count_pass_entries(log)
+    checks = parse_pass_entries(log)
+    pass_count = len(checks)
 
-    if pass_count >= required:
+    # Count gate
+    if pass_count < required:
         print(
-            f"claim promotion to '{target}' allowed: "
-            f"{pass_count} pass entries (>= {required})"
+            f"CLAIM PROMOTION BLOCKED: target='{target}' requires >= {required} "
+            f"pass entries in {log}; found {pass_count}.\n"
+            f"  fix: run additional validation (toy model / analytical limit / "
+            f"reproduction / conservation check) and record a 'pass' row in the "
+            f"validation log, or file a waiver and lower the target ceiling.",
+            file=sys.stderr,
         )
-        return 0
+        return 2
 
+    # Diversity gates for mechanism / generalization
+    if target == "mechanism" and not has_baseline_class(checks):
+        print(
+            f"CLAIM PROMOTION BLOCKED: target='mechanism' requires at least one "
+            f"baseline-class pass entry (Check column matching toy_model | "
+            f"reproduction | analytical | conservation | dimensional). Pass-row "
+            f"Check values found: {sorted(set(checks)) or '[]'}.\n"
+            f"  fix: add a baseline reproduction or analytical-limit check and "
+            f"record a 'pass' row, or lower the target ceiling to 'interpretation'.",
+            file=sys.stderr,
+        )
+        return 2
+
+    if target == "generalization" and distinct_check_count(checks) < 2:
+        print(
+            f"CLAIM PROMOTION BLOCKED: target='generalization' requires >= 2 "
+            f"distinct check categories among pass rows. Found only "
+            f"{distinct_check_count(checks)} distinct category in: "
+            f"{sorted(set(checks)) or '[]'}.\n"
+            f"  fix: add a pass entry from a different check category (e.g. add a "
+            f"conservation check on top of a toy-model reproduction), or lower the "
+            f"target ceiling to 'mechanism'.",
+            file=sys.stderr,
+        )
+        return 2
+
+    extras = []
+    if target == "mechanism":
+        extras.append("baseline-class present")
+    if target == "generalization":
+        extras.append(f"{distinct_check_count(checks)} distinct check categories")
+    extras_str = f"; {', '.join(extras)}" if extras else ""
     print(
-        f"CLAIM PROMOTION BLOCKED: target='{target}' requires >= {required} "
-        f"pass entries in {log}; found {pass_count}.\n"
-        f"  fix: run additional validation (toy model / analytical limit / "
-        f"reproduction / conservation check) and record a 'pass' row in the "
-        f"validation log, or file a waiver and lower the target ceiling.",
-        file=sys.stderr,
+        f"claim promotion to '{target}' allowed: {pass_count} pass entries "
+        f"(>= {required}){extras_str}"
     )
-    return 2
+    return 0
 
 
 if __name__ == "__main__":
