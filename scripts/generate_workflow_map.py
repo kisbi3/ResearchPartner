@@ -16,6 +16,122 @@ SOURCE = ROOT / "docs" / "workflow_map.json"
 OUTPUT = ROOT / "docs" / "workflow_map.html"
 RUNS_ROOT = ROOT.parent / "ResearchPartner-runs"
 
+DASHBOARD_DOCUMENT_GROUPS = [
+    {
+        "id": "needs_input",
+        "title": "Needs Input",
+        "description": "Documents where the researcher may need to answer, provide material, or clarify scope.",
+        "documents": [
+            ("Orient Note", ["docs/gates/orient_note.md", "docs/orient_note.md"]),
+            ("Interview Notes", ["docs/gates/interview_notes.md", "docs/interview_notes.md"]),
+            (
+                "Paper Request Queue",
+                ["docs/literature/paper_request_queue.md", "docs/paper_request_queue.md"],
+            ),
+            (
+                "Literature Review Plan",
+                ["docs/literature/literature_review_plan.md", "docs/literature_review_plan.md"],
+            ),
+            ("Meeting Notes", ["docs/meetings"]),
+        ],
+    },
+    {
+        "id": "needs_approval",
+        "title": "Needs Approval",
+        "description": "Documents that should be approved before the harness treats the run direction as settled.",
+        "documents": [
+            ("Research Plan", ["docs/plan/research_plan.md", "docs/research_plan.md"]),
+            ("Model Spec", ["docs/plan/model_spec.md", "docs/model_spec.md"]),
+            (
+                "Baseline Strategy",
+                ["docs/plan/baseline_strategy.md", "docs/baseline_strategy.md"],
+            ),
+            (
+                "Replanning Memo",
+                ["docs/literature/replanning_memo.md", "docs/replanning_memo.md"],
+            ),
+            (
+                "Paper Logic Diagram",
+                ["docs/plan/paper_logic_diagram.md", "docs/paper_logic_diagram.md"],
+            ),
+        ],
+    },
+    {
+        "id": "recommended_review",
+        "title": "Recommended Review",
+        "description": "Documents worth checking to understand current status, evidence, decisions, and remaining risk.",
+        "documents": [
+            (
+                "Live Workflow Diagram",
+                ["docs/process/live_workflow_diagram.md", "docs/live_workflow_diagram.md"],
+            ),
+            ("Research State", ["docs/process/research_state.md", "docs/research_state.md"]),
+            (
+                "Researcher Review Log",
+                ["docs/process/researcher_review_log.md", "docs/researcher_review_log.md"],
+            ),
+            ("Decision Log", ["docs/process/decision_log.md", "docs/decision_log.md"]),
+            ("Baseline Registry", ["docs/gates/baseline_registry.md", "docs/baseline_registry.md"]),
+            ("Validation Log", ["docs/gates/validation_log.md", "docs/validation_log.md"]),
+            (
+                "Research Retrospective",
+                ["docs/process/research_retrospective.md", "docs/research_retrospective.md"],
+            ),
+        ],
+    },
+]
+
+ACTION_GUIDANCE = {
+    "Orient Note": {
+        "why": "Confirm the run has a recorded task classification and first researcher-facing question.",
+        "suggested_command": "python scripts/check_orient_recorded.py --run <run-dir>",
+    },
+    "Interview Notes": {
+        "why": "Confirm the research question, assumptions, agreed direction, and next skill are recorded.",
+        "suggested_command": "python scripts/check_interview_recorded.py --run <run-dir>",
+    },
+    "Literature Review Plan": {
+        "why": "Confirm literature status before model specification or seed design relies on novelty or reproduction claims.",
+        "suggested_command": "python scripts/check_literature_reviewed.py --run <run-dir>",
+    },
+    "Model Spec": {
+        "why": "Approve the model definition before seed design or execution depends on it.",
+        "suggested_command": "python scripts/check_model_specified.py --run <run-dir>",
+    },
+    "Baseline Strategy": {
+        "why": "Approve whether this run reproduces a parent model or verifies a new analytical checkpoint.",
+        "suggested_command": "python scripts/check_baseline_strategy.py --run <run-dir>",
+    },
+    "Baseline Registry": {
+        "why": "Check that interpretation is backed by a toy model, known limit, reproduction, or explicit waiver.",
+        "suggested_command": "python scripts/check_baseline_gate.py --run <run-dir>",
+    },
+    "Validation Log": {
+        "why": "Review the current evidence chain before treating results as interpretation-ready.",
+        "suggested_command": "python scripts/check_figure_provenance.py --root <run-dir>",
+    },
+    "Live Workflow Diagram": {
+        "why": "Review active workflow state, blocked behavior, stale artifacts, and next researcher checkpoint.",
+        "suggested_command": "python scripts/generate_workflow_map.py",
+    },
+}
+
+
+def dashboard_status_label(group_id: str, exists: bool) -> str:
+    if not exists:
+        return "Missing document"
+    if group_id in {"needs_input", "needs_approval"}:
+        return "Needs researcher decision"
+    return "Ready to review"
+
+
+def dashboard_summary_key(status: str) -> str:
+    return {
+        "Ready to review": "ready_to_review",
+        "Missing document": "missing_document",
+        "Needs researcher decision": "needs_researcher_decision",
+    }[status]
+
 
 def relative_href(path: str) -> str:
     source = ROOT / path
@@ -36,8 +152,91 @@ def latest_live_workflow_path() -> Path | None:
     return candidates[0] if candidates else None
 
 
-def run_relative_path(path: Path) -> str:
-    return Path(os.path.relpath(path, OUTPUT.parent)).as_posix()
+def run_relative_path(path: Path, base_dir: Path | None = None) -> str:
+    base = base_dir or OUTPUT.parent
+    return Path(os.path.relpath(path, base)).as_posix()
+
+
+def live_workflow_run_root(live_path: Path) -> Path:
+    if live_path.parent.name == "process" and live_path.parent.parent.name == "docs":
+        return live_path.parent.parent.parent
+    if live_path.parent.name == "docs":
+        return live_path.parent.parent
+    return live_path.parents[1]
+
+
+def dashboard_document_groups(run_root: Path, base_dir: Path | None = None) -> list[dict]:
+    groups = []
+    for group in DASHBOARD_DOCUMENT_GROUPS:
+        documents = []
+        for label, candidates in group["documents"]:
+            candidate_paths = [run_root / candidate for candidate in candidates]
+            selected = next((path for path in candidate_paths if path.exists()), candidate_paths[0])
+            exists = selected.exists()
+            documents.append(
+                {
+                    "label": label,
+                    "path": run_relative_path(selected, base_dir),
+                    "status": dashboard_status_label(group["id"], exists),
+                }
+            )
+        groups.append(
+            {
+                "id": group["id"],
+                "title": group["title"],
+                "description": group["description"],
+                "documents": documents,
+            }
+        )
+    return groups
+
+
+def dashboard_actions(document_groups: list[dict]) -> list[dict]:
+    actions = []
+    for group in document_groups:
+        for document in group["documents"]:
+            guidance = ACTION_GUIDANCE.get(document["label"], {})
+            actions.append(
+                {
+                    "id": re.sub(
+                        r"[^a-z0-9]+",
+                        "_",
+                        f"{group['id']}_{document['label']}".lower(),
+                    ).strip("_"),
+                    "title": f"Review {document['label']}",
+                    "category": group["title"],
+                    "status": document["status"],
+                    "priority": group["id"],
+                    "why": guidance.get(
+                        "why",
+                        "Open the linked document and decide whether this run can continue.",
+                    ),
+                    "suggested_command": guidance.get(
+                        "suggested_command",
+                        "Record the review outcome in docs/process/researcher_review_log.md",
+                    ),
+                    "linked_document": document,
+                }
+            )
+    return actions
+
+
+def dashboard_summary(document_groups: list[dict]) -> dict:
+    summary = {}
+    for group in document_groups:
+        counts = {
+            "ready_to_review": 0,
+            "missing_document": 0,
+            "needs_researcher_decision": 0,
+        }
+        for doc in group["documents"]:
+            counts[dashboard_summary_key(doc["status"])] += 1
+        total = len(group["documents"])
+        summary[group["id"]] = {
+            **counts,
+            "total": total,
+        }
+    return summary
 
 
 def extract_section(markdown: str, heading: str) -> str:
@@ -49,7 +248,9 @@ def extract_section(markdown: str, heading: str) -> str:
     return match.group("body").strip() if match else ""
 
 
-def extract_bullet_links(markdown: str, run_root: Path) -> list[dict[str, str]]:
+def extract_bullet_links(
+    markdown: str, run_root: Path, base_dir: Path | None = None
+) -> list[dict[str, str]]:
     links = []
     for line in markdown.splitlines():
         stripped = line.strip()
@@ -59,7 +260,7 @@ def extract_bullet_links(markdown: str, run_root: Path) -> list[dict[str, str]]:
         links.append(
             {
                 "label": path_text,
-                "path": run_relative_path(run_root / path_text),
+                "path": run_relative_path(run_root / path_text, base_dir),
             }
         )
     return links
@@ -94,11 +295,11 @@ def extract_json_objects(markdown: str) -> list[dict]:
     return objects
 
 
-def with_run_path(link: dict, run_root: Path) -> dict:
+def with_run_path(link: dict, run_root: Path, base_dir: Path | None = None) -> dict:
     normalized = dict(link)
     path_text = str(normalized.get("path", ""))
     if path_text:
-        normalized["path"] = run_relative_path(run_root / path_text)
+        normalized["path"] = run_relative_path(run_root / path_text, base_dir)
     normalized.setdefault(
         "label",
         normalized.get("role")
@@ -110,7 +311,9 @@ def with_run_path(link: dict, run_root: Path) -> dict:
     return normalized
 
 
-def cartographer_event_nodes(markdown: str, run_root: Path) -> list[dict]:
+def cartographer_event_nodes(
+    markdown: str, run_root: Path, base_dir: Path | None = None
+) -> list[dict]:
     section = extract_section(markdown, "Cartographer Update Events")
     events = []
     for value in extract_json_objects(section):
@@ -126,10 +329,15 @@ def cartographer_event_nodes(markdown: str, run_root: Path) -> list[dict]:
             "_",
             str(event.get("title") or event.get("summary") or f"event_{index}").lower(),
         ).strip("_")
-        code_links = [with_run_path(link, run_root) for link in event.get("code_links", [])]
-        result_links = [with_run_path(link, run_root) for link in event.get("result_links", [])]
+        code_links = [
+            with_run_path(link, run_root, base_dir) for link in event.get("code_links", [])
+        ]
+        result_links = [
+            with_run_path(link, run_root, base_dir) for link in event.get("result_links", [])
+        ]
         interpretation_links = [
-            with_run_path(link, run_root) for link in event.get("interpretation_links", [])
+            with_run_path(link, run_root, base_dir)
+            for link in event.get("interpretation_links", [])
         ]
         nodes.append(
             {
@@ -191,11 +399,18 @@ def fmt_float(value: object, digits: int = 4) -> str:
     return f"{value:.{digits}g}"
 
 
-def image_ref(run_root: Path, filename: str, label: str) -> dict[str, str]:
-    return {"label": label, "path": run_relative_path(run_root / "outputs" / filename)}
+def image_ref(
+    run_root: Path, filename: str, label: str, base_dir: Path | None = None
+) -> dict[str, str]:
+    return {
+        "label": label,
+        "path": run_relative_path(run_root / "outputs" / filename, base_dir),
+    }
 
 
-def result_fields_for_gate(gate_id: str, run_root: Path) -> tuple[dict[str, str], list[dict[str, str]]]:
+def result_fields_for_gate(
+    gate_id: str, run_root: Path, base_dir: Path | None = None
+) -> tuple[dict[str, str], list[dict[str, str]]]:
     validation = read_json(run_root / "outputs" / "validation_summary.json")
     fixed = read_json(run_root / "outputs" / "fixed_ratio_convergence_summary.json")
     anomaly = read_json(run_root / "outputs" / "unstable_anomaly_probe.json")
@@ -211,8 +426,8 @@ def result_fields_for_gate(gate_id: str, run_root: Path) -> tuple[dict[str, str]
                 "stability_ratio": fmt_float(validation.get("stability_ratio")),
             },
             [
-                image_ref(run_root, "amplitude_decay.png", "Amplitude decay"),
-                image_ref(run_root, "profile_evolution.png", "Profile evolution"),
+                image_ref(run_root, "amplitude_decay.png", "Amplitude decay", base_dir),
+                image_ref(run_root, "profile_evolution.png", "Profile evolution", base_dir),
             ],
         )
     if gate_id == "refinement_trend":
@@ -224,7 +439,7 @@ def result_fields_for_gate(gate_id: str, run_root: Path) -> tuple[dict[str, str]
                 "finest_error": fmt_float(last_error),
                 "claim_scope": "trend only",
             },
-            [image_ref(run_root, "convergence_sweep.png", "Refinement trend")],
+            [image_ref(run_root, "convergence_sweep.png", "Refinement trend", base_dir)],
         )
     if gate_id == "fixed_ratio_convergence":
         return (
@@ -233,7 +448,11 @@ def result_fields_for_gate(gate_id: str, run_root: Path) -> tuple[dict[str, str]
                 "target_ratio": "0.1",
                 "claim_scope": "single-mode final amplitude",
             },
-            [image_ref(run_root, "fixed_ratio_convergence.png", "Fixed-ratio convergence")],
+            [
+                image_ref(
+                    run_root, "fixed_ratio_convergence.png", "Fixed-ratio convergence", base_dir
+                )
+            ],
         )
     if gate_id == "multi_mode_validation":
         modes = multimode.get("modes", {})
@@ -245,8 +464,10 @@ def result_fields_for_gate(gate_id: str, run_root: Path) -> tuple[dict[str, str]
                 "claim_scope": "finite periodic sine modes",
             },
             [
-                image_ref(run_root, "multimode_amplitude_decay.png", "Multi-mode amplitudes"),
-                image_ref(run_root, "multimode_profile_evolution.png", "Multi-mode profile"),
+                image_ref(
+                    run_root, "multimode_amplitude_decay.png", "Multi-mode amplitudes", base_dir
+                ),
+                image_ref(run_root, "multimode_profile_evolution.png", "Multi-mode profile", base_dir),
             ],
         )
     if gate_id == "positivity_sanity":
@@ -258,8 +479,8 @@ def result_fields_for_gate(gate_id: str, run_root: Path) -> tuple[dict[str, str]
                 "claim_scope": "one smooth nonnegative periodic profile",
             },
             [
-                image_ref(run_root, "positivity_profile.png", "Positivity profile"),
-                image_ref(run_root, "positivity_history.png", "Positivity history"),
+                image_ref(run_root, "positivity_profile.png", "Positivity profile", base_dir),
+                image_ref(run_root, "positivity_history.png", "Positivity history", base_dir),
             ],
         )
     if gate_id == "dirichlet_boundary":
@@ -271,8 +492,8 @@ def result_fields_for_gate(gate_id: str, run_root: Path) -> tuple[dict[str, str]
                 "claim_scope": "one homogeneous Dirichlet sine mode",
             },
             [
-                image_ref(run_root, "dirichlet_amplitude_decay.png", "Dirichlet amplitude"),
-                image_ref(run_root, "dirichlet_profile_evolution.png", "Dirichlet profile"),
+                image_ref(run_root, "dirichlet_amplitude_decay.png", "Dirichlet amplitude", base_dir),
+                image_ref(run_root, "dirichlet_profile_evolution.png", "Dirichlet profile", base_dir),
             ],
         )
     if gate_id == "anomaly_probe":
@@ -296,18 +517,20 @@ def result_fields_for_gate(gate_id: str, run_root: Path) -> tuple[dict[str, str]
     return ({}, [])
 
 
-def live_workflow_map() -> dict | None:
+def live_workflow_map(base_dir: Path | None = None) -> dict | None:
     live_path = latest_live_workflow_path()
     if live_path is None:
         return None
 
-    run_root = live_path.parents[1]
+    run_root = live_workflow_run_root(live_path)
     markdown = live_path.read_text(encoding="utf-8", errors="ignore")
     active_step = extract_section(markdown, "Active Step") or "No active step recorded."
     checkpoint = extract_section(markdown, "Next Review Checkpoint") or "No checkpoint recorded."
-    evidence_links = extract_bullet_links(extract_section(markdown, "Evidence Links"), run_root)
+    evidence_links = extract_bullet_links(
+        extract_section(markdown, "Evidence Links"), run_root, base_dir
+    )
     gate_rows = extract_gate_rows(markdown)
-    event_nodes = cartographer_event_nodes(markdown, run_root)
+    event_nodes = cartographer_event_nodes(markdown, run_root, base_dir)
 
     phase_by_status = {
         "pass": "passed",
@@ -321,7 +544,7 @@ def live_workflow_map() -> dict | None:
     for index, row in enumerate(gate_rows):
         status = row["status"]
         gate_id = re.sub(r"[^a-z0-9]+", "_", row["gate"].lower()).strip("_")
-        result_summary, images = result_fields_for_gate(gate_id, run_root)
+        result_summary, images = result_fields_for_gate(gate_id, run_root, base_dir)
         nodes.append(
             {
                 "id": gate_id or f"gate_{index}",
@@ -346,7 +569,7 @@ def live_workflow_map() -> dict | None:
                 + [
                     {
                         "label": "Live workflow diagram",
-                        "path": run_relative_path(live_path),
+                        "path": run_relative_path(live_path, base_dir),
                     }
                 ],
                 "checks": [
@@ -392,7 +615,10 @@ def live_workflow_map() -> dict | None:
                 "interpretation_links": [],
                 "graph_links": [],
                 "responsible": [
-                    {"label": "Live workflow diagram", "path": run_relative_path(live_path)}
+                    {
+                        "label": "Live workflow diagram",
+                        "path": run_relative_path(live_path, base_dir),
+                    }
                 ],
                 "checks": [
                     "This is a process-tracking artifact, not scientific evidence.",
@@ -402,6 +628,7 @@ def live_workflow_map() -> dict | None:
             }
         ]
 
+    document_groups = dashboard_document_groups(run_root, base_dir)
     return {
         "id": "live_research_run",
         "title": f"Live Research Workflow: {run_root.name}",
@@ -409,6 +636,13 @@ def live_workflow_map() -> dict | None:
             "Current run state generated from the latest live workflow artifact. "
             "This is process-tracking only and must not strengthen scientific claims."
         ),
+        "dashboard": {
+            "title": "Current Run Dashboard",
+            "run_root": run_relative_path(run_root, base_dir),
+            "document_groups": document_groups,
+            "summary": dashboard_summary(document_groups),
+            "actions": dashboard_actions(document_groups),
+        },
         "nodes": nodes,
     }
 
@@ -454,9 +688,9 @@ def placeholder_live_workflow_map() -> dict:
     }
 
 
-def build_data(include_paper_logic: bool = False) -> dict:
+def build_data(include_paper_logic: bool = False, base_dir: Path | None = None) -> dict:
     source_data = json.loads(SOURCE.read_text(encoding="utf-8"))
-    live_map = live_workflow_map()
+    live_map = live_workflow_map(base_dir)
     maps = [live_map or placeholder_live_workflow_map()]
     if include_paper_logic:
         paper_logic = next(
@@ -470,6 +704,26 @@ def build_data(include_paper_logic: bool = False) -> dict:
         if paper_logic is not None:
             maps.append(paper_logic)
     return {"maps": maps}
+
+
+def write_outputs(include_paper_logic: bool = False) -> list[Path]:
+    written = []
+    central_data = build_data(include_paper_logic=include_paper_logic, base_dir=OUTPUT.parent)
+    OUTPUT.parent.mkdir(parents=True, exist_ok=True)
+    OUTPUT.write_text(build_html(central_data), encoding="utf-8")
+    written.append(OUTPUT)
+
+    live_path = latest_live_workflow_path()
+    if live_path is not None:
+        run_root = live_workflow_run_root(live_path)
+        run_data = build_data(include_paper_logic=False, base_dir=run_root)
+        run_html = run_root / "workflow_map.html"
+        run_json = run_root / "workflow_map.json"
+        run_html.write_text(build_html(run_data), encoding="utf-8")
+        run_json.write_text(json.dumps(run_data, indent=2), encoding="utf-8")
+        written.extend([run_html, run_json])
+
+    return written
 
 
 def build_html(data: dict) -> str:
@@ -577,6 +831,95 @@ def build_html(data: dict) -> str:
       cursor: pointer;
     }}
     .docs a:hover, .docs button:hover {{ border-color: var(--focus); }}
+    .summary-grid {{
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }}
+    .summary-pill {{
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 8px 9px;
+      background: #fbfbf8;
+      min-width: 0;
+    }}
+    .summary-pill strong {{
+      display: block;
+      font-size: 15px;
+      margin-bottom: 2px;
+    }}
+    .summary-pill span {{
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+    }}
+    .action-queue {{
+      border-bottom: 1px solid var(--line);
+      padding: 12px;
+      background: #fbfbf8;
+    }}
+    .action-queue h2 {{
+      margin: 0 0 4px;
+      font-size: 15px;
+    }}
+    .action-help {{
+      margin-bottom: 10px;
+      color: var(--muted);
+      font-size: 12px;
+    }}
+    .next-action {{
+      margin: 10px 0;
+      font-size: 13px;
+      font-weight: 700;
+    }}
+    .action-groups {{
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }}
+    .action-group {{
+      display: grid;
+      gap: 6px;
+      min-width: 0;
+    }}
+    .action-group-title {{
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      font-weight: 700;
+    }}
+    .action-card {{
+      text-align: left;
+      border-color: var(--line);
+      background: #fff;
+      min-height: 0;
+      padding: 7px 8px;
+      width: 100%;
+    }}
+    .action-card.active {{
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(42, 106, 79, 0.18);
+    }}
+    .action-card strong {{
+      display: block;
+      margin-bottom: 3px;
+      overflow-wrap: anywhere;
+      font-size: 13px;
+    }}
+    .action-card span {{
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+    }}
+    .command-box {{
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 8px;
+      background: #111;
+      color: #fff;
+      overflow-x: auto;
+      font-size: 12px;
+    }}
     .file-preview {{
       margin-top: 14px;
       border: 1px solid var(--line);
@@ -662,6 +1005,7 @@ def build_html(data: dict) -> str:
     }}
     @media (max-width: 900px) {{
       .shell {{ grid-template-columns: 1fr; }}
+      .action-groups, .summary-grid {{ grid-template-columns: 1fr; }}
       svg {{ min-width: 760px; }}
     }}
   </style>
@@ -674,6 +1018,7 @@ def build_html(data: dict) -> str:
   <main class=\"shell\">
     <section class=\"panel\">
       <div class=\"tabs\" id=\"tabs\"></div>
+      <div class=\"action-queue\" id=\"actionQueue\"></div>
       <div class=\"diagram-wrap\" id=\"diagram\"></div>
     </section>
     <aside class=\"panel\" id=\"details\" aria-live=\"polite\"></aside>
@@ -687,12 +1032,16 @@ def build_html(data: dict) -> str:
     const DATA = __DATA__;
     let activeMap = DATA.maps[0].id;
     let activeNode = DATA.maps[0].nodes[0].id;
+    let activeAction = firstActionId(currentMap());
 
     function pathHref(path) {{
+      const map = currentMap();
+      const runLocal = Boolean(map && map.dashboard && map.dashboard.run_root === '.');
       const [base, hash] = String(path).split('#');
       let href = base;
       if (href.startsWith('../')) href = href;
-      else if (href.startsWith('docs/')) href = href.replace(/^docs\\//, '');
+      else if (href.startsWith('docs/') && !runLocal) href = href.replace(/^docs\\//, '');
+      else if (runLocal) href = href;
       else href = '../' + href;
       return hash ? href + '#' + hash : href;
     }}
@@ -706,9 +1055,19 @@ def build_html(data: dict) -> str:
       return DATA.maps.find(map => map.id === activeMap);
     }}
 
+    function firstActionId(map) {{
+      const actions = (((map || {{}}).dashboard || {{}}).actions || []);
+      return actions.length ? actions[0].id : null;
+    }}
+
     function currentNode() {{
       const map = currentMap();
       return map.nodes.find(node => node.id === activeNode) || map.nodes[0];
+    }}
+
+    function currentAction() {{
+      const map = currentMap();
+      return ((map.dashboard || {{}}).actions || []).find(action => action.id === activeAction);
     }}
 
     function escapeHtml(value) {{
@@ -726,10 +1085,86 @@ def build_html(data: dict) -> str:
         button.className = map.id === activeMap ? 'active' : '';
         button.addEventListener('click', () => {{
           activeMap = map.id;
-          activeNode = map.nodes[0].id;
+          const selectedMap = currentMap();
+          activeNode = selectedMap.nodes[0].id;
+          activeAction = firstActionId(selectedMap);
           render();
         }});
         tabs.appendChild(button);
+      }});
+    }}
+
+    function renderDashboardSummary(map, headingHtml) {{
+      const dashboard = map.dashboard;
+      if (!dashboard || !dashboard.summary) return '';
+      const groups = dashboard.document_groups || [];
+      const pills = groups.map(group => {{
+        const item = dashboard.summary[group.id] || {{
+          ready_to_review: 0,
+          missing_document: 0,
+          needs_researcher_decision: 0,
+          total: 0
+        }};
+        const primary = item.needs_researcher_decision
+          ? item.needs_researcher_decision + ' decision'
+          : item.ready_to_review + ' ready';
+        return `
+          <div class="summary-pill">
+            <strong>${{escapeHtml(primary)}}</strong>
+            <span>${{escapeHtml(group.title)}}</span>
+            <span>${{escapeHtml(item.missing_document + ' missing · ' + item.total + ' total')}}</span>
+          </div>
+        `;
+      }}).join('');
+      return `
+        <div class="section dashboard-summary">
+          ${{headingHtml || '<h3>Dashboard Summary</h3>'}}
+          <div class="summary-grid">${{pills}}</div>
+        </div>
+      `;
+    }}
+
+    function renderActionQueue() {{
+      const map = currentMap();
+      const dashboard = map.dashboard || {{}};
+      const actions = dashboard.actions || [];
+      const queue = document.getElementById('actionQueue');
+      if (!actions.length) {{
+        queue.innerHTML = `${{renderDashboardSummary(map, '<h2>Dashboard Summary</h2>')}}
+          <h2>Action Queue</h2>
+          <p class="meta">No researcher-facing actions are recorded for this run.</p>`;
+        return;
+      }}
+      const groups = dashboard.document_groups || [];
+      const selectedAction = currentAction() || actions[0];
+      queue.innerHTML = `
+        ${{renderDashboardSummary(map, '<h2>Dashboard Summary</h2>')}}
+        <div class="next-action">Next action: Review ${{escapeHtml(selectedAction.linked_document.label)}}</div>
+        <h2>Action Queue</h2>
+        <div class="action-help">Select an action to inspect the source document and next command.</div>
+        <div class="action-groups">
+          ${{groups.map(group => {{
+            const groupActions = actions.filter(action => action.priority === group.id);
+            return `
+              <div class="action-group">
+                <div class="action-group-title">${{escapeHtml(group.title)}}</div>
+                ${{groupActions.map(action => `
+                  <button type="button" class="action-card ${{action.id === activeAction ? 'active' : ''}}" data-action="${{escapeHtml(action.id)}}">
+                    <strong>${{escapeHtml(action.linked_document.label)}}</strong>
+                    <span>${{escapeHtml(action.status)}}</span>
+                  </button>
+                `).join('')}}
+              </div>
+            `;
+          }}).join('')}}
+        </div>
+      `;
+      queue.querySelectorAll('[data-action]').forEach(button => {{
+        button.addEventListener('click', () => {{
+          activeAction = button.dataset.action;
+          renderActionQueue();
+          renderDetails();
+        }});
       }});
     }}
 
@@ -772,6 +1207,8 @@ def build_html(data: dict) -> str:
       document.querySelectorAll('.node').forEach(element => {{
         const activate = () => {{
           activeNode = element.dataset.node;
+          activeAction = null;
+          renderActionQueue();
           renderDiagram();
           renderDetails();
         }};
@@ -787,6 +1224,42 @@ def build_html(data: dict) -> str:
 
     function renderDetails() {{
       const map = currentMap();
+      const action = currentAction();
+      if (action) {{
+        const doc = action.linked_document || {{}};
+        document.getElementById('details').innerHTML = `
+          <div class="next-action">Next action: Review ${{escapeHtml((action.linked_document || {{}}).label || 'linked document')}}</div>
+          <h2>${{escapeHtml(action.title)}}</h2>
+          <div class="meta">${{escapeHtml(action.category)}} / ${{escapeHtml(action.status || 'unknown')}}</div>
+          <p>${{escapeHtml(action.why || '')}}</p>
+          <div class="section">
+            <h3>Linked Document</h3>
+            <div class="docs">
+              <button type="button" class="file-button" data-path="${{escapeHtml(pathHref(doc.path || ''))}}" data-label="${{escapeHtml(doc.label || 'linked document')}}">${{escapeHtml(doc.label || 'linked document')}}</button>
+            </div>
+          </div>
+          <div class="section">
+            <h3>Suggested Next Command</h3>
+            <pre class="command-box">${{escapeHtml(action.suggested_command || 'No command recorded.')}}</pre>
+          </div>
+          <div class="section">
+            <h3>Review Rule</h3>
+            <p class="meta">This dashboard can point to the source document and next command, but the Markdown record remains the source of truth.</p>
+          </div>
+          <div class="section">
+            <h3>Preview</h3>
+            <div class="file-preview" id="filePreview">
+              <div class="preview-head">
+                <span>Select the linked document to preview it here.</span>
+                <a id="rawFileLink" href="#" hidden>Open raw file</a>
+              </div>
+              <pre id="filePreviewText"></pre>
+            </div>
+          </div>
+        `;
+        attachFilePreviewHandlers();
+        return;
+      }}
       const node = currentNode();
       const links = (node.responsible || []).map(item =>
         `<button type="button" class="file-button" data-path="${{escapeHtml(pathHref(item.path))}}" data-label="${{escapeHtml(item.label)}}">${{escapeHtml(item.label)}}</button>`
@@ -840,6 +1313,7 @@ def build_html(data: dict) -> str:
         <h2>${{escapeHtml(node.title)}}</h2>
         <div class="meta">${{escapeHtml(map.title)}} / ${{escapeHtml(node.phase)}}</div>
         <p>${{escapeHtml(node.summary)}}</p>
+        ${{renderDashboardSummary(map)}}
         <div class="section">
           <h3>Link State</h3>
           <div class="results">${{metadata}}</div>
@@ -880,6 +1354,10 @@ def build_html(data: dict) -> str:
           <ul>${{checks}}</ul>
         </div>
       `;
+      attachFilePreviewHandlers();
+    }}
+
+    function attachFilePreviewHandlers() {{
       document.querySelectorAll('.file-button').forEach(button => {{
         button.addEventListener('click', async () => {{
           const previewText = document.getElementById('filePreviewText');
@@ -903,6 +1381,7 @@ def build_html(data: dict) -> str:
 
     function render() {{
       renderTabs();
+      renderActionQueue();
       renderDiagram();
       renderDetails();
     }}
@@ -913,12 +1392,8 @@ def build_html(data: dict) -> str:
 </body>
 </html>
 """
-    return (
-        template.replace("__TITLE__", html.escape(title))
-        .replace("__DATA__", data_json)
-        .replace("{{", "{")
-        .replace("}}", "}")
-    )
+    rendered = template.replace("{{", "{").replace("}}", "}")
+    return rendered.replace("__TITLE__", html.escape(title)).replace("__DATA__", data_json)
 
 
 def main() -> int:
@@ -929,11 +1404,12 @@ def main() -> int:
         help="Include the paper logic workflow when manuscript planning has been requested.",
     )
     args = parser.parse_args()
-    OUTPUT.write_text(
-        build_html(build_data(include_paper_logic=args.include_paper_logic)),
-        encoding="utf-8",
-    )
-    print(f"Generated {OUTPUT.relative_to(ROOT)}")
+    for path in write_outputs(include_paper_logic=args.include_paper_logic):
+        try:
+            display = path.relative_to(ROOT)
+        except ValueError:
+            display = path
+        print(f"Generated {display}")
     return 0
 
 

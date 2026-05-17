@@ -457,6 +457,26 @@ SCENARIOS = [
             "Cross-Tier Prohibition",
         ),
     ),
+    Scenario(
+        name="session_resumption_after_interruption",
+        skills=(
+            "skills/cartographer-update/SKILL.md",
+        ),
+        docs=(
+            "scripts/check_session_resumable.py",
+            "scripts/update_workflow_diagram.py",
+            "docs/run_templates/live_workflow_diagram_template.md",
+        ),
+        rule_terms=(
+            "Session Resumption Hook",
+            "check_session_resumable.py",
+            "In-Flight Tasks",
+            "--event spawn",
+            "--event resume",
+            "--resume-decision",
+            "abandoned",
+        ),
+    ),
 ]
 
 

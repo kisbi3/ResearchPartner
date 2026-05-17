@@ -31,7 +31,7 @@ def test_multi_agent_orchestration_scenarios_are_evaluated():
 def test_harness_evaluator_includes_hook_scenarios():
     evaluator = load_evaluator()
 
-    assert len(evaluator.SCENARIOS) == 23
+    assert len(evaluator.SCENARIOS) == 24
 
 
 def test_orchestration_scenarios_require_run_templates():

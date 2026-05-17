@@ -137,6 +137,37 @@ Use `preview: thumbnail`, `preview: table_head`, or `preview: log_tail` as the A
 - Question to ask:
 - Smallest useful next action:
 
+## In-Flight Tasks
+
+<!-- Auto-updated by scripts/update_workflow_diagram.py via --event spawn / complete / error / resume.
+     Rows in `spawned` state at session start are candidate abandoned tasks
+     that the Professor Orchestrator must resolve before resuming. -->
+
+| Task ID | Sub-agent | Spawned (UTC) | Step | Evidence Record | Status |
+|---|---|---|---|---|---|
+
+Allowed in-flight status values: `spawned`, `acknowledged`, `abandoned`.
+
+Before spawning a sub-agent via `Agent()`, log the spawn so a future session
+can detect it if this session is cut off:
+
+```
+python scripts/update_workflow_diagram.py --event spawn \
+    --step "..." --agent "graduate-student" \
+    --task-id "task-3-reproduce-guo" \
+    --evidence-record "docs/gates/seed_design.md#task-3"
+```
+
+When the sub-agent reports back, mark the row acknowledged:
+
+```
+python scripts/update_workflow_diagram.py --event complete \
+    --step "..." --agent "graduate-student" --task-id "task-3-reproduce-guo"
+```
+
+After a session interruption, run `python scripts/check_session_resumable.py`
+to list any rows still in `spawned` state.
+
 ## Real-Time Event Log
 
 <!-- Auto-updated by scripts/update_workflow_diagram.py via PreToolUse/PostToolUse hooks -->
