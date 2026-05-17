@@ -122,18 +122,21 @@ def test_live_map_uses_run_root_for_current_process_layout(tmp_path, monkeypatch
             "ready_to_review": 0,
             "missing_document": 4,
             "needs_researcher_decision": 1,
+            "completed": 0,
             "total": 5,
         },
         "needs_approval": {
             "ready_to_review": 0,
             "missing_document": 4,
             "needs_researcher_decision": 1,
+            "completed": 0,
             "total": 5,
         },
         "recommended_review": {
             "ready_to_review": 1,
             "missing_document": 6,
             "needs_researcher_decision": 0,
+            "completed": 0,
             "total": 7,
         },
     }
