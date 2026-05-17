@@ -134,6 +134,7 @@ Use these commands from the installed project root. The assistant should invoke 
 | Check baseline gate | `python scripts\check_baseline_gate.py --run <run-dir>` | Blocks downstream work unless `baseline_registry.md` has a `pass` entry, or a `waived` entry with claim ceiling lowered to `observation` in the live workflow |
 | Check figure provenance | `python scripts\check_figure_provenance.py --root <run-dir>` | Fails if any figure file lacks a sibling `*.provenance.md` or a matching entry in `figure_provenance.md` |
 | Check session resumption | `python scripts\check_session_resumable.py` | After a usage-limit cutoff or other interruption, lists in-flight sub-agent tasks (`spawned` rows in the live workflow diagram) and blocked or `in_progress` gates that the researcher must resolve before the next session continues. Auto-discovers the latest run; pass `--run <run-dir>` to target a specific run, `--json` for machine-readable output |
+| Check computation checkpoints | `python scripts\check_computation_resumable.py --run <run-dir>` | Lists `cache/checkpoint_*.pkl` files left by interrupted long-running scripts. A likely-orphaned checkpoint (no matching log file) can be resumed via `CheckpointManager.load()` in the src/ script or discarded with `--clear <stem>` |
 
 ### The Research Minds
 

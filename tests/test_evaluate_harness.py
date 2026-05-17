@@ -31,7 +31,7 @@ def test_multi_agent_orchestration_scenarios_are_evaluated():
 def test_harness_evaluator_includes_hook_scenarios():
     evaluator = load_evaluator()
 
-    assert len(evaluator.SCENARIOS) == 24
+    assert len(evaluator.SCENARIOS) == 25
 
 
 def test_orchestration_scenarios_require_run_templates():
@@ -137,3 +137,21 @@ def test_literature_replanning_loop_scenario_is_evaluated():
     assert "process_paper_for_review.py" in scenario.rule_terms
     assert "clickable links across the literature graph" in scenario.rule_terms
     assert "check_paper_review_quality.py" in scenario.rule_terms
+
+
+def test_computation_checkpoint_scenario_is_evaluated():
+    evaluator = load_evaluator()
+
+    scenarios = {scenario.name: scenario for scenario in evaluator.SCENARIOS}
+
+    assert "computation_checkpoint_resumption" in scenarios
+    scenario = scenarios["computation_checkpoint_resumption"]
+    assert "skills/implementation-agent/SKILL.md" in scenario.skills
+    assert "scripts/run_with_checkpoint.py" in scenario.docs
+    assert "scripts/check_computation_resumable.py" in scenario.docs
+    assert "Computation Checkpoint Hook" in scenario.rule_terms
+    assert "CheckpointManager" in scenario.rule_terms
+    assert "check_computation_resumable.py" in scenario.rule_terms
+    assert "run_with_checkpoint.py" in scenario.rule_terms
+    assert "cache/checkpoint_" in scenario.rule_terms
+    assert "orphaned" in scenario.rule_terms

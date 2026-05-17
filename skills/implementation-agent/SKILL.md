@@ -43,6 +43,22 @@ Every script must:
   ```
 - Write outputs to the paths specified by the Graduate Student.
 - **Write intermediate arrays to `cache/`** for any computation that takes more than a few seconds to repeat (use `numpy.save`, `pickle`, or equivalent). Use `scripts/_layout.py → cache_dir()` for the path. Print the cache path to stdout so the Auditor can verify it.
+- **Add checkpoint save/load for long-running loops** (expected > 2 min): import `CheckpointManager` from `scripts/run_with_checkpoint.py`. At the top of the script call `ckpt.load()` to restore any prior state; call `ckpt.maybe_save(state_dict)` at the end of each loop iteration; call `ckpt.clear()` on clean exit. The checkpoint file lives at `cache/checkpoint_<stem>.pkl`. This allows a killed or interrupted script to resume from the last saved step rather than restarting from scratch. Example:
+  ```python
+  from pathlib import Path, sys
+  sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
+  from run_with_checkpoint import CheckpointManager
+  from _layout import cache_dir
+
+  ckpt = CheckpointManager(cache_dir(RUN_DIR), Path(__file__).stem)
+  state = ckpt.load()
+  start = state["step"] if state else 0
+  results = state["results"] if state else []
+  for step in range(start, N):
+      results.append(compute(step))
+      ckpt.maybe_save({"step": step + 1, "results": results})
+  ckpt.clear()
+  ```
 
 ### Code reuse
 Before writing any utility function, check:
