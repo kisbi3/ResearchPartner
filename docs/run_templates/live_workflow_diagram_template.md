@@ -67,17 +67,7 @@ python scripts/update_workflow_diagram.py --event start --step "..." --agent "..
 
 Agents should send small update packets here whenever their work changes workflow state. The Diagram/Cartographer Agent records these packets as live linked research graph nodes. It must not infer scientific meaning or strengthen claims.
 
-Allowed node types: `question`, `assumption`, `model`, `equation`, `parameter`, `baseline`, `validation`, `run`, `dataset`, `figure`, `table`, `anomaly`, `waiver`, `claim`, `decision`, `review`, `retrospective`, `open_issue`.
-
-Allowed relations: `depends_on`, `implements`, `defines_parameter`, `runs_validation`, `generates_figure`, `computes_observable`, `generated_by`, `computed_from`, `supports`, `contradicts`, `limits`, `blocks`, `waived_by`, `supersedes`, `interprets`, `documents`, `requires_review`.
-
-Allowed Link Status values: `fresh`, `stale`, `missing`, `broken`, `pending_review`, `superseded`.
-
-Allowed Evidence Strength values: `none`, `weak`, `moderate`, `strong`, `contradictory`.
-
-Allowed claim ceilings: `observation`, `interpretation`, `mechanism`, `generalization`, `unsupported`.
-
-Use `requires_researcher_review: true` as the Researcher Checkpoint Marker when the researcher should inspect a result, waiver, anomaly, or claim before the next step.
+The allowed node types, relations, link-status values, evidence-strength values, and claim-ceiling values are defined once in [`docs/orchestration_protocol.md`](../../../docs/orchestration_protocol.md#live-linked-research-graph) — do not duplicate the enums here. Use `requires_researcher_review: true` as the Researcher Checkpoint Marker when the researcher should inspect a result, waiver, anomaly, or claim before the next step.
 
 Use `preview: thumbnail`, `preview: table_head`, or `preview: log_tail` as the Artifact Preview hint when the workflow map should show or summarize an artifact.
 
