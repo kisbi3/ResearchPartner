@@ -14,6 +14,10 @@
           {
             "type": "command",
             "command": "python scripts/workflow_hooks.py pre"
+          },
+          {
+            "type": "command",
+            "command": "python scripts/check_peer_review_invocation.py"
           }
         ]
       },
@@ -23,6 +27,10 @@
           {
             "type": "command",
             "command": "python scripts/check_src_write_authorization.py"
+          },
+          {
+            "type": "command",
+            "command": "python scripts/workflow_hooks.py pre"
           }
         ]
       }
@@ -30,6 +38,15 @@
     "PostToolUse": [
       {
         "matcher": "Agent",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python scripts/workflow_hooks.py post"
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit",
         "hooks": [
           {
             "type": "command",

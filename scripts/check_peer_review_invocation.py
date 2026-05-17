@@ -1,0 +1,133 @@
+#!/usr/bin/env python3
+"""PreToolUse hook: ensure Peer-Review Professor spawns originate from a meeting.
+
+The Peer-Review Professor SKILL says: "invoked only within a `meeting` skill
+session — never independently." This hook enforces that at spawn time.
+
+When an Agent() call appears to spawn a Peer-Review Professor (detected by
+its spawn prompt referencing the role, the meeting skill, or the
+peer-review-professor SKILL path), the hook checks that meeting context
+exists. Context counts as either:
+
+1. The spawn prompt itself mentions `meeting` and a `--scope review` (or
+   `--scope full`) marker, indicating the meeting skill is driving the
+   spawn.
+2. A meeting artifact `<run>/docs/meetings/YYYY-MM-DD-*.md` was created or
+   modified within the last 10 minutes — proving an active meeting session.
+
+Otherwise the spawn is blocked with exit 2 and a fix message.
+
+Bypass: set ``RESEARCH_HARNESS_BYPASS_MEETING_GATE=1`` for an explicit
+one-off waiver.
+"""
+
+from __future__ import annotations
+
+import json
+import os
+import re
+import sys
+import time
+from pathlib import Path
+
+MEETING_FRESHNESS_SECONDS = 10 * 60
+
+PEER_REVIEW_PATTERNS = (
+    re.compile(r"\bpeer[-_\s]?review[-_\s]professor\b", re.IGNORECASE),
+    re.compile(r"skills/peer-review-professor/SKILL\.md", re.IGNORECASE),
+)
+
+MEETING_OK_PATTERNS = (
+    re.compile(r"\bmeeting\b.*--scope\s+(review|full)", re.IGNORECASE | re.DOTALL),
+    re.compile(r"--scope\s+(review|full).*\bmeeting\b", re.IGNORECASE | re.DOTALL),
+    re.compile(r"skills/meeting/SKILL\.md", re.IGNORECASE),
+)
+
+
+def is_peer_review_spawn(prompt: str, subagent_type: str) -> bool:
+    if subagent_type and "peer" in subagent_type.lower() and "review" in subagent_type.lower():
+        return True
+    if not prompt:
+        return False
+    return any(p.search(prompt) for p in PEER_REVIEW_PATTERNS)
+
+
+def prompt_indicates_meeting(prompt: str) -> bool:
+    if not prompt:
+        return False
+    return any(p.search(prompt) for p in MEETING_OK_PATTERNS)
+
+
+def find_active_runs_root() -> Path | None:
+    for parent in list(Path(__file__).resolve().parents)[:8]:
+        cand = parent / "ResearchPartner-runs"
+        if cand.is_dir():
+            return cand
+    return None
+
+
+def fresh_meeting_exists(window: int = MEETING_FRESHNESS_SECONDS) -> tuple[bool, str]:
+    root = find_active_runs_root()
+    if root is None:
+        return False, "no ResearchPartner-runs directory found"
+    now = time.time()
+    for run_dir in root.iterdir():
+        meetings = run_dir / "docs" / "meetings"
+        if not meetings.is_dir():
+            continue
+        for f in meetings.glob("*.md"):
+            age = now - f.stat().st_mtime
+            if age <= window:
+                return True, f"{f.name} (touched {int(age)}s ago)"
+    return False, f"no meeting artifact touched within {window}s"
+
+
+def main() -> int:
+    try:
+        raw = sys.stdin.read()
+        payload = json.loads(raw) if raw.strip() else {}
+    except Exception:
+        return 0
+
+    if payload.get("tool_name", "") != "Agent":
+        return 0
+
+    tool_input = payload.get("tool_input", {})
+    prompt = tool_input.get("prompt", "") or ""
+    description = tool_input.get("description", "") or ""
+    subagent_type = tool_input.get("subagent_type", "") or ""
+    combined = f"{description}\n{prompt}"
+
+    if not is_peer_review_spawn(combined, subagent_type):
+        return 0
+
+    if os.environ.get("RESEARCH_HARNESS_BYPASS_MEETING_GATE") == "1":
+        print(
+            "PEER-REVIEW BYPASS: spawn allowed via RESEARCH_HARNESS_BYPASS_MEETING_GATE=1",
+            file=sys.stderr,
+        )
+        return 0
+
+    if prompt_indicates_meeting(combined):
+        return 0
+
+    ok, reason = fresh_meeting_exists()
+    if ok:
+        return 0
+
+    print(
+        f"PEER-REVIEW BLOCK: refused to spawn Peer-Review Professor\n"
+        f"  reason: {reason}; spawn prompt does not reference meeting --scope review/full\n"
+        f"  rule: Peer-Review Professor is invoked only within a `meeting` skill session\n"
+        f"        (see skills/peer-review-professor/SKILL.md and skills/meeting/SKILL.md).\n"
+        f"  fix: convene a meeting first — `meeting --scope review --on \"<question>\"`\n"
+        f"       (or --scope full), which creates docs/meetings/YYYY-MM-DD-<slug>.md\n"
+        f"       and then spawns the Peer-Review Professor as part of the meeting.\n"
+        f"  bypass: set RESEARCH_HARNESS_BYPASS_MEETING_GATE=1 for an explicit one-off waiver.",
+        file=sys.stderr,
+    )
+    return 2
+
+
+if __name__ == "__main__":
+    sys.exit(main())
