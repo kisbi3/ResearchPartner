@@ -192,6 +192,15 @@ def create_run(
     # ── Write .gitignore ──────────────────────────────────────────────────────
     (run_path / ".gitignore").write_text(_GITIGNORE_CONTENT, encoding="utf-8")
 
+    # ── Bootstrap live workflow JSON + HTML ───────────────────────────────────
+    # This allows workflow_map.html to be opened immediately and updated by
+    # agents via update_live_json.py without needing generate_workflow_map.py.
+    try:
+        import update_live_json as ulj  # noqa: PLC0415
+        ulj.bootstrap_run_json(run_path)
+    except Exception:
+        pass  # Non-fatal: agents can call update_live_json.py manually.
+
     return run_path
 
 

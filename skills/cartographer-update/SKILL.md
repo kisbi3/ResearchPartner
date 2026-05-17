@@ -76,9 +76,32 @@ Do not unblock a gate without explicit Lead Agent authorization. Unresolved bloc
 
 ## Live Workflow Artifact
 
-Update `docs/run_templates/cartographer_update_template.md` or the run-local `docs/live_workflow_diagram.md` when available.
+**Primary (machine path):** call `python scripts/update_live_json.py` to push state directly into `workflow_map.live.json`. The HTML polls this file every 10 seconds, so the researcher's browser updates automatically with no manual regeneration step.
 
-If neither file exists, produce the update as a structured log entry:
+```bash
+# Gate status update
+python scripts/update_live_json.py --run <run-dir> \
+    --gate "<gate name>" --status <pass|fail|partial|blocked|waived|pending> \
+    --note "<short note>"
+
+# Active-step banner only
+python scripts/update_live_json.py --run <run-dir> \
+    --active-step "<current phase description>"
+
+# Full cartographer event packet (use when code/result/interpretation links matter)
+python scripts/update_live_json.py --run <run-dir> \
+    --event '{"cartographer_update": {"node_id": "...", "title": "...", "status": "passed", ...}}'
+
+# Also refresh the central docs/workflow_map.live.json
+python scripts/update_live_json.py --run <run-dir> \
+    --gate "Stage 2" --status pass --note "13 models done" --update-central
+```
+
+**Secondary (human log):** also update `docs/process/live_workflow_diagram.md` — the Gate Status table, Active Step, and Next Review Checkpoint sections — so the Markdown file stays readable as a research record. This step is for human auditability; the HTML does not depend on it.
+
+If the run directory has no `workflow_map.live.json` yet, call `update_live_json.py` with any flag and it will bootstrap one from the current run state.
+
+If neither the script nor the run directory is available, produce the update as a structured log entry:
 
 ```
 [Cartographer Update]
