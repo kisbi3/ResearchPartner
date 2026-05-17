@@ -84,7 +84,7 @@ Use `preview: thumbnail`, `preview: table_head`, or `preview: log_tail` as the A
     "link_status": "pending_review",
     "evidence_strength": "none",
     "claim_ceiling": "observation",
-    "review_owner": "professor",
+    "review_owner": "lead-agent",
     "requires_researcher_review": true,
     "code_links": [
       {
