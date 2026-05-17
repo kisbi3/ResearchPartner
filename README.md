@@ -21,10 +21,11 @@ Instead of vague instructions, the harness uses **specialized skills** that act 
 - **`baseline-validation`**: A mandatory gate that requires your model to pass a "toy model" or "analytical limit" test before interpreting real results.
 
 ### 3. Visual Workflow Navigation
-The harness generates an **Interactive Workflow Map** (`docs/workflow_map.html`). It provides a real-time dashboard showing:
+The harness generates an **Interactive Workflow Map** (`docs/workflow_map.html`) and a **Current Run Dashboard** (`ResearchPartner-runs/.../workflow_map.html`) for the latest active run. It provides a real-time dashboard showing:
 - Which step you are currently on.
 - The "gates" you have passed (or are currently blocked by).
-- Direct links to the relevant logs, figures, and evidence.
+- A clickable Action Queue for input, approval, and recommended review items.
+- Direct links to the recommended researcher-facing documents, logs, figures, and evidence.
 
 ---
 
@@ -120,7 +121,7 @@ Use these commands from the installed project root. The assistant should invoke 
 | Audit existing project | `python scripts\audit_existing_project.py` | Inventories scripts, figures, outputs, and validation gaps before retrofit |
 | Evaluate harness | `python scripts\evaluate_harness.py` | Checks realistic scenarios for correct skills, gates, and blocked behaviors |
 | Validate links | `python scripts\validate_workflow_links.py` | Checks workflow-document links |
-| Generate workflow map | `python scripts\generate_workflow_map.py` | Builds `docs\workflow_map.html` and `docs\workflow_map.json` |
+| Generate workflow map | `python scripts\generate_workflow_map.py` | Builds `docs\workflow_map.html` and also refreshes the latest run's `workflow_map.html` and `workflow_map.json` |
 | Include paper logic | `python scripts\generate_workflow_map.py --include-paper-logic` | Adds manuscript-logic view when paper planning explicitly starts |
 | Scaffold paper review | `python scripts\scaffold_paper_review.py --run <run-dir> --paper-id P1 --title "Title"` | Creates a reusable paper review note and updates the literature index |
 | Process paper PDF | `python scripts\process_paper_for_review.py --run <run-dir> --paper-id P1 --title "Title" --pdf <pdf-path>` | Scaffolds review, extracts text, and drafts provisional extraction notes |
@@ -243,7 +244,7 @@ Expected result:
 
 - The evaluation script should report the realistic research scenarios covered by the harness.
 - The link validator should not report broken workflow-document links.
-- `docs\workflow_map.html` and `docs\workflow_map.json` should be regenerated and reviewable.
+- `docs\workflow_map.html` should be regenerated, and when a run exists the latest run should also contain `workflow_map.html` and `workflow_map.json`.
 
 If your terminal cannot find `python`, try `py -3` in place of `python`.
 
@@ -273,7 +274,7 @@ For a new run-specific artifact set, use the scaffolder from the installed proje
 python scripts\start_research_run.py --name "damped oscillator baseline"
 ```
 
-This creates a dated run directory with the live workflow at `docs\process\live_workflow_diagram.md`, Cartographer update template, literature workspace, outputs directory, and initial research documents. Use that run directory for evidence, figures, logs, and workflow state; keep the project root focused on reusable harness files, source code, and durable documentation. Run `python scripts\generate_workflow_map.py` after Cartographer updates to refresh the central `docs\workflow_map.html`; older runs that used `docs\live_workflow_diagram.md` are still supported as a fallback.
+This creates a dated run directory with the live workflow at `docs\process\live_workflow_diagram.md`, Cartographer update template, literature workspace, outputs directory, and initial research documents. Use that run directory for evidence, figures, logs, and workflow state; keep the project root focused on reusable harness files, source code, and durable documentation. Run `python scripts\generate_workflow_map.py` after Cartographer updates to refresh both the central `docs\workflow_map.html` and the latest run-local `workflow_map.html` dashboard; older runs that used `docs\live_workflow_diagram.md` are still supported as a fallback.
 
 For an existing research project, begin with onboarding instead of reorganizing files:
 
@@ -325,7 +326,7 @@ When the harness itself changes, user-facing documentation is part of the change
 
 When you use Research Partner, your research output isn't just a paper—it's a **reproducible lineage**.
 
-- **Workflow Maps**: Run `python scripts/generate_workflow_map.py` and open `docs/workflow_map.html` to see the logic flow of your research.
+- **Workflow Maps**: Run `python scripts/generate_workflow_map.py` and open the latest run's `workflow_map.html` to use the current research dashboard. The Action Queue surfaces researcher input, approval, review items, linked documents, and suggested next commands; `docs/workflow_map.html` remains the central generated copy.
 - **Claim-to-Evidence Maps**: Hover over a sentence in your draft and see exactly which simulation run and which equation supports it.
 - **Baseline Registry**: A library of "sanity checks" that ensure your future models don't drift from physical reality.
 

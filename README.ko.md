@@ -24,11 +24,12 @@ flowchart LR
 
 ### 3. 시각적 워크플로우 내비게이션
 
-이 하네스는 **인터랙티브 워크플로우 맵**(`docs/workflow_map.html`)을 생성합니다. 다음과 같은 정보를 실시간 대시보드로 제공합니다:
+이 하네스는 **인터랙티브 워크플로우 맵**(`docs/workflow_map.html`)과 최신 활성 실행 전용 **Current Run Dashboard**(`ResearchPartner-runs/.../workflow_map.html`)를 생성합니다. 다음과 같은 정보를 실시간 대시보드로 제공합니다:
 
 * 현재 어느 단계에 있는지.
 * 통과한(또는 현재 막혀 있는) "게이트".
-* 관련 로그, 그림, 증거에 대한 직접 링크.
+* 입력, 승인, 권장 검토 항목을 클릭해서 볼 수 있는 Action Queue.
+* 연구자가 보는 것이 권장되는 문서, 관련 로그, 그림, 증거에 대한 직접 링크.
 
 ---
 
@@ -128,7 +129,7 @@ Orient -> Interview -> Specify -> Seed -> Validate -> Execute -> Evaluate -> Rev
 | 기존 프로젝트 감사 | `python scripts\audit_existing_project.py` | 레트로핏 전 스크립트, 그림, 출력, 검증 누락 항목의 인벤토리 작성 |
 | 하네스 평가 | `python scripts\evaluate_harness.py` | 올바른 스킬, 게이트 및 차단된 동작에 대한 현실적인 시나리오 확인 |
 | 링크 검증 | `python scripts\validate_workflow_links.py` | 워크플로우 문서 링크 확인 |
-| 워크플로우 맵 생성 | `python scripts\generate_workflow_map.py` | `docs\workflow_map.html` 및 `docs\workflow_map.json` 빌드 |
+| 워크플로우 맵 생성 | `python scripts\generate_workflow_map.py` | `docs\workflow_map.html`을 빌드하고 최신 실행의 `workflow_map.html` 및 `workflow_map.json`도 새로고침 |
 | 논문 로직 포함 | `python scripts\generate_workflow_map.py --include-paper-logic` | 논문 계획이 명시적으로 시작될 때 논문 로직 뷰 추가 |
 | 논문 리뷰 스캐폴딩 | `python scripts\scaffold_paper_review.py --run <run-dir> --paper-id P1 --title "Title"` | 재사용 가능한 논문 리뷰 노트를 생성하고 문헌 인덱스 업데이트 |
 | 논문 PDF 처리 | `python scripts\process_paper_for_review.py --run <run-dir> --paper-id P1 --title "Title" --pdf <pdf-path>` | 리뷰 스캐폴딩, 텍스트 추출, 임시 추출 노트 초안 작성 |
@@ -256,7 +257,7 @@ python scripts\generate_workflow_map.py
 
 * 평가 스크립트가 하네스가 다루는 현실적인 연구 시나리오를 보고해야 합니다.
 * 링크 검증기가 끊어진 워크플로우 문서 링크를 보고하지 않아야 합니다.
-* `docs\workflow_map.html` 및 `docs\workflow_map.json`이 재생성되고 검토 가능해야 합니다.
+* `docs\workflow_map.html`이 재생성되고, 실행이 있으면 최신 실행에도 `workflow_map.html` 및 `workflow_map.json`이 생성되어야 합니다.
 
 터미널에서 `python`을 찾을 수 없다면 `python` 대신 `py -3`을 시도해 보세요.
 
@@ -288,7 +289,7 @@ python scripts\start_research_run.py --name "damped oscillator baseline"
 
 ```
 
-이렇게 하면 `docs\process\live_workflow_diagram.md`의 실시간 워크플로우, Cartographer(지도 제작자) 업데이트 템플릿, 문헌 작업 공간, 출력 디렉토리, 초기 연구 문서가 포함된 날짜별 실행 디렉토리가 생성됩니다. 증거, 그림, 로그 및 워크플로우 상태는 해당 실행 디렉토리를 사용하고, 프로젝트 루트는 재사용 가능한 하네스 파일, 소스 코드 및 지속 가능한 문서에만 집중하세요. Cartographer 업데이트 후 중앙 `docs\workflow_map.html`을 새로고침하려면 `python scripts\generate_workflow_map.py`를 실행하세요. 예전 실행에서 사용한 `docs\live_workflow_diagram.md` 경로도 fallback으로 계속 지원됩니다.
+이렇게 하면 `docs\process\live_workflow_diagram.md`의 실시간 워크플로우, Cartographer(지도 제작자) 업데이트 템플릿, 문헌 작업 공간, 출력 디렉토리, 초기 연구 문서가 포함된 날짜별 실행 디렉토리가 생성됩니다. 증거, 그림, 로그 및 워크플로우 상태는 해당 실행 디렉토리를 사용하고, 프로젝트 루트는 재사용 가능한 하네스 파일, 소스 코드 및 지속 가능한 문서에만 집중하세요. Cartographer 업데이트 후 중앙 `docs\workflow_map.html`과 최신 실행 로컬 `workflow_map.html` 대시보드를 모두 새로고침하려면 `python scripts\generate_workflow_map.py`를 실행하세요. 예전 실행에서 사용한 `docs\live_workflow_diagram.md` 경로도 fallback으로 계속 지원됩니다.
 
 기존 연구 프로젝트의 경우 파일 재구성이 아닌 온보딩부터 시작하세요:
 
@@ -345,7 +346,7 @@ Orient -> Interview -> Specify -> Seed -> Validate -> Execute -> Evaluate -> Rev
 
 Research Partner를 사용하면, 당신의 연구 결과물은 단순한 논문이 아니라 재현 가능한 계통(reproducible lineage)이 됩니다.
 
-* **워크플로우 맵**: `python scripts/generate_workflow_map.py`를 실행하고 `docs/workflow_map.html`을 열어 연구의 논리적 흐름을 확인하세요.
+* **워크플로우 맵**: `python scripts/generate_workflow_map.py`를 실행하고 최신 실행의 `workflow_map.html`을 열어 현재 연구 대시보드를 사용하세요. Action Queue는 연구자 입력, 승인, 검토 항목, 연결 문서, 추천 다음 명령을 보여줍니다. `docs/workflow_map.html`은 중앙 생성본으로 유지됩니다.
 * **주장-증거 맵**: 초안의 문장 위에 마우스를 올리면 어떤 시뮬레이션 실행과 어떤 방정식이 이를 뒷받침하는지 정확히 볼 수 있습니다.
 * **베이스라인 레지스트리**: 미래의 모델이 물리적 현실에서 벗어나지 않도록 보장하는 "건전성 검사(sanity checks)" 라이브러리입니다.
 
