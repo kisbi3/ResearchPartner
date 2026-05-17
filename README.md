@@ -133,6 +133,7 @@ Use these commands from the installed project root. The assistant should invoke 
 | Check baseline strategy gate | `python scripts\check_baseline_strategy.py --run <run-dir>` | Blocks seed-design unless `docs/baseline_strategy.md` records the professor-graduate student decision (`variation` or `new model`) and a quantitative verification target. No skip waiver. |
 | Check baseline gate | `python scripts\check_baseline_gate.py --run <run-dir>` | Blocks downstream work unless `baseline_registry.md` has a `pass` entry, or a `waived` entry with claim ceiling lowered to `observation` in the live workflow |
 | Check figure provenance | `python scripts\check_figure_provenance.py --root <run-dir>` | Fails if any figure file lacks a sibling `*.provenance.md` or a matching entry in `figure_provenance.md` |
+| Check session resumption | `python scripts\check_session_resumable.py` | After a usage-limit cutoff or other interruption, lists in-flight sub-agent tasks (`spawned` rows in the live workflow diagram) and blocked or `in_progress` gates that the researcher must resolve before the next session continues. Auto-discovers the latest run; pass `--run <run-dir>` to target a specific run, `--json` for machine-readable output |
 
 ### The Research Minds
 
