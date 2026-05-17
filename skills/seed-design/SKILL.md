@@ -50,38 +50,18 @@ Each seed task must specify:
 
 ### Graduate Student Spawn Block Format
 
-Each task must end with a spawn block that Professor can use directly as the `prompt` argument to `Agent()`:
+Each task ends with a Graduate Student spawn block that Professor uses directly as the `prompt` argument to `Agent()`. Use the canonical template in [`docs/orchestration_protocol.md`](../../docs/orchestration_protocol.md) under **Spawn Block Templates → Graduate Student** — do not duplicate it here. Seed-design's job is to fill in the task-specific fields and append the **Implementation spec** block the Graduate Student needs in order to spawn its Implementation Agent:
 
 ```
-#### Graduate Student Spawn Block — Task N
-
-You are a Graduate Student agent in a physics research group.
-Load skills/graduate-student/SKILL.md to understand your role and constraints.
-
-Run directory: <absolute path to run directory>
-
-Task: <task title>
-<2-3 sentence description of what to accomplish>
-
 Implementation spec:
 - Script to write: src/<filename>.py
 - Equations: <exact equations with source>
 - Parameters: <exact values with units>
 - Algorithm: <method, timestep, convergence criterion>
 - Outputs: <file paths the script must produce>
-
-Pass criterion: <exact measurable criterion>
-Fail criterion: <exact measurable criterion>
-On failure: <escalate to Professor / log-and-continue / retry with [stated change]>
-Evidence record: docs/gates/validation_log.md (append) + <any additional file>
-
-Spawn sub-agents:
-1. Implementation Agent (skills/implementation-agent/SKILL.md) to write the script.
-2. Scientific Validator (skills/scientific-validator/SKILL.md) to run and check results.
-3. Cache-Log Auditor (skills/cache-log-auditor/SKILL.md) to verify logs/ errors/ cache/ after Validator completes.
-
-Report back: one-paragraph summary, scientific pass/fail verdict, cache-log audit verdict, observed values, evidence file path, anomalies if any.
 ```
+
+Do not paste prohibitions ("Do NOT...") or the "Report back:" line into the spawn block — those are owned by [`skills/graduate-student/SKILL.md`](../graduate-student/SKILL.md) and would only re-inject duplicate context into every spawn.
 
 ## Sizing Rule
 
@@ -149,34 +129,7 @@ For each task:
 
 #### Graduate Student Spawn Block — Task N
 
-```
-You are a Graduate Student agent in a physics research group.
-Load skills/graduate-student/SKILL.md to understand your role and constraints.
-
-Run directory: <absolute path>
-
-Task: [Title]
-[2-3 sentence description]
-
-Implementation spec:
-- Script to write: src/<filename>.py
-- Equations: <equations>
-- Parameters: <values with units>
-- Algorithm: <method>
-- Outputs: <file paths>
-
-Pass criterion: <exact criterion>
-Fail criterion: <exact criterion>
-On failure: <action>
-Evidence record: docs/gates/validation_log.md
-
-Spawn sub-agents:
-1. Implementation Agent (skills/implementation-agent/SKILL.md) to write the script.
-2. Scientific Validator (skills/scientific-validator/SKILL.md) to run and check.
-3. Cache-Log Auditor (skills/cache-log-auditor/SKILL.md) to verify logs/ errors/ cache/.
-
-Report back: one-paragraph summary, scientific pass/fail verdict, cache-log audit verdict, observed values, evidence file path.
-```
+Fill in the canonical Graduate Student template from [`docs/orchestration_protocol.md`](../../docs/orchestration_protocol.md) with this task's `Task:` description, `Pass criterion:`, `Fail criterion:`, `On failure:`, and `Evidence record:` values, then append the **Implementation spec** block (Script to write / Equations / Parameters / Algorithm / Outputs). Do not re-inject prohibitions or the report format — those belong to `skills/graduate-student/SKILL.md`.
 
 ### Dependency Map
 
