@@ -1,6 +1,7 @@
 import importlib.util
 import json
 import os
+import re
 import sys
 from pathlib import Path
 
@@ -99,6 +100,12 @@ def test_live_map_uses_run_root_for_current_process_layout(tmp_path, monkeypatch
         for group in map_data["dashboard"]["document_groups"]
         for doc in group["documents"]
     )
+    actions = map_data["dashboard"]["actions"]
+    assert actions[0]["category"] == "Needs Input"
+    assert actions[0]["title"] == "Review Orient Note"
+    assert actions[0]["linked_document"]["label"] == "Orient Note"
+    assert actions[0]["suggested_command"] == "python scripts/check_orient_recorded.py --run <run-dir>"
+    assert actions[0]["why"] == "Confirm the run has a recorded task classification and first researcher-facing question."
 
 
 def test_latest_live_workflow_path_prefers_newest_current_or_legacy_layout(tmp_path, monkeypatch):
@@ -215,6 +222,21 @@ def test_live_map_html_mentions_process_tracking_not_claim_evidence():
     assert "Result Summary" in html
     assert "Evidence Images" in html
     assert "<img" in html
+    assert "Action Queue" in html
+    assert "Suggested Next Command" in html
+    assert "data-action" in html
+    assert "renderActionQueue" in html
+
+
+def test_embedded_workflow_data_remains_valid_json():
+    generator = load_generator()
+
+    html = generator.build_html(generator.build_data())
+    match = re.search(r"const DATA = (?P<data>.*?);\n", html, re.DOTALL)
+
+    assert match is not None
+    embedded = json.loads(match.group("data"))
+    assert embedded["maps"][0]["dashboard"]["actions"][0]["linked_document"]["label"] == "Orient Note"
 
 
 def test_cartographer_update_events_create_linked_research_graph(tmp_path, monkeypatch):

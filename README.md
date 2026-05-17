@@ -24,6 +24,7 @@ Instead of vague instructions, the harness uses **specialized skills** that act 
 The harness generates an **Interactive Workflow Map** (`docs/workflow_map.html`) and a **Current Run Dashboard** (`ResearchPartner-runs/.../workflow_map.html`) for the latest active run. It provides a real-time dashboard showing:
 - Which step you are currently on.
 - The "gates" you have passed (or are currently blocked by).
+- A clickable Action Queue for input, approval, and recommended review items.
 - Direct links to the recommended researcher-facing documents, logs, figures, and evidence.
 
 ---
@@ -325,7 +326,7 @@ When the harness itself changes, user-facing documentation is part of the change
 
 When you use Research Partner, your research output isn't just a paper—it's a **reproducible lineage**.
 
-- **Workflow Maps**: Run `python scripts/generate_workflow_map.py` and open the latest run's `workflow_map.html` to see the current research dashboard; `docs/workflow_map.html` remains the central generated copy.
+- **Workflow Maps**: Run `python scripts/generate_workflow_map.py` and open the latest run's `workflow_map.html` to use the current research dashboard. The Action Queue surfaces researcher input, approval, review items, linked documents, and suggested next commands; `docs/workflow_map.html` remains the central generated copy.
 - **Claim-to-Evidence Maps**: Hover over a sentence in your draft and see exactly which simulation run and which equation supports it.
 - **Baseline Registry**: A library of "sanity checks" that ensure your future models don't drift from physical reality.
 

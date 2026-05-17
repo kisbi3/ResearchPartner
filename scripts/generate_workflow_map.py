@@ -81,6 +81,41 @@ DASHBOARD_DOCUMENT_GROUPS = [
     },
 ]
 
+ACTION_GUIDANCE = {
+    "Orient Note": {
+        "why": "Confirm the run has a recorded task classification and first researcher-facing question.",
+        "suggested_command": "python scripts/check_orient_recorded.py --run <run-dir>",
+    },
+    "Interview Notes": {
+        "why": "Confirm the research question, assumptions, agreed direction, and next skill are recorded.",
+        "suggested_command": "python scripts/check_interview_recorded.py --run <run-dir>",
+    },
+    "Literature Review Plan": {
+        "why": "Confirm literature status before model specification or seed design relies on novelty or reproduction claims.",
+        "suggested_command": "python scripts/check_literature_reviewed.py --run <run-dir>",
+    },
+    "Model Spec": {
+        "why": "Approve the model definition before seed design or execution depends on it.",
+        "suggested_command": "python scripts/check_model_specified.py --run <run-dir>",
+    },
+    "Baseline Strategy": {
+        "why": "Approve whether this run reproduces a parent model or verifies a new analytical checkpoint.",
+        "suggested_command": "python scripts/check_baseline_strategy.py --run <run-dir>",
+    },
+    "Baseline Registry": {
+        "why": "Check that interpretation is backed by a toy model, known limit, reproduction, or explicit waiver.",
+        "suggested_command": "python scripts/check_baseline_gate.py --run <run-dir>",
+    },
+    "Validation Log": {
+        "why": "Review the current evidence chain before treating results as interpretation-ready.",
+        "suggested_command": "python scripts/check_figure_provenance.py --root <run-dir>",
+    },
+    "Live Workflow Diagram": {
+        "why": "Review active workflow state, blocked behavior, stale artifacts, and next researcher checkpoint.",
+        "suggested_command": "python scripts/generate_workflow_map.py",
+    },
+}
+
 
 def relative_href(path: str) -> str:
     source = ROOT / path
@@ -137,6 +172,36 @@ def dashboard_document_groups(run_root: Path, base_dir: Path | None = None) -> l
             }
         )
     return groups
+
+
+def dashboard_actions(document_groups: list[dict]) -> list[dict]:
+    actions = []
+    for group in document_groups:
+        for document in group["documents"]:
+            guidance = ACTION_GUIDANCE.get(document["label"], {})
+            actions.append(
+                {
+                    "id": re.sub(
+                        r"[^a-z0-9]+",
+                        "_",
+                        f"{group['id']}_{document['label']}".lower(),
+                    ).strip("_"),
+                    "title": f"Review {document['label']}",
+                    "category": group["title"],
+                    "status": document["status"],
+                    "priority": group["id"],
+                    "why": guidance.get(
+                        "why",
+                        "Open the linked document and decide whether this run can continue.",
+                    ),
+                    "suggested_command": guidance.get(
+                        "suggested_command",
+                        "Record the review outcome in docs/process/researcher_review_log.md",
+                    ),
+                    "linked_document": document,
+                }
+            )
+    return actions
 
 
 def extract_section(markdown: str, heading: str) -> str:
@@ -528,6 +593,7 @@ def live_workflow_map(base_dir: Path | None = None) -> dict | None:
             }
         ]
 
+    document_groups = dashboard_document_groups(run_root, base_dir)
     return {
         "id": "live_research_run",
         "title": f"Live Research Workflow: {run_root.name}",
@@ -538,7 +604,8 @@ def live_workflow_map(base_dir: Path | None = None) -> dict | None:
         "dashboard": {
             "title": "Current Run Dashboard",
             "run_root": run_relative_path(run_root, base_dir),
-            "document_groups": dashboard_document_groups(run_root, base_dir),
+            "document_groups": document_groups,
+            "actions": dashboard_actions(document_groups),
         },
         "nodes": nodes,
     }
@@ -759,6 +826,49 @@ def build_html(data: dict) -> str:
       font-size: 12px;
       text-transform: uppercase;
     }}
+    .action-queue {{
+      border-bottom: 1px solid var(--line);
+      padding: 12px;
+      background: #fbfbf8;
+    }}
+    .action-queue h2 {{
+      margin: 0 0 8px;
+      font-size: 15px;
+    }}
+    .action-list {{
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 8px;
+    }}
+    .action-card {{
+      text-align: left;
+      border-color: var(--line);
+      background: #fff;
+      min-height: 76px;
+    }}
+    .action-card.active {{
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(42, 106, 79, 0.18);
+    }}
+    .action-card strong {{
+      display: block;
+      margin-bottom: 5px;
+      overflow-wrap: anywhere;
+    }}
+    .action-card span {{
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+    }}
+    .command-box {{
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 8px;
+      background: #111;
+      color: #fff;
+      overflow-x: auto;
+      font-size: 12px;
+    }}
     .file-preview {{
       margin-top: 14px;
       border: 1px solid var(--line);
@@ -856,6 +966,7 @@ def build_html(data: dict) -> str:
   <main class=\"shell\">
     <section class=\"panel\">
       <div class=\"tabs\" id=\"tabs\"></div>
+      <div class=\"action-queue\" id=\"actionQueue\"></div>
       <div class=\"diagram-wrap\" id=\"diagram\"></div>
     </section>
     <aside class=\"panel\" id=\"details\" aria-live=\"polite\"></aside>
@@ -869,12 +980,16 @@ def build_html(data: dict) -> str:
     const DATA = __DATA__;
     let activeMap = DATA.maps[0].id;
     let activeNode = DATA.maps[0].nodes[0].id;
+    let activeAction = null;
 
     function pathHref(path) {{
+      const map = currentMap();
+      const runLocal = Boolean(map && map.dashboard && map.dashboard.run_root === '.');
       const [base, hash] = String(path).split('#');
       let href = base;
       if (href.startsWith('../')) href = href;
-      else if (href.startsWith('docs/')) href = href.replace(/^docs\\//, '');
+      else if (href.startsWith('docs/') && !runLocal) href = href.replace(/^docs\\//, '');
+      else if (runLocal) href = href;
       else href = '../' + href;
       return hash ? href + '#' + hash : href;
     }}
@@ -893,6 +1008,11 @@ def build_html(data: dict) -> str:
       return map.nodes.find(node => node.id === activeNode) || map.nodes[0];
     }}
 
+    function currentAction() {{
+      const map = currentMap();
+      return ((map.dashboard || {{}}).actions || []).find(action => action.id === activeAction);
+    }}
+
     function escapeHtml(value) {{
       return String(value).replace(/[&<>"']/g, char => ({{
         '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
@@ -909,9 +1029,38 @@ def build_html(data: dict) -> str:
         button.addEventListener('click', () => {{
           activeMap = map.id;
           activeNode = map.nodes[0].id;
+          activeAction = null;
           render();
         }});
         tabs.appendChild(button);
+      }});
+    }}
+
+    function renderActionQueue() {{
+      const map = currentMap();
+      const actions = ((map.dashboard || {{}}).actions || []).slice(0, 8);
+      const queue = document.getElementById('actionQueue');
+      if (!actions.length) {{
+        queue.innerHTML = '<h2>Action Queue</h2><p class="meta">No researcher-facing actions are recorded for this run.</p>';
+        return;
+      }}
+      queue.innerHTML = `
+        <h2>Action Queue</h2>
+        <div class="action-list">
+          ${{actions.map(action => `
+            <button type="button" class="action-card ${{action.id === activeAction ? 'active' : ''}}" data-action="${{escapeHtml(action.id)}}">
+              <strong>${{escapeHtml(action.title)}}</strong>
+              <span>${{escapeHtml(action.category)}} · ${{escapeHtml(action.status)}}</span>
+            </button>
+          `).join('')}}
+        </div>
+      `;
+      queue.querySelectorAll('[data-action]').forEach(button => {{
+        button.addEventListener('click', () => {{
+          activeAction = button.dataset.action;
+          renderActionQueue();
+          renderDetails();
+        }});
       }});
     }}
 
@@ -954,6 +1103,8 @@ def build_html(data: dict) -> str:
       document.querySelectorAll('.node').forEach(element => {{
         const activate = () => {{
           activeNode = element.dataset.node;
+          activeAction = null;
+          renderActionQueue();
           renderDiagram();
           renderDetails();
         }};
@@ -969,6 +1120,41 @@ def build_html(data: dict) -> str:
 
     function renderDetails() {{
       const map = currentMap();
+      const action = currentAction();
+      if (action) {{
+        const doc = action.linked_document || {{}};
+        document.getElementById('details').innerHTML = `
+          <h2>${{escapeHtml(action.title)}}</h2>
+          <div class="meta">${{escapeHtml(action.category)}} / ${{escapeHtml(action.status || 'unknown')}}</div>
+          <p>${{escapeHtml(action.why || '')}}</p>
+          <div class="section">
+            <h3>Linked Document</h3>
+            <div class="docs">
+              <button type="button" class="file-button" data-path="${{escapeHtml(pathHref(doc.path || ''))}}" data-label="${{escapeHtml(doc.label || 'linked document')}}">${{escapeHtml(doc.label || 'linked document')}}</button>
+            </div>
+          </div>
+          <div class="section">
+            <h3>Suggested Next Command</h3>
+            <pre class="command-box">${{escapeHtml(action.suggested_command || 'No command recorded.')}}</pre>
+          </div>
+          <div class="section">
+            <h3>Review Rule</h3>
+            <p class="meta">This dashboard can point to the source document and next command, but the Markdown record remains the source of truth.</p>
+          </div>
+          <div class="section">
+            <h3>Preview</h3>
+            <div class="file-preview" id="filePreview">
+              <div class="preview-head">
+                <span>Select the linked document to preview it here.</span>
+                <a id="rawFileLink" href="#" hidden>Open raw file</a>
+              </div>
+              <pre id="filePreviewText"></pre>
+            </div>
+          </div>
+        `;
+        attachFilePreviewHandlers();
+        return;
+      }}
       const node = currentNode();
       const links = (node.responsible || []).map(item =>
         `<button type="button" class="file-button" data-path="${{escapeHtml(pathHref(item.path))}}" data-label="${{escapeHtml(item.label)}}">${{escapeHtml(item.label)}}</button>`
@@ -1087,6 +1273,10 @@ def build_html(data: dict) -> str:
           <ul>${{checks}}</ul>
         </div>
       `;
+      attachFilePreviewHandlers();
+    }}
+
+    function attachFilePreviewHandlers() {{
       document.querySelectorAll('.file-button').forEach(button => {{
         button.addEventListener('click', async () => {{
           const previewText = document.getElementById('filePreviewText');
@@ -1110,6 +1300,7 @@ def build_html(data: dict) -> str:
 
     function render() {{
       renderTabs();
+      renderActionQueue();
       renderDiagram();
       renderDetails();
     }}
@@ -1120,12 +1311,8 @@ def build_html(data: dict) -> str:
 </body>
 </html>
 """
-    return (
-        template.replace("__TITLE__", html.escape(title))
-        .replace("__DATA__", data_json)
-        .replace("{{", "{")
-        .replace("}}", "}")
-    )
+    rendered = template.replace("{{", "{").replace("}}", "}")
+    return rendered.replace("__TITLE__", html.escape(title)).replace("__DATA__", data_json)
 
 
 def main() -> int:

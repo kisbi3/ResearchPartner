@@ -28,6 +28,7 @@ flowchart LR
 
 * 현재 어느 단계에 있는지.
 * 통과한(또는 현재 막혀 있는) "게이트".
+* 입력, 승인, 권장 검토 항목을 클릭해서 볼 수 있는 Action Queue.
 * 연구자가 보는 것이 권장되는 문서, 관련 로그, 그림, 증거에 대한 직접 링크.
 
 ---
@@ -345,7 +346,7 @@ Orient -> Interview -> Specify -> Seed -> Validate -> Execute -> Evaluate -> Rev
 
 Research Partner를 사용하면, 당신의 연구 결과물은 단순한 논문이 아니라 재현 가능한 계통(reproducible lineage)이 됩니다.
 
-* **워크플로우 맵**: `python scripts/generate_workflow_map.py`를 실행하고 최신 실행의 `workflow_map.html`을 열어 현재 연구 대시보드를 확인하세요. `docs/workflow_map.html`은 중앙 생성본으로 유지됩니다.
+* **워크플로우 맵**: `python scripts/generate_workflow_map.py`를 실행하고 최신 실행의 `workflow_map.html`을 열어 현재 연구 대시보드를 사용하세요. Action Queue는 연구자 입력, 승인, 검토 항목, 연결 문서, 추천 다음 명령을 보여줍니다. `docs/workflow_map.html`은 중앙 생성본으로 유지됩니다.
 * **주장-증거 맵**: 초안의 문장 위에 마우스를 올리면 어떤 시뮬레이션 실행과 어떤 방정식이 이를 뒷받침하는지 정확히 볼 수 있습니다.
 * **베이스라인 레지스트리**: 미래의 모델이 물리적 현실에서 벗어나지 않도록 보장하는 "건전성 검사(sanity checks)" 라이브러리입니다.
 
