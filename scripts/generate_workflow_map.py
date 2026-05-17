@@ -744,7 +744,10 @@ def write_outputs(include_paper_logic: bool = False) -> list[Path]:
     central_data = build_data(include_paper_logic=include_paper_logic, base_dir=OUTPUT.parent)
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
     OUTPUT.write_text(build_html(central_data), encoding="utf-8")
-    central_json = OUTPUT.with_suffix(".json")
+    # Sidecar lives at workflow_map.live.json so it does not collide with the
+    # static design source at docs/workflow_map.json. The HTML polls this file
+    # to detect updates; the contents include a `generated_at` timestamp.
+    central_json = OUTPUT.parent / "workflow_map.live.json"
     central_json.write_text(json.dumps(central_data, indent=2), encoding="utf-8")
     written.extend([OUTPUT, central_json])
 
@@ -753,7 +756,7 @@ def write_outputs(include_paper_logic: bool = False) -> list[Path]:
         run_root = live_workflow_run_root(live_path)
         run_data = build_data(include_paper_logic=False, base_dir=run_root)
         run_html = run_root / "workflow_map.html"
-        run_json = run_root / "workflow_map.json"
+        run_json = run_root / "workflow_map.live.json"
         run_html.write_text(build_html(run_data), encoding="utf-8")
         run_json.write_text(json.dumps(run_data, indent=2), encoding="utf-8")
         written.extend([run_html, run_json])

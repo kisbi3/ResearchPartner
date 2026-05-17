@@ -176,10 +176,10 @@ def test_write_outputs_refreshes_latest_run_local_dashboard(tmp_path, monkeypatc
 
     assert output in written
     assert run_root / "workflow_map.html" in written
-    assert run_root / "workflow_map.json" in written
+    assert run_root / "workflow_map.live.json" in written
     assert (run_root / "workflow_map.html").exists()
-    assert (run_root / "workflow_map.json").exists()
-    run_data = json.loads((run_root / "workflow_map.json").read_text(encoding="utf-8"))
+    assert (run_root / "workflow_map.live.json").exists()
+    run_data = json.loads((run_root / "workflow_map.live.json").read_text(encoding="utf-8"))
     assert run_data["maps"][0]["id"] == "live_research_run"
     assert "Current Run Dashboard" in (run_root / "workflow_map.html").read_text(encoding="utf-8")
 

@@ -141,6 +141,42 @@
       font-size: 13px;
       font-weight: 700;
     }
+    .action-fold {
+      margin-top: 10px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #fff;
+    }
+    .action-fold > summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 8px 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 700;
+      border-radius: 6px;
+    }
+    .action-fold > summary::-webkit-details-marker { display: none; }
+    .action-fold > summary::before {
+      content: "▶";
+      font-size: 10px;
+      color: var(--muted);
+      transition: transform 0.15s ease;
+      margin-right: 2px;
+    }
+    .action-fold[open] > summary::before { transform: rotate(90deg); }
+    .action-fold > summary:hover { background: #f1f3f0; }
+    .action-fold-title { flex: 1; }
+    .action-fold-counts {
+      color: var(--muted);
+      font-weight: 400;
+      font-size: 12px;
+    }
+    .action-fold > .action-help,
+    .action-fold > .action-groups { padding: 0 10px 10px; }
     .action-groups {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -302,13 +338,13 @@
 <body>
   <header>
     <h1>__TITLE__ <span id="freshness" class="freshness-pill" hidden></span></h1>
-    <p>Click a workflow node to inspect current gates, evidence links, blocked behaviors, and next review checkpoints. This page is the live research workflow by default. Add the paper logic workflow only when the researcher explicitly starts manuscript planning. Auto-refreshes every 10 seconds by polling <code>workflow_map.json</code>; your selection and scroll position are preserved when the data changes.</p>
+    <p>Click a workflow node to inspect current gates, evidence links, blocked behaviors, and next review checkpoints. This page is the live research workflow by default. Add the paper logic workflow only when the researcher explicitly starts manuscript planning. Auto-refreshes every 10 seconds by polling <code>workflow_map.live.json</code>; your selection and scroll position are preserved when the data changes.</p>
   </header>
   <main class="shell">
     <section class="panel">
       <div class="tabs" id="tabs"></div>
-      <div class="action-queue" id="actionQueue"></div>
       <div class="diagram-wrap" id="diagram"></div>
+      <div class="action-queue" id="actionQueue"></div>
     </section>
     <aside class="panel" id="details" aria-live="polite"></aside>
   </main>
@@ -426,27 +462,33 @@
       }
       const groups = dashboard.document_groups || [];
       const selectedAction = currentAction() || actions[0];
+      const wasOpen = (() => {
+        const existing = queue.querySelector('details.action-fold');
+        return existing ? existing.open : false;
+      })();
       queue.innerHTML = `
         ${renderDashboardSummary(map, '<h2>Dashboard Summary</h2>')}
         <div class="next-action">Next action: Review ${escapeHtml(selectedAction.linked_document.label)}</div>
-        <h2>Action Queue</h2>
-        <div class="action-help">Select an action to inspect the source document and next command.</div>
-        <div class="action-groups">
-          ${groups.map(group => {
-            const groupActions = actions.filter(action => action.priority === group.id);
-            return `
-              <div class="action-group">
-                <div class="action-group-title">${escapeHtml(group.title)}</div>
-                ${groupActions.map(action => `
-                  <button type="button" class="action-card ${action.id === activeAction ? 'active' : ''}" data-action="${escapeHtml(action.id)}">
-                    <strong>${escapeHtml(action.linked_document.label)}</strong>
-                    <span>${escapeHtml(action.status)}</span>
-                  </button>
-                `).join('')}
-              </div>
-            `;
-          }).join('')}
-        </div>
+        <details class="action-fold"${wasOpen ? ' open' : ''}>
+          <summary><span class="action-fold-title">Action Queue</span><span class="action-fold-counts">${escapeHtml(actions.length + ' actions across ' + groups.length + ' groups')}</span></summary>
+          <div class="action-help">Select an action to inspect the source document and next command.</div>
+          <div class="action-groups">
+            ${groups.map(group => {
+              const groupActions = actions.filter(action => action.priority === group.id);
+              return `
+                <div class="action-group">
+                  <div class="action-group-title">${escapeHtml(group.title)} (${groupActions.length})</div>
+                  ${groupActions.map(action => `
+                    <button type="button" class="action-card ${action.id === activeAction ? 'active' : ''}" data-action="${escapeHtml(action.id)}">
+                      <strong>${escapeHtml(action.linked_document.label)}</strong>
+                      <span>${escapeHtml(action.status)}</span>
+                    </button>
+                  `).join('')}
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </details>
       `;
       queue.querySelectorAll('[data-action]').forEach(button => {
         button.addEventListener('click', () => {
@@ -464,21 +506,30 @@
         (node.edges || []).map(targetId => {
           const target = nodesById[targetId];
           if (!target) return '';
-          const x1 = node.x + 180;
-          const y1 = node.y + 45;
-          const x2 = target.x;
-          const y2 = target.y + 45;
-          const mid = (x1 + x2) / 2;
-          return `<path class="edge" d="M ${x1} ${y1} C ${mid} ${y1}, ${mid} ${y2}, ${x2} ${y2}" />`;
+          const sx = node.x + 180;
+          const sy = node.y + 45;
+          const tx = target.x;
+          const ty = target.y + 45;
+          // Same row: straight line. Otherwise route orthogonally through the
+          // inter-row gutter so the edge never crosses node bodies.
+          if (sy === ty) {
+            return `<path class="edge" d="M ${sx} ${sy} L ${tx} ${ty}" />`;
+          }
+          const stub = 16;
+          const gutterY = ty > sy
+            ? ((node.y + 92) + target.y) / 2
+            : ((target.y + 92) + node.y) / 2;
+          return `<path class="edge" d="M ${sx} ${sy} L ${sx + stub} ${sy} L ${sx + stub} ${gutterY} L ${tx - stub} ${gutterY} L ${tx - stub} ${ty} L ${tx} ${ty}" />`;
         })
       ).join('');
 
+      const summaryCap = 50;
       const nodeMarkup = map.nodes.map(node => `
         <g class="node ${node.id === activeNode ? 'active' : ''}" tabindex="0" role="button" aria-label="${escapeHtml(node.title)}" data-node="${escapeHtml(node.id)}" transform="translate(${node.x}, ${node.y})">
           <rect width="190" height="92"></rect>
           <text class="phase" x="14" y="24">${escapeHtml(node.phase)}</text>
           <text class="title" x="14" y="48">${escapeHtml(node.title)}</text>
-          <text x="14" y="72" font-size="12">${escapeHtml(node.summary.slice(0, 28))}${node.summary.length > 28 ? '...' : ''}</text>
+          <text x="14" y="72" font-size="12">${escapeHtml(node.summary.slice(0, summaryCap))}${node.summary.length > summaryCap ? '...' : ''}</text>
         </g>
       `).join('');
 
@@ -730,7 +781,7 @@
 
     async function pollForUpdate() {
       try {
-        const response = await fetch('workflow_map.json', { cache: 'no-store' });
+        const response = await fetch('workflow_map.live.json', { cache: 'no-store' });
         if (!response.ok) return;
         const fresh = await response.json();
         const freshGenerated = fresh && fresh.generated_at;
