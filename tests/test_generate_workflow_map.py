@@ -248,6 +248,7 @@ def test_live_map_html_mentions_process_tracking_not_claim_evidence():
     html = generator.build_html(generator.build_data())
 
     assert "process-tracking" in html
+    assert "beta-badge" in html
     assert "must not strengthen scientific claims" in html
     assert "Live Research Workflow" in html
     assert "Physics Research Workflow" not in html
