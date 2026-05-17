@@ -1,6 +1,6 @@
 # Professor Orchestration Design
 
-> **Historical design doc.** This describes the original 3-tier Professor-Orchestrator design from 2026-05-14. The current implementation absorbs that role into the **Lead Agent** (main conversation context); see [docs/orchestration_protocol.md](../../orchestration_protocol.md) for the current 2-tier spawn hierarchy. Terminology in this file is kept as written to preserve design history.
+> **Historical design doc.** This describes the original 3-tier Lead-Agent design from 2026-05-14. The current implementation absorbs that role into the **Lead Agent** (main conversation context); see [docs/orchestration_protocol.md](../../orchestration_protocol.md) for the current 2-tier spawn hierarchy. Terminology in this file is kept as written to preserve design history.
 
 
 ## Scope
@@ -26,9 +26,9 @@ Research Partner should make scientific oversight explicit. A substantial resear
 
 ## Operating Model
 
-### Professor Orchestrator
+### Lead Agent
 
-The Professor Orchestrator owns the full research loop. It starts or reviews projects by holding several internal stances:
+The Lead Agent owns the full research loop. It starts or reviews projects by holding several internal stances:
 
 | Stance | Role | Core Question |
 |---|---|---|
@@ -60,9 +60,9 @@ They then interview coding subagents to turn the test strategy into bounded impl
 
 Coding subagents implement narrow tasks assigned by graduate-student agents. Their outputs must include commands, parameters, seeds, files touched, validation artifacts, and failures. They should not decide that a result supports a stronger scientific claim.
 
-### Diagram/Cartographer Agent
+### Cartographer (hook-driven, not spawned)
 
-The Diagram/Cartographer Agent maintains the live workflow artifact while the research work proceeds. It listens to the Professor Orchestrator, Graduate Test-Design Agents, and Coding Subagents, then records:
+The Cartographer (hook-driven, not spawned) maintains the live workflow artifact while the research work proceeds. It listens to the Lead Agent, Graduate Test-Design Agents, and Coding Subagents, then records:
 
 - active step
 - interview checkpoints
@@ -77,7 +77,7 @@ It may draw or update Mermaid diagrams and workflow-map inputs, but it must not 
 
 ### Completion Conference
 
-When a reproduction, validation, figure-generation, or other substantial task is complete and visualization artifacts are ready, the Professor Orchestrator convenes a completion conference with all agents: graduate agents, coding subagents, and the Diagram/Cartographer Agent.
+When a reproduction, validation, figure-generation, or other substantial task is complete and visualization artifacts are ready, the Lead Agent convenes a completion conference with all agents: graduate agents, coding subagents, and the Cartographer (hook-driven, not spawned).
 
 The final user-facing report should summarize the meeting, each agent's contribution, current workflow state, visualization materials, evidence links, supported claims, unsupported or risky claims, validation status, reproduction fidelity, failures, caveats, remaining uncertainty, and the next researcher decision.
 
@@ -114,14 +114,14 @@ The first implementation pass should update:
 
 Harness evaluation should check behavior, not just file presence. It should include scenarios that fail or degrade when:
 
-- a substantial task skips Professor Orchestrator review
+- a substantial task skips Lead Agent review
 - no graduate-student test-design step is used before coding
 - a coding subagent strengthens a claim without evidence
 - a reproduction is accepted without comparing to the correct target
-- the Diagram/Cartographer Agent is absent during a substantial iteration
+- the Cartographer (hook-driven, not spawned) is absent during a substantial iteration
 - the live workflow artifact records process state as if it were scientific evidence
-- the Diagram/Cartographer Agent gives project opinions instead of only recording workflow state
-- the Professor Orchestrator fails to convene a completion conference after substantial work and visualization artifacts are ready
+- the Cartographer (hook-driven, not spawned) gives project opinions instead of only recording workflow state
+- the Lead Agent fails to convene a completion conference after substantial work and visualization artifacts are ready
 
 Expected evaluation output should identify these as pass, partial, fail, or too heavy.
 

@@ -1,11 +1,11 @@
 # Professor Orchestration Implementation Plan
 
-> **Historical design doc.** This describes the original 3-tier Professor-Orchestrator design from 2026-05-14. The current implementation absorbs that role into the **Lead Agent** (main conversation context); see [docs/orchestration_protocol.md](../../orchestration_protocol.md) for the current 2-tier spawn hierarchy. Terminology in this file is kept as written to preserve design history.
+> **Historical design doc.** This describes the original 3-tier Lead-Agent design from 2026-05-14. The current implementation absorbs that role into the **Lead Agent** (main conversation context); see [docs/orchestration_protocol.md](../../orchestration_protocol.md) for the current 2-tier spawn hierarchy. Terminology in this file is kept as written to preserve design history.
 
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add a documented professor-led orchestration protocol, graduate test-design agents, bounded coding subagents, a non-opinionated Diagram/Cartographer Agent, and harness evaluation coverage.
+**Goal:** Add a documented professor-led orchestration protocol, graduate test-design agents, bounded coding subagents, a non-opinionated Cartographer (hook-driven, not spawned), and harness evaluation coverage.
 
 **Architecture:** This is a documentation-first harness change. Root instruction files define required behavior, workflow docs show how the roles fit into the research loop, and the harness evaluator adds scenarios that detect skipped orchestration, skipped test design, unsafe coding subagent behavior, missing cartography, and missing completion conferences.
 
@@ -92,7 +92,7 @@ Scenario(
         "docs/decision_log.md",
     ),
     rule_terms=(
-        "Professor Orchestrator",
+        "Lead Agent",
         "Socratic Interviewer",
         "Ontologist",
         "Seed Architect",
@@ -175,9 +175,9 @@ Scenario(
 Update the `live_workflow_diagram_agent` `rule_terms` to include:
 
 ```python
-"Diagram/Cartographer Agent",
+"Cartographer (hook-driven, not spawned)",
 "does not give project opinions",
-"listens to the Professor Orchestrator",
+"listens to the Lead Agent",
 "live workflow artifact",
 "must not strengthen scientific claims",
 ```
@@ -203,10 +203,10 @@ Insert the same Markdown section in both files after the role section:
 
 For substantial research plans, existing-project reviews, reproduction attempts, simulation campaigns, analysis pipelines, figure sets, or manuscript-claim work, organize the work as a professor-led research group:
 
-- **Professor Orchestrator**: owns scientific judgment, assumptions, model meaning, validation gates, evidence sufficiency, reproduction fidelity, and final claim discipline.
+- **Lead Agent**: owns scientific judgment, assumptions, model meaning, validation gates, evidence sufficiency, reproduction fidelity, and final claim discipline.
 - **Graduate Test-Design Agents**: convert broad professor-assigned tasks into testable validation strategies through interviews with the professor, then interview coding subagents to make implementation tasks concrete.
 - **Coding Subagents**: perform bounded implementation, analysis, or plotting tasks only after the test strategy is clear. They report commands, parameters, seeds, files, outputs, validation status, and failures. They do not strengthen scientific claims.
-- **Diagram/Cartographer Agent**: listens to the Professor Orchestrator, Graduate Test-Design Agents, and Coding Subagents, and updates the live workflow artifact in real time. It does not give project opinions, infer mechanisms, judge scientific meaning, or strengthen claims. It only records workflow state, gates, evidence links, blocked behaviors, and review checkpoints.
+- **Cartographer (hook-driven, not spawned)**: listens to the Lead Agent, Graduate Test-Design Agents, and Coding Subagents, and updates the live workflow artifact in real time. It does not give project opinions, infer mechanisms, judge scientific meaning, or strengthen claims. It only records workflow state, gates, evidence links, blocked behaviors, and review checkpoints.
 
 The operating loop is:
 
@@ -216,7 +216,7 @@ Interview -> Seed -> Execute -> Evaluate
     +-------- Evolutionary Loop ------+
 ```
 
-The Professor Orchestrator should hold these stances when starting or reviewing a project:
+The Lead Agent should hold these stances when starting or reviewing a project:
 
 | Agent stance | Role | Core question |
 |---|---|---|
@@ -230,7 +230,7 @@ The Professor Orchestrator should hold these stances when starting or reviewing 
 | Researcher | Stops coding and starts investigating. | What evidence do we actually have? |
 | Architect | Identifies structural causes. | If we started over, would we build it this way? |
 
-When a reproduction, validation, figure-generation, or other substantial task is complete and visualization artifacts are ready, the Professor Orchestrator must convene a completion conference with the graduate agents, coding subagents, and Diagram/Cartographer Agent. The final report to the user must summarize the meeting, the workflow state, the visualization materials, evidence links, supported claims, unsupported claims, validation status, and remaining uncertainty.
+When a reproduction, validation, figure-generation, or other substantial task is complete and visualization artifacts are ready, the Lead Agent must convene a completion conference with the graduate agents, coding subagents, and Cartographer (hook-driven, not spawned). The final report to the user must summarize the meeting, the workflow state, the visualization materials, evidence links, supported claims, unsupported claims, validation status, and remaining uncertainty.
 ```
 
 - [x] **Step 2: Verify synchronization**
@@ -252,11 +252,11 @@ Add sections named:
 
 ```markdown
 ## Professor-Led Orchestration
-## Diagram/Cartographer Agent
+## Cartographer (hook-driven, not spawned)
 ## Completion Conference
 ```
 
-These sections must state that the Diagram/Cartographer Agent has no project-opinion authority and that it builds the live workflow by listening to the professor, graduate agents, and coding subagents.
+These sections must state that the Cartographer (hook-driven, not spawned) has no project-opinion authority and that it builds the live workflow by listening to the professor, graduate agents, and coding subagents.
 
 - [x] **Step 2: Update workflow diagrams**
 
@@ -264,9 +264,9 @@ Add Mermaid diagrams for:
 
 ```mermaid
 flowchart TB
-    P["Professor Orchestrator"] --> G["Graduate Test-Design Agents"]
+    P["Lead Agent"] --> G["Graduate Test-Design Agents"]
     G --> C["Coding Subagents"]
-    P --> D["Diagram/Cartographer Agent"]
+    P --> D["Cartographer (hook-driven, not spawned)"]
     G --> D
     C --> D
     D --> W["Live Workflow Artifact"]
