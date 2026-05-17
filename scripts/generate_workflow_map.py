@@ -268,6 +268,14 @@ def extract_bullet_links(
     return links
 
 
+def parse_active_step(section_text: str) -> str:
+    for line in section_text.splitlines():
+        m = re.match(r"-\s+Current step:\s+(.+)", line.strip())
+        if m:
+            return m.group(1).strip()
+    return ""
+
+
 def extract_gate_rows(markdown: str) -> list[dict[str, str]]:
     section = extract_section(markdown, "Gate Status")
     rows = []
@@ -554,7 +562,8 @@ def live_workflow_map(base_dir: Path | None = None) -> dict | None:
 
     run_root = live_workflow_run_root(live_path)
     markdown = live_path.read_text(encoding="utf-8", errors="ignore")
-    active_step = extract_section(markdown, "Active Step") or "No active step recorded."
+    active_step_raw = extract_section(markdown, "Active Step") or ""
+    active_step = parse_active_step(active_step_raw)
     checkpoint = extract_section(markdown, "Next Review Checkpoint") or "No checkpoint recorded."
     evidence_links = extract_bullet_links(
         extract_section(markdown, "Evidence Links"), run_root, base_dir
@@ -579,6 +588,8 @@ def live_workflow_map(base_dir: Path | None = None) -> dict | None:
             {
                 "id": gate_id or f"gate_{index}",
                 "title": row["gate"],
+                "gate_status": status,
+                "gate_note": row["note"],
                 "phase": phase_by_status.get(status, status or "unknown"),
                 "x": x_positions[index % len(x_positions)],
                 "y": 90 + 170 * (index // len(x_positions)),
@@ -662,6 +673,7 @@ def live_workflow_map(base_dir: Path | None = None) -> dict | None:
     return {
         "id": "live_research_run",
         "title": f"Live Research Workflow: {run_root.name}",
+        "active_step": active_step,
         "description": (
             "Current run state generated from the latest live workflow artifact. "
             "This is process-tracking only and must not strengthen scientific claims."
