@@ -36,10 +36,10 @@ Assign the primary responsible role based on the task type:
 | Task type | Primary role |
 |---|---|
 | New model, Manuscript claim, Literature, Reproduction | Lead Agent |
-| Simulation, Analysis, Figure (first pass) | Graduate Test-Design Agent → Coding Subagent |
-| Anomaly / bug | Lead Agent (classification) → Coding Subagent (reproduction) |
-| Existing project onboarding | Lead Agent (inventory) → Graduate Test-Design Agent (retrofit plan) |
-| Maintenance, Harness evaluation | Coding Subagent or `harness-evaluation` skill |
+| Simulation, Analysis, Figure (first pass) | Lead Agent → Graduate Student → Implementation Agent + Scientific Validator + Cache-Log Auditor |
+| Anomaly / bug | Lead Agent (classification) → Graduate Student → Implementation Agent (reproduction) |
+| Existing project onboarding | Lead Agent (inventory) → Graduate Student (retrofit plan) |
+| Maintenance, Harness evaluation | Lead Agent + `harness-evaluation` skill (no code changes), or Graduate Student → Implementation Agent (if files must be edited) |
 | Workflow state update | Cartographer (hook-driven, not spawned) via `cartographer-update` skill |
 
 If any part of the task involves a new claim, a baseline gate, or a gate waiver, the Lead Agent must be active.

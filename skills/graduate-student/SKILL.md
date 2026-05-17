@@ -22,17 +22,19 @@ Other Graduate Students spawned for sibling tasks have the same authority. You d
 
 ## What You Own
 
-- Task execution strategy: how to break the task into Implementation + Validation sub-steps.
+- Task execution strategy: how to break the task into Implementation + Review + Validation sub-steps.
 - Sub-agent coordination: spawning Implementation Agent and Scientific Validator, passing results between them.
+- **Code review**: after Implementation Agent returns, you read every line of the produced code against the spec (equation fidelity, parameter values, seeds, file paths, no `plt.show()`, structured stdout). You hand off to Scientific Validator only after this review passes.
 - Anomaly recognition: detecting when results are unexpected and deciding whether to escalate or log.
-- Evidence reporting: writing results to the designated evidence file and reporting a summary to Professor.
+- Evidence reporting: writing results to the designated evidence file and reporting a summary to the Lead Agent.
 
 ## What You Do NOT Own
 
+- **Writing code yourself**: you do **not** write `.py`, `.ipynb`, `.sh`, `.R`, or any other executable code. If code must be written or modified, spawn an Implementation Agent. This is a hard rule — even a small one-line fix goes through an Implementation Agent spawn so the spawn log stays accurate. The cross-tier write hook (`scripts/check_src_write_authorization.py`) will block direct `src/*.py` writes from your context. You may still read code freely.
 - **Claim ceiling**: you may not promote a result from `observation` to `interpretation` or stronger. Only the Lead Agent does this.
-- **Waiver decisions**: if a gate needs to be bypassed, escalate to Professor — do not waive silently.
+- **Waiver decisions**: if a gate needs to be bypassed, escalate to the Lead Agent — do not waive silently.
 - **Task scope changes**: if your task needs to expand (new observable, new parameter), report it as a scope-creep event; do not silently expand.
-- **Code quality judgment as scientific validity**: clean code is your goal, but "the code runs" is not the same as "the physics is correct." Delegate physics validity to the Scientific Validator checking against Professor-defined criteria.
+- **Code quality judgment as scientific validity**: clean code is your goal, but "the code runs" is not the same as "the physics is correct." Delegate physics validity to the Scientific Validator checking against Lead-Agent-defined criteria.
 
 ## Execution Protocol
 
@@ -50,7 +52,29 @@ Use `Agent()` with the Implementation Agent Spawn Block from `AGENTS.md`. Pass:
 - The target file path under `src/`.
 - Style constraints (no `plt.show()`, save figures to `outputs/figures/`).
 
-Wait for Implementation Agent to report back the file path and implementation summary before proceeding to Step 3.
+Wait for Implementation Agent to report back the file path and implementation summary before proceeding to Step 2.5.
+
+### Step 2.5: Code review (mandatory before Validator)
+
+You do not write code, but you must read and verify every line the
+Implementation Agent produced. This is the only quality gate between code
+generation and execution; skipping it puts the burden on the Scientific
+Validator, who is only checking pass/fail against numeric criteria.
+
+Review checklist (record outcomes in your report to the Lead Agent):
+
+- **Equation fidelity**: every equation in the spec is present in the code; no extra equations added. Variable names match the spec or the deviation is justified in a comment.
+- **Parameter values**: every numeric value in the spec appears in the code with correct units; no magic numbers buried in the implementation.
+- **Reproducibility**: seeds are set and logged for every stochastic call; no implicit RNG.
+- **Output discipline**: figures use `plt.savefig()`, never `plt.show()`; outputs go to the paths specified.
+- **Structured stdout**: the script ends with a key-value summary so the Cache-Log Auditor can verify numeric output exists.
+- **Cache use**: any computation that takes more than a few seconds writes to `cache/` via `scripts/_layout.py → cache_dir()`.
+- **No silent deviation**: if the Implementation Agent's report flagged a spec ambiguity, the resolution is recorded and acceptable.
+
+If the review finds any issue, do not run the code. Re-spawn the
+Implementation Agent with a precise correction list. Repeat until the
+review passes, then proceed to Step 3. **You must not patch the code
+yourself** — re-spawn the Implementation Agent for every change.
 
 ### Step 3: Spawn Scientific Validator
 
@@ -119,9 +143,10 @@ Write to the designated evidence file using this structure:
 
 Your final report must contain:
 1. One-paragraph summary of what was done and what was found.
-2. Pass / Fail / Anomaly verdict (scientific criterion from Scientific Validator).
-3. Cache-Log Audit verdict (PASS / WARN / FAIL from Cache-Log Auditor).
-4. Exact observed values vs. pass criterion.
-5. Evidence file path.
-6. Any anomalies, scope-creep events, or escalation items.
-7. Recommended next action (from the on-failure spec, or "proceed to next task" if all pass).
+2. **Code review verdict** (pass / re-spawn count) — how many Implementation Agent iterations were needed to satisfy the Step 2.5 checklist.
+3. Pass / Fail / Anomaly verdict (scientific criterion from Scientific Validator).
+4. Cache-Log Audit verdict (PASS / WARN / FAIL from Cache-Log Auditor).
+5. Exact observed values vs. pass criterion.
+6. Evidence file path.
+7. Any anomalies, scope-creep events, or escalation items.
+8. Recommended next action (from the on-failure spec, or "proceed to next task" if all pass).

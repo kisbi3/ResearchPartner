@@ -14,7 +14,7 @@ For substantial research plans, existing-project reviews, reproduction attempts,
 
 - **Lead Agent** (this is the main conversation context — *not* a spawned agent): owns scientific judgment, assumptions, model meaning, validation gates, evidence sufficiency, reproduction fidelity, and final claim discipline. The Lead Agent is also the *only* role that has direct two-way dialogue with the researcher; spawned agents are single-shot. The Lead Agent holds the "professor" stances (Socratic Interviewer, Ontologist, Seed Architect, Evaluator, Contrarian, Hacker, Simplifier, Researcher, Architect) as needed during Orient → Interview → Specify → Evaluate → Review.
 - **Peer-Review Professor** (spawned subagent, `meeting --scope review` only): adversarial external reviewer with no project history; reads only the live workflow diagram and whatever artifact is explicitly shared. Uses adversarial stances (Adversarial, Domain Expert, Skeptic, Gap Finder, Simplifier) to find holes in claims. Load `skills/peer-review-professor/SKILL.md`. Single-shot critique, then done.
-- **Graduate Test-Design Agents** (spawned): convert broad Lead-Agent-assigned tasks into testable validation strategies. They interview their parent (the Lead Agent) first via the spawn block, then spawn Coding Subagents as needed.
+- **Graduate Test-Design Agents** (spawned): convert broad Lead-Agent-assigned tasks into testable validation strategies. They interview their parent (the Lead Agent) first via the spawn block, then spawn Coding Subagents as needed. Graduate Students **read and review code but do not write it** — if any code must change, they re-spawn the Implementation Agent with a precise correction list. Code review (equation fidelity, parameter values, seeds, output discipline) is a mandatory step between Implementation Agent and Scientific Validator.
 - **Coding Subagents** (spawned by Graduate Students): perform bounded implementation, validation, audit, analysis, or plotting tasks only after the test strategy is clear. They report commands, parameters, seeds, files, outputs, validation status, and failures. They never decide that a result supports a stronger scientific claim.
 - **Diagram/Cartographer** (*not* a spawned agent — hook-driven automation): the live workflow artifact is maintained automatically by `scripts/workflow_hooks.py` (registered as PreToolUse/PostToolUse on the `Agent` tool) and by explicit `cartographer-update` SKILL packets that any agent can emit. There is no separate Cartographer agent to spawn. The role exists as a contract (record process state only; never strengthen claims, infer mechanisms, or judge meaning), implemented by hooks + SKILL.
 
@@ -211,8 +211,8 @@ Evidence record: docs/gates/validation_log.md
 | Implementation Agent | Running code; judging scientific validity; modifying pass/fail criteria |
 | Scientific Validator | Modifying code; inventing new criteria; interpreting physical meaning |
 | Cache-Log Auditor | Running research scripts; interpreting scientific content; deciding whether to retry |
-| Graduate Student | Deciding claim ceiling; approving waivers; promoting claims beyond criteria |
-| Lead Agent | Writing implementation code directly (must spawn Implementation Agent); skipping Graduate Student tier and spawning Coding Subagents directly |
+| Graduate Student | **Writing or patching code** (must re-spawn Implementation Agent for every change); deciding claim ceiling; approving waivers; promoting claims beyond criteria |
+| Lead Agent | Writing implementation code directly (must spawn Implementation Agent through Graduate Student); skipping Graduate Student tier and spawning Coding Subagents directly |
 | Any Coding Subagent | Strengthening claim language without Lead Agent approval |
 
 ## Live Linked Research Graph

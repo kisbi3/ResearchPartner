@@ -1,13 +1,18 @@
 #!/usr/bin/env python3
-"""PreToolUse hook: block direct Write/Edit to a run's src/*.py.
+"""PreToolUse hook: block direct Write/Edit to code files inside a run dir.
 
-Cross-tier rule (from docs/orchestration_protocol.md): every src/*.py file
-in a research run must be written by a spawned Implementation Agent, not by
-the Lead Agent or Graduate Student directly. This hook enforces
-that at write time.
+Cross-tier rule (from docs/orchestration_protocol.md): every executable
+code file inside a research run must be written by a spawned Implementation
+Agent — not by the Lead Agent and not by a Graduate Student (who reviews
+code but does not author it). This hook enforces that at write time.
+
+Covered extensions: ``.py`` and ``.ipynb`` anywhere under a
+``ResearchPartner-runs/<run>/`` directory, except inside ``<run>/docs/``
+(which holds Markdown notes only) and ``<run>/literature/`` (which holds
+PDFs and review notes).
 
 The Implementation Agent records its activation in
-``<run>/docs/gates/agent_spawn_log.md`` before touching src/. This hook
+``<run>/docs/gates/agent_spawn_log.md`` before touching code. This hook
 allows the write only when an implementation row for the target file exists
 *or* the spawn log was modified within the freshness window (default 10 min)
 — covering the case where the row hasn't been written yet but the agent is
@@ -17,7 +22,7 @@ Bypass: set the environment variable ``RESEARCH_HARNESS_BYPASS_SRC_GATE=1``
 for a one-off waived write. The bypass is logged to stderr.
 
 Exit codes:
-- 0: write allowed (path is not under a run's src/, or authorization OK)
+- 0: write allowed (path is not covered code, or authorization OK)
 - 2: write blocked (no spawn log entry / no fresh activity)
 """
 
@@ -31,14 +36,27 @@ import time
 from pathlib import Path
 
 FRESHNESS_SECONDS = 10 * 60  # spawn log must be touched within 10 minutes
+COVERED_EXTENSIONS = {".py", ".ipynb"}
+EXEMPT_SUBDIRS = {"docs", "literature"}
 
 
 def find_run_root(file_path: Path) -> Path | None:
-    """Return the run directory if file_path is under <run>/src/."""
+    """Return the run directory if file_path is inside a covered run subtree.
+
+    The path must be ``<...>/ResearchPartner-runs/<run-name>/<...>``. Files
+    under ``<run>/docs/`` or ``<run>/literature/`` are exempt from the hook
+    (those holders carry Markdown notes and PDFs, not executable code).
+    """
     parts = list(file_path.resolve().parts)
     for i in range(len(parts) - 2):
-        if parts[i].lower() == "researchpartner-runs" and i + 2 < len(parts) and parts[i + 2] == "src":
-            return Path(*parts[: i + 2])
+        if parts[i].lower() == "researchpartner-runs":
+            run_root_idx = i + 1  # parts[i+1] is the run-name dir
+            if run_root_idx + 1 >= len(parts):
+                return None
+            first_sub = parts[run_root_idx + 1]
+            if first_sub in EXEMPT_SUBDIRS:
+                return None
+            return Path(*parts[: run_root_idx + 1])
     return None
 
 
@@ -86,7 +104,7 @@ def main() -> int:
         return 0
 
     file_path = Path(file_path_str)
-    if file_path.suffix != ".py":
+    if file_path.suffix.lower() not in COVERED_EXTENSIONS:
         return 0
 
     run_dir = find_run_root(file_path)
@@ -109,6 +127,9 @@ def main() -> int:
         f"CROSS-TIER BLOCK: refused to {tool_name} {file_path}\n"
         f"  run: {run_dir}\n"
         f"  reason: {reason}\n"
+        f"  rule: Graduate Students and the Lead Agent do not write code.\n"
+        f"        Only spawned Implementation Agents write .py/.ipynb files\n"
+        f"        inside a run directory (docs/ and literature/ are exempt).\n"
         f"  fix: spawn an Implementation Agent (skills/implementation-agent/SKILL.md)\n"
         f"       and let it append a row to docs/gates/agent_spawn_log.md before writing.\n"
         f"  bypass: set RESEARCH_HARNESS_BYPASS_SRC_GATE=1 for a one-off waived write.",
