@@ -263,7 +263,7 @@ def test_live_map_html_mentions_process_tracking_not_claim_evidence():
     assert "Next action: Review" in html
     assert "Select an action" in html
     assert ".slice(0, 4)" not in html
-    assert "activeAction = firstActionId(currentMap())" in html
+    assert "let activeAction = null" in html
     assert "renderDashboard(map)" not in html
 
 

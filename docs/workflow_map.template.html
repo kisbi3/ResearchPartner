@@ -78,18 +78,31 @@
       gap: 6px;
     }
     .active-step-bar strong { color: var(--ink); }
-    .gate-list { overflow-y: auto; max-height: 480px; }
+    .gate-list { }
+    .gate-item { border-bottom: 1px solid var(--line); }
     .gate-row {
       display: flex;
       align-items: center;
       gap: 10px;
       padding: 9px 14px;
       cursor: pointer;
-      border-bottom: 1px solid var(--line);
       border-left: 3px solid transparent;
     }
     .gate-row:hover { background: var(--bg); }
     .gate-row.active { background: #f0fdf4; border-left-color: var(--accent); }
+    .gate-chevron { flex: 0 0 auto; font-size: 10px; color: var(--muted); margin-left: auto; }
+    .gate-detail {
+      padding: 14px 16px;
+      background: #f8faf8;
+      border-top: 1px solid var(--line);
+    }
+    .gate-detail-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+    .gate-detail-summary { margin: 0 0 12px; font-size: 13px; color: var(--muted); }
     .gate-status-badge {
       flex: 0 0 auto;
       display: inline-flex;
@@ -403,7 +416,7 @@
     let DATA = __DATA__;
     let activeMap = DATA.maps[0].id;
     let activeNode = DATA.maps[0].nodes[0].id;
-    let activeAction = firstActionId(currentMap());
+    let activeAction = null;
 
     const IMAGE_EXT_RE = /\.(png|jpe?g|gif|webp|svg|bmp|ico)(\?|#|$)/i;
 
@@ -558,20 +571,87 @@
       return `<span class="gate-status-badge gate-status-${escapeHtml(cls)}">${escapeHtml(icon + ' ' + label)}</span>`;
     }
 
+    function renderNodeDetail(node) {
+      const metadata = [
+        ['Node Type', node.node_type || 'unclassified'],
+        ['Link Status', node.link_status || 'unknown'],
+        ['Evidence Strength', node.evidence_strength || 'none'],
+        ['Claim Ceiling', node.claim_ceiling || 'unsupported'],
+        ['Review Owner', node.review_owner || 'unassigned'],
+        ['Researcher Review', node.requires_researcher_review ? 'required' : 'not required'],
+      ].map(([key, value]) => `
+        <div class="result-row">
+          <span class="result-key">${escapeHtml(key)}</span>
+          <span class="result-value">${escapeHtml(value)}</span>
+        </div>
+      `).join('');
+      const resultEntries = Object.entries(node.result_summary || {});
+      const resultMarkup = resultEntries.length
+        ? resultEntries.map(([key, value]) => `
+          <div class="result-row">
+            <span class="result-key">${escapeHtml(key)}</span>
+            <span class="result-value">${escapeHtml(value)}</span>
+          </div>
+        `).join('')
+        : '<p class="meta">No result summary recorded.</p>';
+      const imageMarkup = (node.images || []).map(image => `
+        <figure>
+          <img class="evidence-image" src="${escapeHtml(pathHref(image.path))}" alt="${escapeHtml(image.label)} evidence preview">
+          <figcaption class="image-caption">${escapeHtml(image.label)} · evidence preview, not a standalone claim</figcaption>
+        </figure>
+      `).join('');
+      const linkSection = (items, label) => (items || []).length ? `
+        <div class="section">
+          <h3>${escapeHtml(label)}</h3>
+          <div class="link-grid">${items.map(item => `
+            <div class="link-card">
+              <a href="${escapeHtml(linkHref(item))}">${escapeHtml(item.role || item.kind || item.relation || item.path)}</a>
+              <div class="link-meta">${escapeHtml([item.path, item.line ? 'line ' + item.line : '', item.relation || '', item.status || '', item.preview ? 'preview: ' + item.preview : ''].filter(Boolean).join(' · '))}</div>
+            </div>
+          `).join('')}</div>
+        </div>` : '';
+      const responsibleLinks = (node.responsible || []).map(item =>
+        `<a class="docs-link" href="${escapeHtml(pathHref(item.path))}" style="display:inline-block;border:1px solid var(--line);border-radius:6px;padding:5px 8px;text-decoration:none;color:var(--ink);background:#fbfbf8;font-size:13px;margin:2px 4px 2px 0">${escapeHtml(item.label)}</a>`
+      ).join('');
+      const checks = (node.checks || []).map(check => `<li>${escapeHtml(check)}</li>`).join('');
+      return `
+        ${node.summary ? `<p class="gate-detail-summary">${escapeHtml(node.summary)}</p>` : ''}
+        <div class="gate-detail-grid">
+          <div class="section">
+            <h3>Link State</h3>
+            <div class="results">${metadata}</div>
+          </div>
+          ${resultEntries.length ? `<div class="section"><h3>Result Summary</h3><div class="results">${resultMarkup}</div></div>` : ''}
+          ${imageMarkup ? `<div class="section"><h3>Evidence Images</h3><div class="image-grid">${imageMarkup}</div></div>` : ''}
+        </div>
+        ${linkSection(node.code_links, 'Code Links')}
+        ${linkSection(node.result_links, 'Result Links')}
+        ${linkSection(node.interpretation_links, 'Interpretation Links')}
+        ${responsibleLinks ? `<div class="section"><h3>Responsible Files</h3>${responsibleLinks}</div>` : ''}
+        ${checks ? `<div class="section"><h3>Checks</h3><ul>${checks}</ul></div>` : ''}
+      `;
+    }
+
     function renderGateList() {
       const map = currentMap();
       const activeStep = map.active_step || '';
       const rows = map.nodes.map(node => {
         const status = node.gate_status || node.phase || 'pending';
         const note = node.gate_note != null ? node.gate_note : (node.summary || '');
+        const isActive = node.id === activeNode;
         return `
-          <div class="gate-row ${node.id === activeNode ? 'active' : ''}"
-               tabindex="0" role="button"
-               aria-label="${escapeHtml(node.title)}"
-               data-node="${escapeHtml(node.id)}">
-            ${statusBadge(status)}
-            <span class="gate-title">${escapeHtml(node.title)}</span>
-            <span class="gate-note">${escapeHtml(note)}</span>
+          <div class="gate-item">
+            <div class="gate-row${isActive ? ' active' : ''}"
+                 tabindex="0" role="button"
+                 aria-expanded="${isActive}"
+                 aria-label="${escapeHtml(node.title)}"
+                 data-node="${escapeHtml(node.id)}">
+              ${statusBadge(status)}
+              <span class="gate-title">${escapeHtml(node.title)}</span>
+              <span class="gate-note">${escapeHtml(note)}</span>
+              <span class="gate-chevron">${isActive ? '▼' : '▶'}</span>
+            </div>
+            ${isActive ? `<div class="gate-detail">${renderNodeDetail(node)}</div>` : ''}
           </div>
         `;
       }).join('');
@@ -633,102 +713,9 @@
         attachFilePreviewHandlers();
         return;
       }
-      const node = currentNode();
-      const links = (node.responsible || []).map(item =>
-        `<button type="button" class="file-button" data-path="${escapeHtml(pathHref(item.path))}" data-label="${escapeHtml(item.label)}">${escapeHtml(item.label)}</button>`
-      ).join('');
-      const metadata = [
-        ['Node Type', node.node_type || 'unclassified'],
-        ['Link Status', node.link_status || 'unknown'],
-        ['Evidence Strength', node.evidence_strength || 'none'],
-        ['Claim Ceiling', node.claim_ceiling || 'unsupported'],
-        ['Review Owner', node.review_owner || 'unassigned'],
-        ['Researcher Checkpoint Marker', node.requires_researcher_review ? 'required' : 'not required']
-      ].map(([key, value]) => `
-        <div class="result-row">
-          <span class="result-key">${escapeHtml(key)}</span>
-          <span class="result-value">${escapeHtml(value)}</span>
-        </div>
-      `).join('');
-      const linkSection = (items, emptyText) => (items || []).length
-        ? `<div class="link-grid">${items.map(item => `
-            <div class="link-card">
-              <a href="${escapeHtml(linkHref(item))}">${escapeHtml(item.role || item.kind || item.relation || item.path)}</a>
-              <div class="link-meta">${escapeHtml([
-                item.path,
-                item.line ? 'line ' + item.line : '',
-                item.relation || '',
-                item.status || '',
-                item.preview ? 'preview: ' + item.preview : ''
-              ].filter(Boolean).join(' · '))}</div>
-            </div>
-          `).join('')}</div>`
-        : `<p class="meta">${escapeHtml(emptyText)}</p>`;
-      const checks = (node.checks || []).map(check => `<li>${escapeHtml(check)}</li>`).join('');
-      const resultEntries = Object.entries(node.result_summary || {});
-      const resultMarkup = resultEntries.length
-        ? resultEntries.map(([key, value]) => `
-          <div class="result-row">
-            <span class="result-key">${escapeHtml(key)}</span>
-            <span class="result-value">${escapeHtml(value)}</span>
-          </div>
-        `).join('')
-        : '<p class="meta">No compact result summary recorded for this node.</p>';
-      const imageMarkup = (node.images || []).length
-        ? (node.images || []).map(image => `
-          <figure>
-            <img class="evidence-image" src="${escapeHtml(pathHref(image.path))}" alt="${escapeHtml(image.label)} evidence preview">
-            <figcaption class="image-caption">${escapeHtml(image.label)} · evidence preview, not a standalone claim</figcaption>
-          </figure>
-        `).join('')
-        : '<p class="meta">No figure preview for this node.</p>';
-      document.getElementById('details').innerHTML = `
-        <h2>${escapeHtml(node.title)}</h2>
-        <div class="meta">${escapeHtml(map.title)} / ${escapeHtml(node.phase)}</div>
-        <p>${escapeHtml(node.summary)}</p>
-        ${renderDashboardSummary(map)}
-        <div class="section">
-          <h3>Link State</h3>
-          <div class="results">${metadata}</div>
-        </div>
-        <div class="section">
-          <h3>Result Summary</h3>
-          <div class="results">${resultMarkup}</div>
-        </div>
-        <div class="section">
-          <h3>Evidence Images</h3>
-          <div class="image-grid">${imageMarkup}</div>
-        </div>
-        <div class="section">
-          <h3>Code Links</h3>
-          ${linkSection(node.code_links, 'No code links recorded for this node.')}
-        </div>
-        <div class="section">
-          <h3>Result Links</h3>
-          ${linkSection(node.result_links, 'No result links recorded for this node.')}
-        </div>
-        <div class="section">
-          <h3>Interpretation Links</h3>
-          ${linkSection(node.interpretation_links, 'No interpretation links recorded for this node.')}
-        </div>
-        <div class="section">
-          <h3>Responsible Files</h3>
-          <div class="docs">${links}</div>
-          <div class="file-preview" id="filePreview">
-            <div class="preview-head">
-              <span>Select a file to preview it here.</span>
-              <a id="rawFileLink" href="#" hidden>Open raw file</a>
-            </div>
-            <pre id="filePreviewText"></pre>
-            <img id="filePreviewImage" alt="" hidden>
-          </div>
-        </div>
-        <div class="section">
-          <h3>Checks</h3>
-          <ul>${checks}</ul>
-        </div>
-      `;
-      attachFilePreviewHandlers();
+      document.getElementById('details').innerHTML =
+        renderDashboardSummary(map, '<h2>Dashboard Summary</h2>')
+        || '<p class="meta">Select a gate to expand its detail, or select an action from the queue.</p>';
     }
 
     function attachFilePreviewHandlers() {
@@ -829,7 +816,7 @@
           activeNode = map.nodes[0].id;
         }
         if (activeAction && !actionStillExists(map, activeAction)) {
-          activeAction = firstActionId(map);
+          activeAction = null;
         }
         render();
       } catch (error) {
