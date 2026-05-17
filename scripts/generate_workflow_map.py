@@ -119,10 +119,55 @@ ACTION_GUIDANCE = {
 }
 
 
-def dashboard_status_label(group_id: str, exists: bool) -> str:
+def _is_document_complete(path: Path, label: str) -> bool:
+    """Return True if a document has been meaningfully filled in beyond its template."""
+    if path.is_dir():
+        return any(path.glob("*.md"))
+    if not path.exists():
+        return False
+    text = path.read_text(encoding="utf-8", errors="ignore")
+
+    if label == "Orient Note":
+        # Researcher Answer section must have non-comment content
+        return bool(re.search(r"## Researcher Answer\s*\n\s*(?!<!--)(?!\s*$)\S", text, re.MULTILINE))
+
+    if label == "Interview Notes":
+        return bool(re.search(r"## Crystallized Research Question\s*\n\s*(?!<!--)(?!\s*$)\S", text, re.MULTILINE))
+
+    if label == "Paper Request Queue":
+        # No rows with status "open" remaining
+        return not bool(re.search(r"\|\s*open\s*\|", text, re.IGNORECASE))
+
+    if label == "Literature Review Plan":
+        return bool(re.search(r"(?i)status\s*:\s*(ready|waived|pass)", text))
+
+    if label == "Research Plan":
+        # Template seed placeholder not present and file has real content
+        return "Run-specific plan seed:" not in text and len(text.strip()) > 150
+
+    if label == "Model Spec":
+        # Template is mostly HTML comments; meaningful content replaces them
+        non_comment = re.sub(r"<!--.*?-->", "", text, flags=re.DOTALL)
+        return len(non_comment.strip()) > 200
+
+    if label == "Baseline Strategy":
+        # Decision value appears on its own line under "## Decision"
+        return bool(re.search(r"(?i)(variation|new model)", text))
+
+    if label == "Replanning Memo":
+        # Template has a seed; real memos are substantially longer
+        return len(text.strip()) > 500
+
+    return False
+
+
+def dashboard_status_label(group_id: str, path: Path, label: str) -> str:
+    exists = path.exists() if not path.is_dir() else any(path.iterdir())
     if not exists:
         return "Missing document"
     if group_id in {"needs_input", "needs_approval"}:
+        if _is_document_complete(path, label):
+            return "Completed"
         return "Needs researcher decision"
     return "Ready to review"
 
@@ -132,6 +177,7 @@ def dashboard_summary_key(status: str) -> str:
         "Ready to review": "ready_to_review",
         "Missing document": "missing_document",
         "Needs researcher decision": "needs_researcher_decision",
+        "Completed": "completed",
     }[status]
 
 
@@ -174,12 +220,11 @@ def dashboard_document_groups(run_root: Path, base_dir: Path | None = None) -> l
         for label, candidates in group["documents"]:
             candidate_paths = [run_root / candidate for candidate in candidates]
             selected = next((path for path in candidate_paths if path.exists()), candidate_paths[0])
-            exists = selected.exists()
             documents.append(
                 {
                     "label": label,
                     "path": run_relative_path(selected, base_dir),
-                    "status": dashboard_status_label(group["id"], exists),
+                    "status": dashboard_status_label(group["id"], selected, label),
                 }
             )
         groups.append(
@@ -197,6 +242,8 @@ def dashboard_actions(document_groups: list[dict]) -> list[dict]:
     actions = []
     for group in document_groups:
         for document in group["documents"]:
+            if document["status"] == "Completed":
+                continue  # completed items don't need researcher attention
             guidance = ACTION_GUIDANCE.get(document["label"], {})
             actions.append(
                 {
@@ -230,6 +277,7 @@ def dashboard_summary(document_groups: list[dict]) -> dict:
             "ready_to_review": 0,
             "missing_document": 0,
             "needs_researcher_decision": 0,
+            "completed": 0,
         }
         for doc in group["documents"]:
             counts[dashboard_summary_key(doc["status"])] += 1
@@ -751,7 +799,22 @@ def build_data(include_paper_logic: bool = False, base_dir: Path | None = None) 
     }
 
 
-def write_outputs(include_paper_logic: bool = False) -> list[Path]:
+_PLACEHOLDER_NODE_IDS = {"no_active_run", "live_workflow"}
+
+
+def _run_local_json_has_real_nodes(json_path: Path) -> bool:
+    """Return True if the run-local JSON was populated by update_live_json.py."""
+    if not json_path.exists():
+        return False
+    try:
+        data = json.loads(json_path.read_text(encoding="utf-8"))
+        nodes = (data.get("maps") or [{}])[0].get("nodes", [])
+        return any(n.get("id") not in _PLACEHOLDER_NODE_IDS for n in nodes)
+    except (json.JSONDecodeError, IndexError, KeyError):
+        return False
+
+
+def write_outputs(include_paper_logic: bool = False, force: bool = False) -> list[Path]:
     written = []
     central_data = build_data(include_paper_logic=include_paper_logic, base_dir=OUTPUT.parent)
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
@@ -766,12 +829,18 @@ def write_outputs(include_paper_logic: bool = False) -> list[Path]:
     live_path = latest_live_workflow_path()
     if live_path is not None:
         run_root = live_workflow_run_root(live_path)
-        run_data = build_data(include_paper_logic=False, base_dir=run_root)
         run_html = run_root / "workflow_map.html"
         run_json = run_root / "workflow_map.live.json"
-        run_html.write_text(build_html(run_data), encoding="utf-8")
-        run_json.write_text(json.dumps(run_data, indent=2), encoding="utf-8")
-        written.extend([run_html, run_json])
+        if not force and _run_local_json_has_real_nodes(run_json):
+            # Preserve JSON written by update_live_json.py; only refresh the HTML.
+            existing_data = json.loads(run_json.read_text(encoding="utf-8"))
+            run_html.write_text(build_html(existing_data), encoding="utf-8")
+            written.append(run_html)
+        else:
+            run_data = build_data(include_paper_logic=False, base_dir=run_root)
+            run_html.write_text(build_html(run_data), encoding="utf-8")
+            run_json.write_text(json.dumps(run_data, indent=2), encoding="utf-8")
+            written.extend([run_html, run_json])
 
     return written
 
@@ -790,8 +859,14 @@ def main() -> int:
         action="store_true",
         help="Include the paper logic workflow when manuscript planning has been requested.",
     )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Overwrite the run-local workflow_map.live.json even if it was updated by "
+             "update_live_json.py. Use this to re-parse live_workflow_diagram.md from scratch.",
+    )
     args = parser.parse_args()
-    for path in write_outputs(include_paper_logic=args.include_paper_logic):
+    for path in write_outputs(include_paper_logic=args.include_paper_logic, force=args.force):
         try:
             display = path.relative_to(ROOT)
         except ValueError:

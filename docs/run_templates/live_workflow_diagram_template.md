@@ -65,64 +65,9 @@ python scripts/update_workflow_diagram.py --event start --step "..." --agent "..
 
 ## Cartographer Update Events
 
-Agents should send small update packets here whenever their work changes workflow state. The Cartographer (hook-driven, not spawned) records these packets as live linked research graph nodes. It must not infer scientific meaning or strengthen claims.
+Update the live JSON directly with `scripts/update_live_json.py` whenever workflow state changes — gate pass/fail, active step, evidence links. See `skills/cartographer-update/SKILL.md` for the full event packet format and command examples. Allowed node types, relations, link-status values, evidence-strength values, and claim-ceiling values are defined in [`docs/orchestration_protocol.md`](../../../docs/orchestration_protocol.md#live-linked-research-graph).
 
-The allowed node types, relations, link-status values, evidence-strength values, and claim-ceiling values are defined once in [`docs/orchestration_protocol.md`](../../../docs/orchestration_protocol.md#live-linked-research-graph) — do not duplicate the enums here. Use `requires_researcher_review: true` as the Researcher Checkpoint Marker when the researcher should inspect a result, waiver, anomaly, or claim before the next step.
-
-Use `preview: thumbnail`, `preview: table_head`, or `preview: log_tail` as the Artifact Preview hint when the workflow map should show or summarize an artifact.
-
-```json
-{
-  "cartographer_update": {
-    "from": "coding-subagent",
-    "event_type": "figure",
-    "node_id": "example-figure-node",
-    "title": "Example Figure Node",
-    "node_type": "figure",
-    "summary": "Replace this with the observed workflow update.",
-    "status": "pending_review",
-    "link_status": "pending_review",
-    "evidence_strength": "none",
-    "claim_ceiling": "observation",
-    "review_owner": "lead-agent",
-    "requires_researcher_review": true,
-    "code_links": [
-      {
-        "path": "scripts/example.py",
-        "line": 1,
-        "role": "replace with exact code role",
-        "relation": "generates_figure",
-        "status": "pending_review"
-      }
-    ],
-    "result_links": [
-      {
-        "path": "outputs/example.png",
-        "kind": "figure",
-        "relation": "generated_by",
-        "status": "pending_review",
-        "preview": "thumbnail"
-      }
-    ],
-    "interpretation_links": [
-      {
-        "path": "docs/validation_log.md",
-        "anchor": "example",
-        "relation": "documents_uncertainty",
-        "status": "pending_review"
-      }
-    ],
-    "graph_links": [
-      {
-        "from": "example-run-node",
-        "to": "example-figure-node",
-        "relation": "generated_by",
-        "status": "pending_review"
-      }
-    ]
-  }
-}
-```
+Delete this section's content and replace with actual events as the run progresses. Leave no placeholder packets here.
 
 ## Blocked Behaviors
 
