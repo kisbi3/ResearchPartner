@@ -477,6 +477,24 @@ SCENARIOS = [
             "abandoned",
         ),
     ),
+    Scenario(
+        name="computation_checkpoint_resumption",
+        skills=(
+            "skills/implementation-agent/SKILL.md",
+        ),
+        docs=(
+            "scripts/run_with_checkpoint.py",
+            "scripts/check_computation_resumable.py",
+        ),
+        rule_terms=(
+            "Computation Checkpoint Hook",
+            "CheckpointManager",
+            "check_computation_resumable.py",
+            "run_with_checkpoint.py",
+            "cache/checkpoint_",
+            "orphaned",
+        ),
+    ),
 ]
 
 
