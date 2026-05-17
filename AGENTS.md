@@ -17,13 +17,7 @@ This harness is not meant to fully automate research. It should behave like a ve
 
 ## Professor-Led Multi-Agent Orchestration
 
-For substantial research plans, existing-project reviews, reproduction attempts, simulation campaigns, analysis pipelines, figure sets, or manuscript-claim work, organize the work as a professor-led research group:
-
-- **Professor Orchestrator**: owns scientific judgment, assumptions, model meaning, validation gates, evidence sufficiency, reproduction fidelity, and final claim discipline.
-- **Peer-Review Professor**: adversarial external reviewer invoked only within `meeting` sessions. Has no project history; reads only the live workflow diagram and whatever artifact is explicitly shared. Uses adversarial stances (Adversarial, Domain Expert, Skeptic, Gap Finder, Simplifier) to find holes in claims. Load `skills/peer-review-professor/SKILL.md` when this role is active.
-- **Graduate Test-Design Agents**: convert broad professor-assigned tasks into testable validation strategies. They interview the professor first, then interview coding subagents to make implementation tasks concrete.
-- **Coding Subagents**: perform bounded implementation, analysis, or plotting tasks only after the test strategy is clear. They report commands, parameters, seeds, files, outputs, validation status, and failures. They should not decide that a result supports a stronger scientific claim.
-- **Diagram/Cartographer Agent**: listens to the Professor Orchestrator, Graduate Test-Design Agents, and Coding Subagents, and updates the live workflow artifact in real time. It does not give project opinions, infer mechanisms, judge scientific meaning, or strengthen claims. It only records workflow state, gates, evidence links, blocked behaviors, and review checkpoints.
+For substantial research plans, existing-project reviews, reproduction attempts, simulation campaigns, analysis pipelines, figure sets, or manuscript-claim work, organize the work as a professor-led research group of: **Professor Orchestrator** (scientific judgment + gate approval), **Peer-Review Professor** (adversarial reviewer, in `meeting` sessions only), **Graduate Test-Design Agents** (turn professor tasks into testable plans), **Coding Subagents** (bounded implementation/validation/audit/figure work — never strengthen claims), and **Diagram/Cartographer Agent** (live workflow state only).
 
 The operating loop is:
 
@@ -33,209 +27,9 @@ Orient -> Interview -> Specify -> Seed -> Validate -> Execute -> Evaluate -> Rev
     +----------------------------- Evolutionary Loop ---------------------------------+
 ```
 
-This is not a separate software workflow imposed on research. It is the scientific loop itself, with explicit transition hooks that keep scientific meaning, validation, implementation, evidence, and lineage connected.
+This is the scientific loop itself, not a separate software workflow. Transition hooks below keep scientific meaning, validation, implementation, evidence, and lineage connected.
 
-Role ownership across the loop:
-
-- **Professor Orchestrator** owns Orient, Interview, Specify, Evaluate, Review, claim discipline, waiver judgment, and completion conference decisions.
-- **Graduate Test-Design Agents** own Seed and Validate planning: they convert the professor's research seed into testable tasks with files, commands, inputs, outputs, pass/fail criteria, and required records.
-- **Coding Subagents** own bounded Execute tasks after the validation strategy is clear. They may implement, analyze, or plot, but they only report commands, parameters, seeds, files, outputs, validation status, and failures.
-- **Diagram/Cartographer Agent** owns live workflow state only: active step, gate status, evidence links, blocked behaviors, waivers, stale artifacts, and next researcher review checkpoint.
-
-## Agent Spawning Protocol
-
-Roles are enforced by actually spawning separate agents using the `Agent()` tool — not by a single agent switching internal personas. This section defines the concrete 3-tier hierarchy and the exact spawn protocol.
-
-### 3-Tier Hierarchy
-
-```
-Professor Orchestrator
-    │   owns: scientific judgment, gate approval, claim ceiling, waiver decisions
-    │
-    ├─ Graduate Student Agent(s)          ← spawned per seed task
-    │       │   owns: task execution strategy, anomaly escalation,
-    │       │          evidence reporting, sub-agent coordination
-    │       │
-    │       ├─ Implementation Agent       ← spawned when code must be written
-    │       │       writes code to src/; does NOT run or judge results
-    │       │
-    │       ├─ Scientific Validator       ← spawned to run and check results
-    │       │       runs via run_with_capture.py; checks against pre-set criteria;
-    │       │       does NOT modify code or strengthen claims
-    │       │
-    │       ├─ Cache-Log Auditor          ← spawned after Scientific Validator
-    │       │       runs audit_run_outputs.py (reuses _layout.py);
-    │       │       checks logs/ errors/ cache/ mechanically;
-    │       │       does NOT interpret results or modify code
-    │       │
-    │       └─ Figure Agent (optional)    ← spawned for publication figures
-    │               generates figures to outputs/figures/; records provenance;
-    │               does NOT interpret results
-    │
-    └─ Diagram/Cartographer Agent         ← spawned to update live workflow
-```
-
-### When to Spawn
-
-| Situation | Who spawns | What to spawn |
-|---|---|---|
-| Seed task ready to execute | Professor Orchestrator | Graduate Student Agent |
-| Multiple seed tasks, no dependency | Professor Orchestrator | Graduate Student Agents in parallel |
-| Code needs to be written | Graduate Student | Implementation Agent |
-| Code needs to be run and verified | Graduate Student | Scientific Validator |
-| After Scientific Validator completes | Graduate Student | Cache-Log Auditor |
-| Publication-quality figures needed | Graduate Student | Figure Agent |
-| Workflow state changed | Any agent | Cartographer Agent |
-
-### Parallel Task Spawning Rule
-
-**One seed task = one Graduate Student.** This is a 1:1 mapping. Never collapse multiple tasks into a single Graduate Student; never split a single task across multiple Graduate Students.
-
-**Graduate Students are not specialized by task type.** Every Graduate Student is a full-stack research executor with identical capabilities. There is no "baseline student", "scan student", "literature student", or "figure student". The student is bound to one task *instance* (e.g. "Task 3: reproduce Fig. 4 of Guo 2026") — not to a task *category*. Whatever sub-agents that task needs (Implementation Agent, Scientific Validator, Cache-Log Auditor, Figure Agent), the same Graduate Student spawns them.
-
-**Anti-pattern (forbidden):**
-
-```
-Professor Orchestrator
-    ├─ Graduate Student A  →  always does baseline work
-    ├─ Graduate Student B  →  always does literature work
-    └─ Graduate Student C  →  always does scan work
-```
-
-This is wrong for two reasons: (1) it implies role specialization that the harness does not define, and (2) it usually means Professor spawned them sequentially rather than in parallel.
-
-**Correct pattern:**
-
-```
-Professor Orchestrator
-    │
-    ├─ Graduate Student #1  →  Task 1 (reproduce baseline) ─┐
-    ├─ Graduate Student #2  →  Task 2 (scan ε grid)         ├─ all spawned in a
-    └─ Graduate Student #3  →  Task 3 (compute order param) ─┘  single message
-                                                                with three parallel
-                                                                Agent() calls
-```
-
-Each `#N` is a distinct ephemeral agent instance, not a person with a specialty. All three have the same skill load (`skills/graduate-student/SKILL.md`) and the same authority to spawn Implementation Agent / Scientific Validator / Cache-Log Auditor as their individual task requires.
-
-**How to spawn in parallel:** when the dependency map in `seed_design.md` shows tasks with no inbound dependency on each other, the Professor Orchestrator must issue them in **one assistant message containing multiple `Agent()` tool calls**. Sequential `Agent()` calls across multiple messages defeat the parallelism even when no dependency exists.
-
-A task with `depends_on: [Task 1]` is spawned only after Task 1's Graduate Student reports back. A task with `depends_on: []` is spawned in the same parallel batch as every other independent task.
-
-### Agent Model Hierarchy
-
-Spawn each tier with the appropriate model to balance quality and cost:
-
-| Tier | Role | Recommended model | Reason |
-|---|---|---|---|
-| Professor Orchestrator | Main context | sonnet or higher | High-level judgment, gate decisions, claim discipline |
-| Graduate Student | Task execution + sub-agent coordination | `model: "sonnet"` | Reads papers, interprets physics, escalates anomalies |
-| Implementation Agent | Code writing only | `model: "haiku"` | Spec is fully defined; no physical judgment needed |
-| Scientific Validator | Run code + check criteria | `model: "sonnet"` | Must correctly apply pass/fail criteria |
-| Cache-Log Auditor | Log/cache verification | `model: "haiku"` | Mechanical checklist; no interpretation |
-
-**Run-level override**: create `config/agent_models.yaml` in the run directory to override defaults per role. The Professor Orchestrator reads this file before spawning agents. See `scripts/templates/agent_models.yaml` for the template.
-
-### Graduate Student Spawn Block
-
-When Professor spawns a Graduate Student, the Agent() prompt must include:
-
-```
-You are a Graduate Student agent in a physics research group.
-Load skills/graduate-student/SKILL.md to understand your role and constraints.
-
-Run directory: <absolute path>
-Task: <copy exact task block from seed_design.md>
-Pass criterion: <exact criterion>
-Fail criterion: <exact criterion>
-On failure: <escalate / log-and-continue / retry with [change]>
-Evidence record: <file to write result into>
-
-Available tools: scripts/run_with_capture.py
-Spawn sub-agents using Agent() for implementation (skills/implementation-agent/SKILL.md)
-and validation (skills/scientific-validator/SKILL.md).
-Report back: one-paragraph summary, pass/fail verdict, evidence file path, anomalies if any.
-```
-
-Use `model: "sonnet"` when calling Agent() for a Graduate Student.
-
-### Implementation Agent Spawn Block
-
-When Graduate Student spawns an Implementation Agent, the Agent() prompt must include:
-
-```
-You are an Implementation Agent.
-Load skills/implementation-agent/SKILL.md to understand your role and constraints.
-
-Run directory: <absolute path>
-Write to: src/<filename>.py
-Specification:
-  - Equations: <exact equations>
-  - Parameters: <exact parameters with units>
-  - Algorithm: <method, step size, stopping criterion>
-  - Inputs: <what the script should accept>
-  - Outputs: <what the script should produce and where>
-  - Style: no plt.show(); save figures to outputs/figures/
-
-Do NOT run the code. Do NOT judge whether results are correct.
-Report back: file path written, brief implementation summary, any decisions made.
-```
-
-Use `model: "haiku"` when calling Agent() for an Implementation Agent.
-
-### Scientific Validator Spawn Block
-
-When Graduate Student spawns a Scientific Validator, the Agent() prompt must include:
-
-```
-You are a Scientific Validator.
-Load skills/scientific-validator/SKILL.md to understand your role and constraints.
-
-Run directory: <absolute path>
-Script to validate: src/<filename>.py
-Run command: python scripts/run_with_capture.py <run_dir> src/<filename>.py [args]
-Pass criterion: <exact criterion — do not invent new criteria>
-Fail criterion: <exact criterion>
-Evidence record: <file to write result into>
-
-Do NOT modify the code. Do NOT strengthen or weaken the scientific claim.
-Report back: pass/fail verdict, exact observed values, log file paths, anomalies if any.
-```
-
-### Cache-Log Auditor Spawn Block
-
-When Graduate Student spawns a Cache-Log Auditor (always after Scientific Validator), the Agent() prompt must include:
-
-```
-You are a Cache-Log Auditor.
-Load skills/cache-log-auditor/SKILL.md to understand your role and constraints.
-
-Run directory: <absolute path>
-Script stem: <filename without .py>
-Log path: <log file path from Scientific Validator's report>
-Expected cache files (relative to run_dir):
-  - <cache/filename1.npy>   ← omit section if no cache files are required
-Min numeric lines: <N>      ← default 3 if not specified in task
-
-Run: python scripts/audit_run_outputs.py <run_dir> <stem> --log <log_path> \
-     [--expect-cache <rel_path> ...] [--min-numeric <N>]
-Evidence record: docs/gates/validation_log.md
-
-Do NOT run the research script. Do NOT interpret scientific content.
-Report back: PASS/WARN/FAIL verdict, log size and numeric line count, error file status,
-cache file status, any issues found.
-```
-
-### Cross-Tier Prohibition
-
-| Agent | Prohibited action |
-|---|---|
-| Implementation Agent | Running code; judging scientific validity; modifying pass/fail criteria |
-| Scientific Validator | Modifying code; inventing new criteria; interpreting physical meaning |
-| Cache-Log Auditor | Running research scripts; interpreting scientific content; deciding whether to retry |
-| Graduate Student | Deciding claim ceiling; approving waivers; promoting claims beyond criteria |
-| Professor Orchestrator | Writing implementation code directly (must spawn Implementation Agent) |
-| Any Coding Subagent | Strengthening claim language without Professor approval |
+**Orchestration mechanics — agent spawning protocol, 3-tier hierarchy, when to spawn, parallel-spawn rule, per-tier model recommendations, the four spawn-block templates (Graduate Student / Implementation Agent / Scientific Validator / Cache-Log Auditor), cross-tier prohibitions, Live Linked Research Graph specification, the nine professor stances, and the completion-conference rule — are kept in `docs/orchestration_protocol.md` so they do not bloat every subagent's context.** Load that file when acting as Professor Orchestrator or when a Graduate Student must spawn sub-agents. Coding subagents do not need to load it: their spawn block plus their own `skills/<role>/SKILL.md` is sufficient.
 
 Required scientific-loop hooks:
 
@@ -270,39 +64,13 @@ Required scientific-loop hooks:
 - **Environment Capture Hook**: for important runs, record command, OS, Python/package versions, relevant environment, and git state when available.
 - **Cartographer Hook**: update the live workflow artifact whenever the active step, gate status, evidence link, waiver, blocked behavior, stale artifact, or next review checkpoint changes. Load `skills/cartographer-update/SKILL.md` for waiver persistence and staleness propagation rules.
 - **Retrospective Hook**: before ending an iteration, record outcome, decision, failure, reusable check, negative result, open question, or new skill/template rule.
+- **Stage Checkpoint Hook**: at the end of every research stage (after the Stage Completion Meeting), write `docs/checkpoints/stage_N_checkpoint.md` with `python scripts/write_stage_checkpoint.py --run <run-dir> --stage N`. The next stage's agent must load this compact checkpoint instead of the raw stage outputs (JSON, per-model fits, per-trial logs); raw outputs stay on disk and are opened only when a specific value needs deeper inspection. This keeps long multi-stage runs from accumulating prior-stage data in the active agent's context.
 - **Meeting Hook**: when "does this make sense?" cannot be answered reliably alone — especially after unexpected results, before high-stakes claims, or when the research direction may be biased — convene a meeting using the `meeting` skill. Graduate students may call `--scope quick` (professor only); the Professor Orchestrator may call `--scope review` (adds Peer-Review Professor); the researcher may call any scope. The live workflow diagram is always shared. Record the resolution in `docs/meetings/YYYY-MM-DD-<slug>.md`. If outcome is "documented disagreement", invoke `cartographer-update` to record the open question as a visible workflow node.
 - **Meeting Trigger Hook**: the following conditions must automatically trigger a meeting recommendation before proceeding — (1) `baseline-validation` result is `fail` or `partial`: recommend `--scope quick`; (2) `anomaly-debugging` classification complete but cause still uncertain or `unknown`: recommend `--scope quick`, escalate to `--scope review` if unresolved after two rounds; (3) any claim typed as `mechanism`, `universality`, or `novelty` in `claim-to-evidence`: recommend `--scope review`; (4) `numerical-validation` status is `needs more validation` with contradictory signals across checks: recommend `--scope quick`; (5) `baseline-strategy` decision was uncertain or contested during dialogue: recommend `--scope quick` before seed-design begins.
 - **Long-Running Computation Hook**: when a simulation, solver, analysis pipeline, parameter sweep, or any script is expected to take more than roughly two minutes, do not block the conversation waiting for it. Run the command with `run_in_background: true` in the Bash tool, then use the `Monitor` tool to stream output and receive a completion notification. If the computation is expected to take longer than five minutes, use `ScheduleWakeup` to fully pause and let the runtime re-wake the session when results are ready — this keeps the context window from filling with polling overhead. On wake-up, read the output files, validate the result, and continue the scientific loop from the next logical step. Record the run command, background task ID, expected output files, and estimated duration in the run's `docs/` notes so the researcher can track job status independently.
 - **Cluster Submission Hook**: Claude runs locally and cannot submit jobs to an HPC cluster directly. When a computation requires cluster resources, follow this pattern: (1) Ask the researcher what cluster they are using and what scheduler, partition/queue, walltime limit, memory per node, CPU count, and GPU availability are available — or run `python scripts/detect_cluster_env.py` on the local machine first to see if a scheduler is reachable. (2) Write an optimized batch script tailored to the reported environment: use the correct scheduler directives (`#SBATCH`, `#PBS`, `#$`, or `#BSUB`), select the appropriate partition or queue, set realistic `--time` and `--mem` values based on the researcher's knowledge of the cluster, request GPUs only when the code uses them, use job arrays (`--array` / `-J` / `-t`) for parameter sweeps, and load required environment modules in the script header. (3) Save the script to the run's `outputs/` or root directory and clearly tell the researcher: the exact file to copy to the cluster, the submission command to run, the output files to retrieve, and what to bring back (stdout log, stderr log, and result files). (4) Wait for the researcher to return with the output. Do not proceed with analysis, validation, or interpretation until the researcher provides the result files. (5) On receiving results, check the scheduler exit code and stderr log for errors before continuing the scientific loop. Record the job parameters, output paths, and any anomalies in the run's `docs/` notes.
 
-The Diagram/Cartographer Agent must maintain a **Live Linked Research Graph**, not just a static loop diagram. Each Professor Orchestrator, Graduate Test-Design Agent, and Coding Subagent should send Cartographer update events when progress or evidence changes. The graph should expose Code links, Result links, and Interpretation links for every important node when those artifacts exist.
-
-Live graph records must include:
-
-- **Link Status**: `fresh`, `stale`, `missing`, `broken`, `pending_review`, or `superseded`.
-- **Evidence Strength**: `none`, `weak`, `moderate`, `strong`, or `contradictory`, supplied by the Professor Orchestrator rather than inferred by the Cartographer.
-- **Claim ceiling**: `observation`, `interpretation`, `mechanism`, `generalization`, or `unsupported`.
-- **Researcher Checkpoint Marker**: whether the researcher must inspect a figure, claim, waiver, anomaly, or stale artifact before progress continues.
-- **Artifact Preview**: thumbnail, table-head, or log-tail hints for result inspection.
-- **Staleness propagation**: code, data, parameter, unit, analysis, or plotting changes must mark dependent figures, tables, captions, claims, manuscript sections, and interpretation links as stale until regenerated or revalidated.
-
-Open issue nodes should represent missing evidence, broken links, failed validation, unresolved anomalies, and unlinked claims. Waivers must remain visible as graph nodes and should lower the claim ceiling when they limit interpretation.
-
-The Professor Orchestrator should hold these stances when starting or reviewing a project:
-
-| Agent stance | Role | Core question |
-|---|---|---|
-| Socratic Interviewer | Questions-only. Never builds. | What are you assuming? |
-| Ontologist | Finds essence, not symptoms. | What is this, really? |
-| Seed Architect | Crystallizes specs from dialogue. | Is this complete and unambiguous? |
-| Evaluator | Performs staged verification. | Did we build the right thing? |
-| Contrarian | Challenges every assumption. | What if the opposite were true? |
-| Hacker | Finds unconventional paths. | What constraints are actually real? |
-| Simplifier | Removes complexity. | What is the simplest thing that could work? |
-| Researcher | Stops coding and starts investigating. | What evidence do we actually have? |
-| Architect | Identifies structural causes. | If we started over, would we build it this way? |
-
-When a reproduction, validation, figure-generation, or other substantial task is complete and visualization artifacts are ready, the Professor Orchestrator must convene a completion conference with all agents: the graduate agents, coding subagents, and Diagram/Cartographer Agent. The final report to the user must summarize the meeting, the workflow state, the visualization materials, evidence links, supported claims, unsupported claims, validation status, and remaining uncertainty.
+The Diagram/Cartographer Agent must maintain a **Live Linked Research Graph** (not just a static loop diagram), with Code/Result/Interpretation links, Link Status, Evidence Strength, Claim ceiling, Researcher Checkpoint markers, Artifact Previews, and staleness propagation. Full schema and the Professor Orchestrator's nine stances + completion-conference rule are in `docs/orchestration_protocol.md`.
 
 ## Core Principles
 
@@ -358,7 +126,7 @@ Use this loop between initial planning and full research execution whenever lite
 7. Use `python scripts/process_paper_for_review.py --run <run-dir> --paper-id <id> --title <title> --pdf <pdf-path>` when the standard scaffold, extraction, and provisional draft should be created in one step.
 8. Maintain clickable links across the literature graph: `literature/index.md` links to PDFs and review notes, review notes link to the index and replanning memo, and extracted text artifacts link back to the source PDF and review note. Keep run-relative code paths alongside Markdown links.
 9. Read the PDFs directly and write detailed, reusable paper review notes in `literature/reviews/`. Each important paper needs a section-by-section paper review, not a short abstract summary. The review should reconstruct research context, key concepts, methods, equations, assumptions, units, limitations, results, reusable details, and claims, and include a `Figure/Table-by-Figure/Table Review` for evidence-bearing artifacts.
-10. Run `python scripts/check_paper_review_quality.py <review-path>` before using a review to update `docs/replanning_memo.md`. Failed checks must be fixed or explicitly waived before novelty or reproduction claims rely on that review.
+10. Run `python scripts/check_paper_review_quality.py <review-path>` before using a review to update `docs/replanning_memo.md`. Failed checks must be fixed or explicitly waived before novelty or reproduction claims rely on that review. Each review must fill in its `Context Summary` block (between the `<!-- context-summary:start -->` and `<!-- context-summary:end -->` markers); after adding or editing reviews, run `python scripts/compile_literature_summary.py --run <run-dir>` to regenerate `literature/summary.md`. Prefer loading `literature/summary.md` for routine replanning and load full review notes only when a specific paper needs deeper inspection — this keeps the Professor Orchestrator's context small.
 11. Build a novelty map comparing the proposed contribution against the reviewed papers. Mark novelty as supported, weak, contradicted, or unverified; unsupported novelty claims must remain unverified.
 12. Select reproduction targets from the literature: the smallest figure, equation, dataset, benchmark, or known limit that should be reproduced before new claims are pursued.
 13. Write or update `docs/replanning_memo.md` with the revised research plan, reproduction target, claim ceiling, validation gates, and open literature questions.

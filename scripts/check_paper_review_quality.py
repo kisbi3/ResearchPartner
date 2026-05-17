@@ -12,6 +12,7 @@ import sys
 
 REQUIRED_SECTIONS = (
     "Review Metadata",
+    "Context Summary",
     "Source Text Extraction",
     "0. Executive Summary",
     "1. Research Context and Motivation",
@@ -38,6 +39,8 @@ REQUIRED_PATTERNS = (
     ),
     ("uncertainty marker", r"확인 필요|unverified"),
     ("reproduction pass/fail criterion", r"Pass/fail criterion:\s*\S"),
+    ("context-summary start marker", r"<!--\s*context-summary:start\s*-->"),
+    ("context-summary end marker", r"<!--\s*context-summary:end\s*-->"),
 )
 
 
