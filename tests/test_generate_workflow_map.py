@@ -103,14 +103,39 @@ def test_live_map_uses_run_root_for_current_process_layout(tmp_path, monkeypatch
     actions = map_data["dashboard"]["actions"]
     assert actions[0]["category"] == "Needs Input"
     assert actions[0]["title"] == "Review Orient Note"
+    assert actions[0]["status"] == "Needs researcher decision"
     assert actions[0]["linked_document"]["label"] == "Orient Note"
+    assert actions[0]["linked_document"]["status"] == "Needs researcher decision"
     assert actions[0]["suggested_command"] == "python scripts/check_orient_recorded.py --run <run-dir>"
     assert actions[0]["why"] == "Confirm the run has a recorded task classification and first researcher-facing question."
+    assert {
+        action["linked_document"]["label"]: action["status"]
+        for action in actions
+        if action["linked_document"]["label"] in {"Meeting Notes", "Live Workflow Diagram"}
+    } == {
+        "Meeting Notes": "Missing document",
+        "Live Workflow Diagram": "Ready to review",
+    }
     summary = map_data["dashboard"]["summary"]
     assert summary == {
-        "needs_input": {"available": 1, "missing": 4, "total": 5},
-        "needs_approval": {"available": 1, "missing": 4, "total": 5},
-        "recommended_review": {"available": 1, "missing": 6, "total": 7},
+        "needs_input": {
+            "ready_to_review": 0,
+            "missing_document": 4,
+            "needs_researcher_decision": 1,
+            "total": 5,
+        },
+        "needs_approval": {
+            "ready_to_review": 0,
+            "missing_document": 4,
+            "needs_researcher_decision": 1,
+            "total": 5,
+        },
+        "recommended_review": {
+            "ready_to_review": 1,
+            "missing_document": 6,
+            "needs_researcher_decision": 0,
+            "total": 7,
+        },
     }
 
 
@@ -233,8 +258,12 @@ def test_live_map_html_mentions_process_tracking_not_claim_evidence():
     assert "data-action" in html
     assert "renderActionQueue" in html
     assert "Dashboard Summary" in html
+    assert html.index("<h2>Dashboard Summary</h2>") < html.index("<h2>Action Queue</h2>")
     assert "action-group" in html
-    assert "Select an action above" in html
+    assert "Next action: Review" in html
+    assert "Select an action" in html
+    assert ".slice(0, 4)" not in html
+    assert "activeAction = firstActionId(currentMap())" in html
     assert "renderDashboard(map)" not in html
 
 
@@ -247,6 +276,12 @@ def test_embedded_workflow_data_remains_valid_json():
     assert match is not None
     embedded = json.loads(match.group("data"))
     assert embedded["maps"][0]["dashboard"]["actions"][0]["linked_document"]["label"] == "Orient Note"
+    statuses = {
+        action["status"]
+        for action in embedded["maps"][0]["dashboard"]["actions"]
+    }
+    assert "available" not in statuses
+    assert "missing" not in statuses
 
 
 def test_cartographer_update_events_create_linked_research_graph(tmp_path, monkeypatch):

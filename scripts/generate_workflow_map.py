@@ -117,6 +117,22 @@ ACTION_GUIDANCE = {
 }
 
 
+def dashboard_status_label(group_id: str, exists: bool) -> str:
+    if not exists:
+        return "Missing document"
+    if group_id in {"needs_input", "needs_approval"}:
+        return "Needs researcher decision"
+    return "Ready to review"
+
+
+def dashboard_summary_key(status: str) -> str:
+    return {
+        "Ready to review": "ready_to_review",
+        "Missing document": "missing_document",
+        "Needs researcher decision": "needs_researcher_decision",
+    }[status]
+
+
 def relative_href(path: str) -> str:
     source = ROOT / path
     return source.relative_to(OUTPUT.parent).as_posix() if source.is_relative_to(OUTPUT.parent) else Path("..", path).as_posix()
@@ -156,11 +172,12 @@ def dashboard_document_groups(run_root: Path, base_dir: Path | None = None) -> l
         for label, candidates in group["documents"]:
             candidate_paths = [run_root / candidate for candidate in candidates]
             selected = next((path for path in candidate_paths if path.exists()), candidate_paths[0])
+            exists = selected.exists()
             documents.append(
                 {
                     "label": label,
                     "path": run_relative_path(selected, base_dir),
-                    "status": "available" if selected.exists() else "missing",
+                    "status": dashboard_status_label(group["id"], exists),
                 }
             )
         groups.append(
@@ -207,11 +224,16 @@ def dashboard_actions(document_groups: list[dict]) -> list[dict]:
 def dashboard_summary(document_groups: list[dict]) -> dict:
     summary = {}
     for group in document_groups:
-        available = sum(1 for doc in group["documents"] if doc["status"] == "available")
+        counts = {
+            "ready_to_review": 0,
+            "missing_document": 0,
+            "needs_researcher_decision": 0,
+        }
+        for doc in group["documents"]:
+            counts[dashboard_summary_key(doc["status"])] += 1
         total = len(group["documents"])
         summary[group["id"]] = {
-            "available": available,
-            "missing": total - available,
+            **counts,
             "total": total,
         }
     return summary
@@ -827,6 +849,7 @@ def build_html(data: dict) -> str:
       margin-bottom: 2px;
     }}
     .summary-pill span {{
+      display: block;
       color: var(--muted);
       font-size: 12px;
     }}
@@ -843,6 +866,11 @@ def build_html(data: dict) -> str:
       margin-bottom: 10px;
       color: var(--muted);
       font-size: 12px;
+    }}
+    .next-action {{
+      margin: 10px 0;
+      font-size: 13px;
+      font-weight: 700;
     }}
     .action-groups {{
       display: grid;
@@ -1004,7 +1032,7 @@ def build_html(data: dict) -> str:
     const DATA = __DATA__;
     let activeMap = DATA.maps[0].id;
     let activeNode = DATA.maps[0].nodes[0].id;
-    let activeAction = null;
+    let activeAction = firstActionId(currentMap());
 
     function pathHref(path) {{
       const map = currentMap();
@@ -1025,6 +1053,11 @@ def build_html(data: dict) -> str:
 
     function currentMap() {{
       return DATA.maps.find(map => map.id === activeMap);
+    }}
+
+    function firstActionId(map) {{
+      const actions = (((map || {{}}).dashboard || {{}}).actions || []);
+      return actions.length ? actions[0].id : null;
     }}
 
     function currentNode() {{
@@ -1052,12 +1085,43 @@ def build_html(data: dict) -> str:
         button.className = map.id === activeMap ? 'active' : '';
         button.addEventListener('click', () => {{
           activeMap = map.id;
-          activeNode = map.nodes[0].id;
-          activeAction = null;
+          const selectedMap = currentMap();
+          activeNode = selectedMap.nodes[0].id;
+          activeAction = firstActionId(selectedMap);
           render();
         }});
         tabs.appendChild(button);
       }});
+    }}
+
+    function renderDashboardSummary(map, headingHtml) {{
+      const dashboard = map.dashboard;
+      if (!dashboard || !dashboard.summary) return '';
+      const groups = dashboard.document_groups || [];
+      const pills = groups.map(group => {{
+        const item = dashboard.summary[group.id] || {{
+          ready_to_review: 0,
+          missing_document: 0,
+          needs_researcher_decision: 0,
+          total: 0
+        }};
+        const primary = item.needs_researcher_decision
+          ? item.needs_researcher_decision + ' decision'
+          : item.ready_to_review + ' ready';
+        return `
+          <div class="summary-pill">
+            <strong>${{escapeHtml(primary)}}</strong>
+            <span>${{escapeHtml(group.title)}}</span>
+            <span>${{escapeHtml(item.missing_document + ' missing · ' + item.total + ' total')}}</span>
+          </div>
+        `;
+      }}).join('');
+      return `
+        <div class="section dashboard-summary">
+          ${{headingHtml || '<h3>Dashboard Summary</h3>'}}
+          <div class="summary-grid">${{pills}}</div>
+        </div>
+      `;
     }}
 
     function renderActionQueue() {{
@@ -1066,16 +1130,21 @@ def build_html(data: dict) -> str:
       const actions = dashboard.actions || [];
       const queue = document.getElementById('actionQueue');
       if (!actions.length) {{
-        queue.innerHTML = '<h2>Action Queue</h2><p class="meta">No researcher-facing actions are recorded for this run.</p>';
+        queue.innerHTML = `${{renderDashboardSummary(map, '<h2>Dashboard Summary</h2>')}}
+          <h2>Action Queue</h2>
+          <p class="meta">No researcher-facing actions are recorded for this run.</p>`;
         return;
       }}
       const groups = dashboard.document_groups || [];
+      const selectedAction = currentAction() || actions[0];
       queue.innerHTML = `
+        ${{renderDashboardSummary(map, '<h2>Dashboard Summary</h2>')}}
+        <div class="next-action">Next action: Review ${{escapeHtml(selectedAction.linked_document.label)}}</div>
         <h2>Action Queue</h2>
-        <div class="action-help">Select one item to inspect the source document and next command.</div>
+        <div class="action-help">Select an action to inspect the source document and next command.</div>
         <div class="action-groups">
           ${{groups.map(group => {{
-            const groupActions = actions.filter(action => action.priority === group.id).slice(0, 4);
+            const groupActions = actions.filter(action => action.priority === group.id);
             return `
               <div class="action-group">
                 <div class="action-group-title">${{escapeHtml(group.title)}}</div>
@@ -1159,6 +1228,7 @@ def build_html(data: dict) -> str:
       if (action) {{
         const doc = action.linked_document || {{}};
         document.getElementById('details').innerHTML = `
+          <div class="next-action">Next action: Review ${{escapeHtml((action.linked_document || {{}}).label || 'linked document')}}</div>
           <h2>${{escapeHtml(action.title)}}</h2>
           <div class="meta">${{escapeHtml(action.category)}} / ${{escapeHtml(action.status || 'unknown')}}</div>
           <p>${{escapeHtml(action.why || '')}}</p>
@@ -1221,27 +1291,6 @@ def build_html(data: dict) -> str:
             </div>
           `).join('')}}</div>`
         : `<p class="meta">${{escapeHtml(emptyText)}}</p>`;
-      const renderDashboardSummary = (map) => {{
-        const dashboard = map.dashboard;
-        if (!dashboard || !dashboard.summary) return '';
-        const groups = dashboard.document_groups || [];
-        const pills = groups.map(group => {{
-          const item = dashboard.summary[group.id] || {{available: 0, missing: 0, total: 0}};
-          return `
-            <div class="summary-pill">
-              <strong>${{escapeHtml(item.available + '/' + item.total)}}</strong>
-              <span>${{escapeHtml(group.title)}}</span>
-            </div>
-          `;
-        }}).join('');
-        return `
-          <div class="section">
-            <h3>Dashboard Summary</h3>
-            <div class="summary-grid">${{pills}}</div>
-            <p class="meta">Select an action above to inspect the linked document and suggested next command.</p>
-          </div>
-        `;
-      }};
       const checks = (node.checks || []).map(check => `<li>${{escapeHtml(check)}}</li>`).join('');
       const resultEntries = Object.entries(node.result_summary || {{}});
       const resultMarkup = resultEntries.length
