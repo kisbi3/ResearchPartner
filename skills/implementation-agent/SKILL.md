@@ -64,6 +64,20 @@ If the specification is incomplete:
 - Apply the most conservative interpretation (smallest scope, simplest method).
 - Flag for Graduate Student review.
 
+## Spawn Log
+
+Before reporting back, append one row to `docs/gates/agent_spawn_log.md`
+(create the file with header if it does not exist):
+
+```
+| Date | Role | File | Task | Status |
+|---|---|---|---|---|
+| YYYY-MM-DD | implementation | src/<filename>.py | <task one-liner> | complete |
+```
+
+Use `complete` on success or `failed: <reason>` on failure. This log is read
+by `write_stage_checkpoint.py` to verify cross-tier compliance at stage close.
+
 ## Output Format
 
 Report back to Graduate Student:
@@ -78,6 +92,7 @@ Report back to Graduate Student:
 - **Outputs produced**: (file paths the script will write when run)
 - **Implementation decisions**: (any choices made where spec was ambiguous)
 - **Reproducibility**: seed = <value> / deterministic / N/A
+- **Spawn log**: entry written to `docs/gates/agent_spawn_log.md`
 - **Ready to validate**: yes
 ```
 

@@ -26,6 +26,50 @@ import sys
 from pathlib import Path
 
 
+def detect_cross_tier_compliance(run_dir: Path) -> dict:
+    """Count src/*.py files vs Implementation Agent spawn log entries."""
+    src_dir = run_dir / "src"
+    src_files = sorted(src_dir.glob("*.py")) if src_dir.is_dir() else []
+    src_count = len(src_files)
+
+    spawn_log = run_dir / "docs" / "gates" / "agent_spawn_log.md"
+    impl_spawns = 0
+    has_log = spawn_log.is_file()
+    if has_log:
+        for line in spawn_log.read_text(encoding="utf-8").splitlines():
+            cells = [c.strip() for c in line.strip().strip("|").split("|")]
+            if len(cells) >= 2 and cells[1].lower() == "implementation" and cells[0] != "Date":
+                impl_spawns += 1
+
+    if not has_log and src_count == 0:
+        status = "— no src/ files and no spawn log"
+        verdict = "n/a"
+    elif not has_log:
+        status = f"⚠ {src_count} src/ file(s) found but no spawn log — compliance unknown"
+        verdict = "unknown"
+    elif src_count == 0:
+        status = "— no src/ files in this stage"
+        verdict = "n/a"
+    elif impl_spawns >= src_count:
+        status = f"✓ {impl_spawns} Implementation Agent spawn(s) ≥ {src_count} src/ file(s)"
+        verdict = "pass"
+    else:
+        gap = src_count - impl_spawns
+        status = (
+            f"⚠ {gap} src/ file(s) may have been written directly "
+            f"(spawns {impl_spawns} < files {src_count})"
+        )
+        verdict = "warn"
+
+    return {
+        "src_count": src_count,
+        "impl_spawns": impl_spawns,
+        "has_log": has_log,
+        "status": status,
+        "verdict": verdict,
+    }
+
+
 def discover_outputs(run_dir: Path, limit: int = 40) -> list[tuple[str, int]]:
     outputs = run_dir / "outputs"
     if not outputs.is_dir():
@@ -55,7 +99,13 @@ def format_size(n: int) -> str:
 
 
 def build_checkpoint(
-    *, run_dir: Path, stage: int, title: str, today: str, outputs: list[tuple[str, int]]
+    *,
+    run_dir: Path,
+    stage: int,
+    title: str,
+    today: str,
+    outputs: list[tuple[str, int]],
+    compliance: dict,
 ) -> str:
     title_line = f"Stage {stage}" + (f" — {title}" if title else "")
     output_table = ["| File | Size |", "|---|---|"]
@@ -115,6 +165,19 @@ the design is too coupled and the stage boundary should be reconsidered.
 
 - <one bullet per unresolved item; link to anomaly log entry if any>
 
+## Cross-Tier Compliance
+
+| Metric | Count |
+|---|---|
+| `src/*.py` files this stage | {compliance['src_count']} |
+| Implementation Agent spawns (spawn log) | {compliance['impl_spawns']} |
+
+Status: {compliance['status']}
+
+> Every `src/` file should be written by a spawned Implementation Agent, not
+> directly by the Professor or Graduate Student. Spawn records are in
+> `docs/gates/agent_spawn_log.md`. Verdict: **{compliance['verdict']}**.
+
 ## Notes for Reuse
 
 - Reusable artifacts: <scripts, recipes, benchmarks created in this stage>
@@ -122,7 +185,7 @@ the design is too coupled and the stage boundary should be reconsidered.
 """
 
 
-def write_checkpoint(*, run_dir: Path, stage: int, title: str, force: bool) -> Path:
+def write_checkpoint(*, run_dir: Path, stage: int, title: str, force: bool, skip_compliance: bool = False) -> Path:
     checkpoints = run_dir / "docs" / "checkpoints"
     checkpoints.mkdir(parents=True, exist_ok=True)
     output = checkpoints / f"stage_{stage}_checkpoint.md"
@@ -130,9 +193,20 @@ def write_checkpoint(*, run_dir: Path, stage: int, title: str, force: bool) -> P
         raise FileExistsError(f"{output} already exists (use --force to overwrite)")
     today = dt.date.today().isoformat()
     outputs = discover_outputs(run_dir)
+    compliance = (
+        {"src_count": 0, "impl_spawns": 0, "has_log": False,
+         "status": "— compliance check skipped (--no-compliance)", "verdict": "skipped"}
+        if skip_compliance
+        else detect_cross_tier_compliance(run_dir)
+    )
     output.write_text(
         build_checkpoint(
-            run_dir=run_dir, stage=stage, title=title, today=today, outputs=outputs
+            run_dir=run_dir,
+            stage=stage,
+            title=title,
+            today=today,
+            outputs=outputs,
+            compliance=compliance,
         ),
         encoding="utf-8",
     )
@@ -145,6 +219,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--stage", type=int, required=True, help="Stage number (e.g. 2).")
     parser.add_argument("--title", type=str, default="", help="Optional short stage title.")
     parser.add_argument("--force", action="store_true", help="Overwrite existing checkpoint.")
+    parser.add_argument(
+        "--no-compliance",
+        action="store_true",
+        help="Skip cross-tier compliance check (for harness-only or non-research runs).",
+    )
     return parser.parse_args(argv)
 
 
@@ -152,7 +231,11 @@ def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
     try:
         path = write_checkpoint(
-            run_dir=args.run.resolve(), stage=args.stage, title=args.title, force=args.force
+            run_dir=args.run.resolve(),
+            stage=args.stage,
+            title=args.title,
+            force=args.force,
+            skip_compliance=args.no_compliance,
         )
     except FileExistsError as exc:
         print(f"error: {exc}", file=sys.stderr)
