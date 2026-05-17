@@ -83,12 +83,11 @@ def test_create_run_copies_templates_and_initial_docs(tmp_path):
 
     workflow = (run_path / "docs" / "process" / "live_workflow_diagram.md").read_text(encoding="utf-8")
     packet = (run_path / "research_run_packet.md").read_text(encoding="utf-8")
-    assert "Diagram/Cartographer Agent" in workflow
+    assert "Cartographer (hook-driven, not spawned)" in workflow
     assert "Cartographer Update Events" in workflow
-    assert "Link Status" in workflow
-    assert "Evidence Strength" in workflow
-    assert "Researcher Checkpoint Marker" in workflow
-    assert "Artifact Preview" in workflow
+    # Enum vocabularies live in docs/orchestration_protocol.md (dedup commit 6ec4836);
+    # the live template now references them rather than duplicating them.
+    assert "orchestration_protocol.md" in workflow
     assert "Completion Conference" in packet
     assert "Live Linked Research Graph" in packet
     assert "Literature Replanning Loop" in packet

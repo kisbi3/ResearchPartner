@@ -2,7 +2,7 @@
 # ============================================================
 # Copy this file to <run_dir>/config/agent_models.yaml to
 # override the default model for each agent role.
-# The Professor Orchestrator reads this file before spawning.
+# The Lead Agent reads this file before spawning.
 #
 # Available values:
 #   "opus"   — most capable. Complex reasoning, design decisions.

@@ -18,7 +18,7 @@ Reviewed whether `README.md` describes the current skill library under `skills/*
 
 The skill frontmatter describes it as:
 
-> Use after task-intake to run a free-form brainstorming dialogue between the Professor Orchestrator and the researcher. The professor probes assumptions, challenges framing, and crystallizes the research question before Specify, Seed, or literature work begins. This is the Interview phase.
+> Use after task-intake to run a free-form brainstorming dialogue between the Lead Agent and the researcher. The professor probes assumptions, challenges framing, and crystallizes the research question before Specify, Seed, or literature work begins. This is the Interview phase.
 
 This omission matters because `task-intake` routes most substantive research tasks to `professor-interview` as the next skill, so the README skips a core Orient-to-Interview transition.
 
@@ -33,11 +33,11 @@ Add `professor-interview` to the Installed Skills table in both `README.md` and 
 Suggested English row:
 
 ```markdown
-| `professor-interview` | After task-intake — Professor Orchestrator interviews the researcher to surface assumptions, challenge framing, and crystallize the research question before Specify, Seed, or literature work begins |
+| `professor-interview` | After task-intake — Lead Agent interviews the researcher to surface assumptions, challenge framing, and crystallize the research question before Specify, Seed, or literature work begins |
 ```
 
 Suggested Korean row:
 
 ```markdown
-| `professor-interview` | task-intake 이후 — Professor Orchestrator가 연구자와 인터뷰하여 가정과 프레이밍을 점검하고 Specify, Seed, 문헌 작업 전에 연구 질문을 구체화할 때 |
+| `professor-interview` | task-intake 이후 — Lead Agent가 연구자와 인터뷰하여 가정과 프레이밍을 점검하고 Specify, Seed, 문헌 작업 전에 연구 질문을 구체화할 때 |
 ```

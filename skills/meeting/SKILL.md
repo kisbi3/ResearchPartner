@@ -23,8 +23,8 @@ Use this skill whenever "does this make sense?" cannot be answered reliably alon
 
 | Scope | Participants | When to use |
 |---|---|---|
-| `quick` | Professor Orchestrator | Fast sanity check. One question, one challenger. Under 10 minutes. |
-| `review` | Professor Orchestrator + Peer-Review Professor | A specific claim or result needs adversarial scrutiny. |
+| `quick` | Lead Agent | Fast sanity check. One question, one challenger. Under 10 minutes. |
+| `review` | Lead Agent + Peer-Review Professor | A specific claim or result needs adversarial scrutiny. |
 | `full` | Professor + Peer-Review Professor + Graduate Students | High-stakes decision affecting the core claim or research direction. |
 
 ## Permission Hierarchy
@@ -32,10 +32,10 @@ Use this skill whenever "does this make sense?" cannot be answered reliably alon
 | Convener | Allowed scopes | Notes |
 |---|---|---|
 | Graduate Student | `quick` only | Can request a meeting with the professor. Cannot convene a panel alone. |
-| Professor Orchestrator | `quick`, `review` | Can add the Peer-Review Professor. Cannot add the researcher directly. |
+| Lead Agent | `quick`, `review` | Can add the Peer-Review Professor. Cannot add the researcher directly. |
 | Researcher | Any scope | Can convene any combination. May add custom participants beyond the defaults. |
 
-When a graduate student needs a `review` or `full` meeting, they escalate to the Professor Orchestrator, who then convenes it.
+When a graduate student needs a `review` or `full` meeting, they escalate to the Lead Agent, who then convenes it.
 
 ## Shared Context
 
@@ -68,7 +68,7 @@ The convener states:
 Each participant gets one uninterrupted turn per round. Turn order:
 
 1. **Graduate Student** (if present) — presents the work and the current best answer to `--on`
-2. **Professor Orchestrator** — Socratic or Contrarian challenge
+2. **Lead Agent** — Socratic or Contrarian challenge
 3. **Peer-Review Professor** (if present) — adversarial review using the stances defined in `skills/peer-review-professor/SKILL.md`
 
 Rounds continue until all objections are addressed or a disagreement is explicitly documented.

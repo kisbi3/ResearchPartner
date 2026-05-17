@@ -4,7 +4,7 @@ This directory holds repository-level templates for the literature replanning lo
 
 ## Purpose
 
-Use this workspace before full research execution when literature access, novelty, or reproduction targets matter. The Professor Orchestrator requests PDFs from the researcher because the LLM may not have access to paywalled papers, institutional subscriptions, or local library holdings.
+Use this workspace before full research execution when literature access, novelty, or reproduction targets matter. The Lead Agent requests PDFs from the researcher because the LLM may not have access to paywalled papers, institutional subscriptions, or local library holdings.
 
 ## Run-Local Layout
 

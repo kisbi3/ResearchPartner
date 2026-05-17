@@ -1,5 +1,8 @@
 # Run Templates Design
 
+> **Historical design doc.** This describes the original 3-tier Professor-Orchestrator design from 2026-05-14. The current implementation absorbs that role into the **Lead Agent** (main conversation context); see [docs/orchestration_protocol.md](../../orchestration_protocol.md) for the current 2-tier spawn hierarchy. Terminology in this file is kept as written to preserve design history.
+
+
 ## Scope
 
 This design adds lightweight run-level templates for the professor-led orchestration protocol. It avoids a large template family and keeps only the artifacts that should be reused during real research runs.

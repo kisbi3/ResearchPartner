@@ -59,7 +59,7 @@ Expected blocked behavior:
 - Do not treat the live Mermaid or workflow artifact as evidence for a scientific claim.
 - Do not strengthen claims, infer mechanisms, or convert preliminary observations into conclusions through diagram wording.
 - Do not continue past a baseline, validation, claim, or researcher-review gate without marking the gate status and next checkpoint.
-- Do not let the Diagram/Cartographer Agent give project opinions. It must listen to the Professor Orchestrator, Graduate Test-Design Agents, and Coding Subagents, then record workflow state only.
+- Do not let the Cartographer (hook-driven, not spawned) give project opinions. It must listen to the Lead Agent, Graduate Test-Design Agents, and Coding Subagents, then record workflow state only.
 
 ## Scenario 0B: Professor Orchestration
 
@@ -86,7 +86,7 @@ Expected docs:
 
 Expected blocked behavior:
 
-- Do not start coding before the Professor Orchestrator has clarified assumptions, evidence needs, reproduction fidelity, and claim discipline.
+- Do not start coding before the Lead Agent has clarified assumptions, evidence needs, reproduction fidelity, and claim discipline.
 - Do not skip the Socratic Interviewer, Ontologist, Seed Architect, Evaluator, Contrarian, Hacker, Simplifier, Researcher, and Architect stances when they are relevant to project start or review.
 
 ## Scenario 0C: Graduate Test-Design Agents
@@ -140,7 +140,7 @@ Expected docs:
 Expected blocked behavior:
 
 - Do not let Coding Subagents decide that a result supports a stronger scientific claim.
-- Do not convert successful execution, visual agreement, or a generated figure into a mechanism claim without Professor Orchestrator evaluation and claim-to-evidence review.
+- Do not convert successful execution, visual agreement, or a generated figure into a mechanism claim without Lead Agent evaluation and claim-to-evidence review.
 
 ## Scenario 0E: Completion Conference Reporting
 
@@ -166,8 +166,8 @@ Expected docs:
 
 Expected blocked behavior:
 
-- Do not finish a substantial reproduction, validation, or figure-generation task without a Professor Orchestrator completion conference with all agents.
-- Do not omit the Diagram/Cartographer Agent's workflow state.
+- Do not finish a substantial reproduction, validation, or figure-generation task without a Lead Agent completion conference with all agents.
+- Do not omit the Cartographer (hook-driven, not spawned)'s workflow state.
 - Do not omit visualization materials, evidence links, supported claims, unsupported claims, validation status, failures, caveats, remaining uncertainty, and the next researcher decision.
 
 ## Scenario 0F: Hook-Aware Scientific Loop

@@ -8,10 +8,10 @@ Use this packet for substantial research plans, reproduction attempts, validatio
 - Date:
 - Research question:
 - Physical system, model, or dataset:
-- Professor Orchestrator:
+- Lead Agent:
 - Graduate Test-Design Agents:
 - Coding Subagents:
-- Diagram/Cartographer Agent:
+- Cartographer (hook-driven, not spawned):
 
 ## Interview
 
@@ -51,7 +51,7 @@ Record only decision-relevant dialogue, not a full transcript.
 
 ## Literature Replanning Loop
 
-Use this before full execution when novelty, reproduction targets, or prior methods affect the plan. The Professor Orchestrator requests researcher-provided PDFs when papers are behind institutional access or otherwise unavailable to the LLM.
+Use this before full execution when novelty, reproduction targets, or prior methods affect the plan. The Lead Agent requests researcher-provided PDFs when papers are behind institutional access or otherwise unavailable to the LLM.
 
 ### Paper Request and Intake
 
@@ -124,10 +124,10 @@ Convene this after a reproduction, validation, figure-generation, or other subst
 
 | Agent | Reported Evidence | Concern | Decision Needed |
 |---|---|---|---|
-| Professor Orchestrator |  |  |  |
+| Lead Agent |  |  |  |
 | Graduate Test-Design Agents |  |  |  |
 | Coding Subagents |  |  |  |
-| Diagram/Cartographer Agent |  |  |  |
+| Cartographer (hook-driven, not spawned) |  |  |  |
 
 ## Visualization Materials
 

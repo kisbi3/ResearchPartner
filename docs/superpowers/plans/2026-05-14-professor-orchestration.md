@@ -1,5 +1,8 @@
 # Professor Orchestration Implementation Plan
 
+> **Historical design doc.** This describes the original 3-tier Professor-Orchestrator design from 2026-05-14. The current implementation absorbs that role into the **Lead Agent** (main conversation context); see [docs/orchestration_protocol.md](../../orchestration_protocol.md) for the current 2-tier spawn hierarchy. Terminology in this file is kept as written to preserve design history.
+
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Add a documented professor-led orchestration protocol, graduate test-design agents, bounded coding subagents, a non-opinionated Diagram/Cartographer Agent, and harness evaluation coverage.

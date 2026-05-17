@@ -3,7 +3,7 @@
 
 Cross-tier rule (from docs/orchestration_protocol.md): every src/*.py file
 in a research run must be written by a spawned Implementation Agent, not by
-the Professor Orchestrator or Graduate Student directly. This hook enforces
+the Lead Agent or Graduate Student directly. This hook enforces
 that at write time.
 
 The Implementation Agent records its activation in

@@ -23,7 +23,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import update_workflow_diagram as uwd  # noqa: E402
 
 
-AGENT_NAME = "professor-orchestrator"
+AGENT_NAME = "lead-agent"
 MAX_STEP_LEN = 100
 
 

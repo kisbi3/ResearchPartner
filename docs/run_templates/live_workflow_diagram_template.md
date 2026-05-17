@@ -1,8 +1,8 @@
 # Live Workflow Diagram Template
 
-Use this file as the Diagram/Cartographer Agent's live artifact for a substantial research run.
+Use this file as the Cartographer (hook-driven, not spawned)'s live artifact for a substantial research run.
 
-The Diagram/Cartographer Agent listens to the Professor Orchestrator, Graduate Test-Design Agents, and Coding Subagents. It does not give project opinions, infer mechanisms, judge scientific meaning, or strengthen claims. This artifact records process state only.
+The Cartographer (hook-driven, not spawned) listens to the Lead Agent, Graduate Test-Design Agents, and Coding Subagents. It does not give project opinions, infer mechanisms, judge scientific meaning, or strengthen claims. This artifact records process state only.
 
 ## Active Step
 
@@ -65,7 +65,7 @@ python scripts/update_workflow_diagram.py --event start --step "..." --agent "..
 
 ## Cartographer Update Events
 
-Agents should send small update packets here whenever their work changes workflow state. The Diagram/Cartographer Agent records these packets as live linked research graph nodes. It must not infer scientific meaning or strengthen claims.
+Agents should send small update packets here whenever their work changes workflow state. The Cartographer (hook-driven, not spawned) records these packets as live linked research graph nodes. It must not infer scientific meaning or strengthen claims.
 
 The allowed node types, relations, link-status values, evidence-strength values, and claim-ceiling values are defined once in [`docs/orchestration_protocol.md`](../../../docs/orchestration_protocol.md#live-linked-research-graph) — do not duplicate the enums here. Use `requires_researcher_review: true` as the Researcher Checkpoint Marker when the researcher should inspect a result, waiver, anomaly, or claim before the next step.
 

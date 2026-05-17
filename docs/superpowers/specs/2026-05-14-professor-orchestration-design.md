@@ -1,5 +1,8 @@
 # Professor Orchestration Design
 
+> **Historical design doc.** This describes the original 3-tier Professor-Orchestrator design from 2026-05-14. The current implementation absorbs that role into the **Lead Agent** (main conversation context); see [docs/orchestration_protocol.md](../../orchestration_protocol.md) for the current 2-tier spawn hierarchy. Terminology in this file is kept as written to preserve design history.
+
+
 ## Scope
 
 This design adds a multi-agent operating protocol to the Research Partner harness. The change starts with documentation and harness-evaluation coverage, not a full executable agent runtime.

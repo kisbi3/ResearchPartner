@@ -8,7 +8,7 @@ Use this run-local index to keep the literature set navigable. Add every request
 
 ## Review Status Legend
 
-- `requested`: Professor Orchestrator asked the researcher for the PDF.
+- `requested`: Lead Agent asked the researcher for the PDF.
 - `received`: PDF is present but not reviewed.
 - `reading`: review is in progress.
 - `reviewed`: detailed section-by-section paper review exists.

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Claim-ceiling promotion gate.
 
-Before the Professor Orchestrator promotes a run's claim ceiling above
+Before the Lead Agent promotes a run's claim ceiling above
 ``observation``, the validation evidence must justify it. This script reads
 ``<run>/docs/gates/validation_log.md`` (a Markdown table with a Status
 column) and counts ``pass`` entries; it refuses promotions whose pass count

@@ -21,14 +21,14 @@ Invoke this skill when any of the following occurs:
 - A prohibited behavior is avoided (gate enforced)
 - An anomaly is logged
 - A completion conference is held
-- A waiver is issued by the Professor Orchestrator
+- A waiver is issued by the Lead Agent
 
 ## Update Fields
 
 For each update, record:
 
 1. **Timestamp**: ISO date or session marker.
-2. **Agent**: which role is sending this update (Professor Orchestrator / Graduate Test-Design Agent / Coding Subagent / Cartographer).
+2. **Agent**: which role is sending this update (Lead Agent / Graduate Test-Design Agent / Coding Subagent / Cartographer).
 3. **Active step**: the current loop phase.
 4. **Gate change**: which gate changed and to what status — `open`, `blocked`, `waived`, or `passed`.
 5. **Evidence link**: new or changed link (code / result / interpretation); include file path and link status (`fresh`, `stale`, `missing`, `broken`, `pending_review`, `superseded`).
@@ -40,7 +40,7 @@ For each update, record:
 
 Waivers must never be silent. Every waiver recorded in `seed-design`, `baseline-validation`, or any other skill must appear in the live workflow graph as a persistent node until the gate it bypassed is either:
 
-- formally validated and the waiver closed by the Professor Orchestrator, or
+- formally validated and the waiver closed by the Lead Agent, or
 - explicitly acknowledged by the researcher as permanent.
 
 A waiver node must carry all of the following:
@@ -51,7 +51,7 @@ A waiver node must carry all of the following:
 - Claim ceiling imposed by the waiver
 - Required follow-up validation
 
-The Professor Orchestrator, not the Cartographer, determines when a waiver may be closed. A closed waiver must still appear in the historical record.
+The Lead Agent, not the Cartographer, determines when a waiver may be closed. A closed waiver must still appear in the historical record.
 
 ## Staleness Propagation Rules
 
@@ -60,9 +60,9 @@ When code, data, parameters, units, analysis, or plotting change:
 1. Mark all figures that depend on the changed artifact as `stale`.
 2. Mark all captions, tables, and manuscript sections that reference those figures as `stale`.
 3. Mark all interpretation links and claim-to-evidence entries that depend on those artifacts as `pending_review`.
-4. Lower the overall claim ceiling to `observation` until the Professor Orchestrator reviews and upgrades it.
+4. Lower the overall claim ceiling to `observation` until the Lead Agent reviews and upgrades it.
 
-Do not resolve staleness automatically. Only the Professor Orchestrator can move a `stale` artifact to `fresh` after verifying or regenerating it.
+Do not resolve staleness automatically. Only the Lead Agent can move a `stale` artifact to `fresh` after verifying or regenerating it.
 
 ## Gate Enforcement Record
 
@@ -70,9 +70,9 @@ When a gate blocks progress (rather than being waived), record:
 
 - Which gate blocked
 - Why it blocked (what was missing)
-- What the researcher or Professor Orchestrator must provide to unblock
+- What the researcher or Lead Agent must provide to unblock
 
-Do not unblock a gate without explicit Professor Orchestrator authorization. Unresolved blocks must remain visible in the live graph as open issue nodes.
+Do not unblock a gate without explicit Lead Agent authorization. Unresolved blocks must remain visible in the live graph as open issue nodes.
 
 ## Live Workflow Artifact
 

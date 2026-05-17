@@ -158,9 +158,9 @@ Orient -> Interview -> Specify -> Seed -> Validate -> Execute -> Evaluate -> Rev
 | 연구자 | 코딩을 멈추고 조사를 시작함. | "우리에게 실제로 있는 증거는 무엇입니까?" |
 | 아키텍트 | 구조적 원인을 파악함. | "우리가 처음부터 다시 시작한다면, 이런 방식으로 구축했을까요?" |
 
-이러한 스탠스들은 다섯 가지 운영 역할을 지원합니다. 교수 오케스트레이터(Professor Orchestrator)는 과학적 판단과 주장 규율을 담당합니다. 피어 리뷰 교수(Peer-Review Professor)는 `meeting` 세션에서만 활성화되는 외부 대립 검토자로, 프로젝트 히스토리 없이 라이브 워크플로 다이어그램과 공유된 artifact만 보고 주장의 허점을 찾습니다. 대학원생 테스트 설계 에이전트(Graduate Test-Design Agents)는 계획을 검증 작업으로 변환합니다. 코딩 하위 에이전트(Coding Subagents)는 검증 전략이 명확해진 후에만 제한된 구현을 실행합니다. 다이어그램/지도 제작자 에이전트(Diagram/Cartographer Agent)는 의견을 더하거나 주장을 강화하지 않고 워크플로우 상태만 기록합니다.
+이러한 스탠스들은 다섯 가지 운영 역할을 지원합니다. Lead Agent(메인 대화 컨텍스트, *spawn되는 별도 subagent가 아님*)는 과학적 판단과 주장 규율을 담당합니다. 피어 리뷰 교수(Peer-Review Professor)는 `meeting --scope review` 세션에서만 spawn되는 외부 대립 검토자로, 프로젝트 히스토리 없이 라이브 워크플로 다이어그램과 공유된 artifact만 보고 주장의 허점을 찾습니다. 대학원생 테스트 설계 에이전트(Graduate Test-Design Agents)는 계획을 검증 작업으로 변환합니다. 코딩 하위 에이전트(Coding Subagents)는 검증 전략이 명확해진 후에만 제한된 구현을 실행합니다. Cartographer(spawn되지 않음 — `scripts/workflow_hooks.py`와 `cartographer-update` SKILL로 자동 기록)는 의견을 더하거나 주장을 강화하지 않고 워크플로우 상태만 기록합니다.
 
-큰 작업에서는 이 역할들이 *실제로 별도의 에이전트를 `Agent()` 도구로 spawn*하면서 강제됩니다 — 하나의 에이전트가 내부 페르소나를 바꿔 가며 흉내 내는 방식이 아닙니다. 구체적인 3계층 구조는 다음과 같습니다: **Professor Orchestrator** → **Graduate Student Agent(s)** (seed task 한 개당 한 명, 독립 task는 병렬 spawn) → **Implementation Agent** + **Scientific Validator** + **Cache-Log Auditor** (각 Graduate Student가 필요에 따라 spawn). Graduate Student는 task *유형*이 아니라 *단일 task instance*에 묶입니다 — "baseline 학생"과 "scan 학생"의 구분은 없습니다. spawn block 템플릿과 cross-tier 금지 규칙은 `AGENTS.md`의 "Agent Spawning Protocol" 섹션을 참조하세요.
+큰 작업에서는 Lead Agent 아래의 spawn 역할들이 *실제로 별도의 에이전트를 `Agent()` 도구로 spawn*하면서 강제됩니다 — 하나의 에이전트가 내부 페르소나를 바꿔 가며 흉내 내는 방식이 아닙니다. Lead Agent는 메인 컨텍스트 자체이고, 그 아래 2계층 spawn 구조는 다음과 같습니다: **Lead Agent** → **Graduate Student Agent(s)** (seed task 한 개당 한 명, 독립 task는 병렬 spawn) → **Implementation Agent** + **Scientific Validator** + **Cache-Log Auditor** (각 Graduate Student가 필요에 따라 spawn). Graduate Student는 task *유형*이 아니라 *단일 task instance*에 묶입니다 — "baseline 학생"과 "scan 학생"의 구분은 없습니다. spawn block 템플릿과 cross-tier 금지 규칙은 `docs/orchestration_protocol.md`의 "Agent Spawning Protocol" 섹션을 참조하세요.
 
 ### 설치되는 Skills
 

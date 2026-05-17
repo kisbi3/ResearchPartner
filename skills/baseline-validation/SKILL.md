@@ -53,7 +53,7 @@ When the researcher issues a waiver, the following steps are mandatory before pr
 1. Load `skills/cartographer-update/SKILL.md` and send a Cartographer Update event.
 2. The Cartographer must record the waiver as a visible graph node with status `active`.
 3. The claim ceiling for all downstream work must be immediately lowered to `observation` and must remain there until a real baseline passes.
-4. The waiver node stays visible in the live workflow artifact until the Professor Orchestrator explicitly closes it by approving a completed baseline.
+4. The waiver node stays visible in the live workflow artifact until the Lead Agent explicitly closes it by approving a completed baseline.
 
 Do not silently absorb a waiver into a log entry. The lowered claim ceiling must be visible in the workflow map before any Execute or Evaluate phase work begins.
 
