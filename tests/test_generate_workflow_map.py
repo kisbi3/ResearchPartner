@@ -106,6 +106,12 @@ def test_live_map_uses_run_root_for_current_process_layout(tmp_path, monkeypatch
     assert actions[0]["linked_document"]["label"] == "Orient Note"
     assert actions[0]["suggested_command"] == "python scripts/check_orient_recorded.py --run <run-dir>"
     assert actions[0]["why"] == "Confirm the run has a recorded task classification and first researcher-facing question."
+    summary = map_data["dashboard"]["summary"]
+    assert summary == {
+        "needs_input": {"available": 1, "missing": 4, "total": 5},
+        "needs_approval": {"available": 1, "missing": 4, "total": 5},
+        "recommended_review": {"available": 1, "missing": 6, "total": 7},
+    }
 
 
 def test_latest_live_workflow_path_prefers_newest_current_or_legacy_layout(tmp_path, monkeypatch):
@@ -226,6 +232,10 @@ def test_live_map_html_mentions_process_tracking_not_claim_evidence():
     assert "Suggested Next Command" in html
     assert "data-action" in html
     assert "renderActionQueue" in html
+    assert "Dashboard Summary" in html
+    assert "action-group" in html
+    assert "Select an action above" in html
+    assert "renderDashboard(map)" not in html
 
 
 def test_embedded_workflow_data_remains_valid_json():

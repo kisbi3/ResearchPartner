@@ -204,6 +204,19 @@ def dashboard_actions(document_groups: list[dict]) -> list[dict]:
     return actions
 
 
+def dashboard_summary(document_groups: list[dict]) -> dict:
+    summary = {}
+    for group in document_groups:
+        available = sum(1 for doc in group["documents"] if doc["status"] == "available")
+        total = len(group["documents"])
+        summary[group["id"]] = {
+            "available": available,
+            "missing": total - available,
+            "total": total,
+        }
+    return summary
+
+
 def extract_section(markdown: str, heading: str) -> str:
     pattern = re.compile(
         rf"^## {re.escape(heading)}\s*$\n(?P<body>.*?)(?=^## |\Z)",
@@ -605,6 +618,7 @@ def live_workflow_map(base_dir: Path | None = None) -> dict | None:
             "title": "Current Run Dashboard",
             "run_root": run_relative_path(run_root, base_dir),
             "document_groups": document_groups,
+            "summary": dashboard_summary(document_groups),
             "actions": dashboard_actions(document_groups),
         },
         "nodes": nodes,
@@ -795,36 +809,26 @@ def build_html(data: dict) -> str:
       cursor: pointer;
     }}
     .docs a:hover, .docs button:hover {{ border-color: var(--focus); }}
-    .dashboard-groups {{
+    .summary-grid {{
       display: grid;
-      gap: 10px;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
     }}
-    .dashboard-group {{
+    .summary-pill {{
       border: 1px solid var(--line);
       border-radius: 6px;
-      padding: 8px;
+      padding: 8px 9px;
       background: #fbfbf8;
+      min-width: 0;
     }}
-    .dashboard-group h4 {{
-      margin: 0 0 4px;
-      font-size: 13px;
+    .summary-pill strong {{
+      display: block;
+      font-size: 15px;
+      margin-bottom: 2px;
     }}
-    .dashboard-docs {{
-      display: grid;
-      gap: 6px;
-      margin-top: 8px;
-    }}
-    .dashboard-doc {{
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
-      gap: 8px;
-      align-items: center;
-      font-size: 13px;
-    }}
-    .dashboard-status {{
+    .summary-pill span {{
       color: var(--muted);
       font-size: 12px;
-      text-transform: uppercase;
     }}
     .action-queue {{
       border-bottom: 1px solid var(--line);
@@ -832,19 +836,37 @@ def build_html(data: dict) -> str:
       background: #fbfbf8;
     }}
     .action-queue h2 {{
-      margin: 0 0 8px;
+      margin: 0 0 4px;
       font-size: 15px;
     }}
-    .action-list {{
+    .action-help {{
+      margin-bottom: 10px;
+      color: var(--muted);
+      font-size: 12px;
+    }}
+    .action-groups {{
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-      gap: 8px;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }}
+    .action-group {{
+      display: grid;
+      gap: 6px;
+      min-width: 0;
+    }}
+    .action-group-title {{
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      font-weight: 700;
     }}
     .action-card {{
       text-align: left;
       border-color: var(--line);
       background: #fff;
-      min-height: 76px;
+      min-height: 0;
+      padding: 7px 8px;
+      width: 100%;
     }}
     .action-card.active {{
       border-color: var(--accent);
@@ -852,8 +874,9 @@ def build_html(data: dict) -> str:
     }}
     .action-card strong {{
       display: block;
-      margin-bottom: 5px;
+      margin-bottom: 3px;
       overflow-wrap: anywhere;
+      font-size: 13px;
     }}
     .action-card span {{
       display: block;
@@ -954,6 +977,7 @@ def build_html(data: dict) -> str:
     }}
     @media (max-width: 900px) {{
       .shell {{ grid-template-columns: 1fr; }}
+      .action-groups, .summary-grid {{ grid-template-columns: 1fr; }}
       svg {{ min-width: 760px; }}
     }}
   </style>
@@ -1038,21 +1062,32 @@ def build_html(data: dict) -> str:
 
     function renderActionQueue() {{
       const map = currentMap();
-      const actions = ((map.dashboard || {{}}).actions || []).slice(0, 8);
+      const dashboard = map.dashboard || {{}};
+      const actions = dashboard.actions || [];
       const queue = document.getElementById('actionQueue');
       if (!actions.length) {{
         queue.innerHTML = '<h2>Action Queue</h2><p class="meta">No researcher-facing actions are recorded for this run.</p>';
         return;
       }}
+      const groups = dashboard.document_groups || [];
       queue.innerHTML = `
         <h2>Action Queue</h2>
-        <div class="action-list">
-          ${{actions.map(action => `
-            <button type="button" class="action-card ${{action.id === activeAction ? 'active' : ''}}" data-action="${{escapeHtml(action.id)}}">
-              <strong>${{escapeHtml(action.title)}}</strong>
-              <span>${{escapeHtml(action.category)}} · ${{escapeHtml(action.status)}}</span>
-            </button>
-          `).join('')}}
+        <div class="action-help">Select one item to inspect the source document and next command.</div>
+        <div class="action-groups">
+          ${{groups.map(group => {{
+            const groupActions = actions.filter(action => action.priority === group.id).slice(0, 4);
+            return `
+              <div class="action-group">
+                <div class="action-group-title">${{escapeHtml(group.title)}}</div>
+                ${{groupActions.map(action => `
+                  <button type="button" class="action-card ${{action.id === activeAction ? 'active' : ''}}" data-action="${{escapeHtml(action.id)}}">
+                    <strong>${{escapeHtml(action.linked_document.label)}}</strong>
+                    <span>${{escapeHtml(action.status)}}</span>
+                  </button>
+                `).join('')}}
+              </div>
+            `;
+          }}).join('')}}
         </div>
       `;
       queue.querySelectorAll('[data-action]').forEach(button => {{
@@ -1186,27 +1221,24 @@ def build_html(data: dict) -> str:
             </div>
           `).join('')}}</div>`
         : `<p class="meta">${{escapeHtml(emptyText)}}</p>`;
-      const renderDashboard = (map) => {{
+      const renderDashboardSummary = (map) => {{
         const dashboard = map.dashboard;
-        if (!dashboard || !(dashboard.document_groups || []).length) return '';
-        const groups = dashboard.document_groups.map(group => `
-          <div class="dashboard-group">
-            <h4>${{escapeHtml(group.title)}}</h4>
-            <div class="meta">${{escapeHtml(group.description || '')}}</div>
-            <div class="dashboard-docs">
-              ${{(group.documents || []).map(doc => `
-                <div class="dashboard-doc">
-                  <a href="${{escapeHtml(pathHref(doc.path))}}">${{escapeHtml(doc.label)}}</a>
-                  <span class="dashboard-status">${{escapeHtml(doc.status || 'unknown')}}</span>
-                </div>
-              `).join('')}}
+        if (!dashboard || !dashboard.summary) return '';
+        const groups = dashboard.document_groups || [];
+        const pills = groups.map(group => {{
+          const item = dashboard.summary[group.id] || {{available: 0, missing: 0, total: 0}};
+          return `
+            <div class="summary-pill">
+              <strong>${{escapeHtml(item.available + '/' + item.total)}}</strong>
+              <span>${{escapeHtml(group.title)}}</span>
             </div>
-          </div>
-        `).join('');
+          `;
+        }}).join('');
         return `
           <div class="section">
-            <h3>${{escapeHtml(dashboard.title || 'Current Run Dashboard')}}</h3>
-            <div class="dashboard-groups">${{groups}}</div>
+            <h3>Dashboard Summary</h3>
+            <div class="summary-grid">${{pills}}</div>
+            <p class="meta">Select an action above to inspect the linked document and suggested next command.</p>
           </div>
         `;
       }};
@@ -1232,7 +1264,7 @@ def build_html(data: dict) -> str:
         <h2>${{escapeHtml(node.title)}}</h2>
         <div class="meta">${{escapeHtml(map.title)}} / ${{escapeHtml(node.phase)}}</div>
         <p>${{escapeHtml(node.summary)}}</p>
-        ${{renderDashboard(map)}}
+        ${{renderDashboardSummary(map)}}
         <div class="section">
           <h3>Link State</h3>
           <div class="results">${{metadata}}</div>
