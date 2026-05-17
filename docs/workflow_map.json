@@ -1,332 +1,1586 @@
 {
+  "generated_at": "2026-05-17T08:26:52+00:00",
   "maps": [
     {
-      "id": "research_workflow",
-      "title": "Physics Research Workflow",
-      "description": "Pre-run and iterative workflow for physics research with baseline gates, validation, researcher review, and lineage.",
+      "id": "live_research_run",
+      "title": "Live Research Workflow: 2026-05-16-hvg-dhvg-financial-markets",
+      "description": "Current run state generated from the latest live workflow artifact. This is process-tracking only and must not strengthen scientific claims.",
+      "dashboard": {
+        "title": "Current Run Dashboard",
+        "run_root": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets",
+        "document_groups": [
+          {
+            "id": "needs_input",
+            "title": "Needs Input",
+            "description": "Documents where the researcher may need to answer, provide material, or clarify scope.",
+            "documents": [
+              {
+                "label": "Orient Note",
+                "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/gates/orient_note.md",
+                "status": "Needs researcher decision"
+              },
+              {
+                "label": "Interview Notes",
+                "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/gates/interview_notes.md",
+                "status": "Needs researcher decision"
+              },
+              {
+                "label": "Paper Request Queue",
+                "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/literature/paper_request_queue.md",
+                "status": "Needs researcher decision"
+              },
+              {
+                "label": "Literature Review Plan",
+                "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/literature/literature_review_plan.md",
+                "status": "Needs researcher decision"
+              },
+              {
+                "label": "Meeting Notes",
+                "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/meetings",
+                "status": "Needs researcher decision"
+              }
+            ]
+          },
+          {
+            "id": "needs_approval",
+            "title": "Needs Approval",
+            "description": "Documents that should be approved before the harness treats the run direction as settled.",
+            "documents": [
+              {
+                "label": "Research Plan",
+                "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/plan/research_plan.md",
+                "status": "Needs researcher decision"
+              },
+              {
+                "label": "Model Spec",
+                "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/plan/model_spec.md",
+                "status": "Needs researcher decision"
+              },
+              {
+                "label": "Baseline Strategy",
+                "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/plan/baseline_strategy.md",
+                "status": "Needs researcher decision"
+              },
+              {
+                "label": "Replanning Memo",
+                "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/literature/replanning_memo.md",
+                "status": "Needs researcher decision"
+              },
+              {
+                "label": "Paper Logic Diagram",
+                "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/plan/paper_logic_diagram.md",
+                "status": "Missing document"
+              }
+            ]
+          },
+          {
+            "id": "recommended_review",
+            "title": "Recommended Review",
+            "description": "Documents worth checking to understand current status, evidence, decisions, and remaining risk.",
+            "documents": [
+              {
+                "label": "Live Workflow Diagram",
+                "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/process/live_workflow_diagram.md",
+                "status": "Ready to review"
+              },
+              {
+                "label": "Research State",
+                "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/process/research_state.md",
+                "status": "Missing document"
+              },
+              {
+                "label": "Researcher Review Log",
+                "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/process/researcher_review_log.md",
+                "status": "Ready to review"
+              },
+              {
+                "label": "Decision Log",
+                "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/process/decision_log.md",
+                "status": "Missing document"
+              },
+              {
+                "label": "Baseline Registry",
+                "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/gates/baseline_registry.md",
+                "status": "Ready to review"
+              },
+              {
+                "label": "Validation Log",
+                "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/gates/validation_log.md",
+                "status": "Ready to review"
+              },
+              {
+                "label": "Research Retrospective",
+                "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/process/research_retrospective.md",
+                "status": "Ready to review"
+              }
+            ]
+          }
+        ],
+        "summary": {
+          "needs_input": {
+            "ready_to_review": 0,
+            "missing_document": 0,
+            "needs_researcher_decision": 5,
+            "total": 5
+          },
+          "needs_approval": {
+            "ready_to_review": 0,
+            "missing_document": 1,
+            "needs_researcher_decision": 4,
+            "total": 5
+          },
+          "recommended_review": {
+            "ready_to_review": 5,
+            "missing_document": 2,
+            "needs_researcher_decision": 0,
+            "total": 7
+          }
+        },
+        "actions": [
+          {
+            "id": "needs_input_orient_note",
+            "title": "Review Orient Note",
+            "category": "Needs Input",
+            "status": "Needs researcher decision",
+            "priority": "needs_input",
+            "why": "Confirm the run has a recorded task classification and first researcher-facing question.",
+            "suggested_command": "python scripts/check_orient_recorded.py --run <run-dir>",
+            "linked_document": {
+              "label": "Orient Note",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/gates/orient_note.md",
+              "status": "Needs researcher decision"
+            }
+          },
+          {
+            "id": "needs_input_interview_notes",
+            "title": "Review Interview Notes",
+            "category": "Needs Input",
+            "status": "Needs researcher decision",
+            "priority": "needs_input",
+            "why": "Confirm the research question, assumptions, agreed direction, and next skill are recorded.",
+            "suggested_command": "python scripts/check_interview_recorded.py --run <run-dir>",
+            "linked_document": {
+              "label": "Interview Notes",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/gates/interview_notes.md",
+              "status": "Needs researcher decision"
+            }
+          },
+          {
+            "id": "needs_input_paper_request_queue",
+            "title": "Review Paper Request Queue",
+            "category": "Needs Input",
+            "status": "Needs researcher decision",
+            "priority": "needs_input",
+            "why": "Open the linked document and decide whether this run can continue.",
+            "suggested_command": "Record the review outcome in docs/process/researcher_review_log.md",
+            "linked_document": {
+              "label": "Paper Request Queue",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/literature/paper_request_queue.md",
+              "status": "Needs researcher decision"
+            }
+          },
+          {
+            "id": "needs_input_literature_review_plan",
+            "title": "Review Literature Review Plan",
+            "category": "Needs Input",
+            "status": "Needs researcher decision",
+            "priority": "needs_input",
+            "why": "Confirm literature status before model specification or seed design relies on novelty or reproduction claims.",
+            "suggested_command": "python scripts/check_literature_reviewed.py --run <run-dir>",
+            "linked_document": {
+              "label": "Literature Review Plan",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/literature/literature_review_plan.md",
+              "status": "Needs researcher decision"
+            }
+          },
+          {
+            "id": "needs_input_meeting_notes",
+            "title": "Review Meeting Notes",
+            "category": "Needs Input",
+            "status": "Needs researcher decision",
+            "priority": "needs_input",
+            "why": "Open the linked document and decide whether this run can continue.",
+            "suggested_command": "Record the review outcome in docs/process/researcher_review_log.md",
+            "linked_document": {
+              "label": "Meeting Notes",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/meetings",
+              "status": "Needs researcher decision"
+            }
+          },
+          {
+            "id": "needs_approval_research_plan",
+            "title": "Review Research Plan",
+            "category": "Needs Approval",
+            "status": "Needs researcher decision",
+            "priority": "needs_approval",
+            "why": "Open the linked document and decide whether this run can continue.",
+            "suggested_command": "Record the review outcome in docs/process/researcher_review_log.md",
+            "linked_document": {
+              "label": "Research Plan",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/plan/research_plan.md",
+              "status": "Needs researcher decision"
+            }
+          },
+          {
+            "id": "needs_approval_model_spec",
+            "title": "Review Model Spec",
+            "category": "Needs Approval",
+            "status": "Needs researcher decision",
+            "priority": "needs_approval",
+            "why": "Approve the model definition before seed design or execution depends on it.",
+            "suggested_command": "python scripts/check_model_specified.py --run <run-dir>",
+            "linked_document": {
+              "label": "Model Spec",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/plan/model_spec.md",
+              "status": "Needs researcher decision"
+            }
+          },
+          {
+            "id": "needs_approval_baseline_strategy",
+            "title": "Review Baseline Strategy",
+            "category": "Needs Approval",
+            "status": "Needs researcher decision",
+            "priority": "needs_approval",
+            "why": "Approve whether this run reproduces a parent model or verifies a new analytical checkpoint.",
+            "suggested_command": "python scripts/check_baseline_strategy.py --run <run-dir>",
+            "linked_document": {
+              "label": "Baseline Strategy",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/plan/baseline_strategy.md",
+              "status": "Needs researcher decision"
+            }
+          },
+          {
+            "id": "needs_approval_replanning_memo",
+            "title": "Review Replanning Memo",
+            "category": "Needs Approval",
+            "status": "Needs researcher decision",
+            "priority": "needs_approval",
+            "why": "Open the linked document and decide whether this run can continue.",
+            "suggested_command": "Record the review outcome in docs/process/researcher_review_log.md",
+            "linked_document": {
+              "label": "Replanning Memo",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/literature/replanning_memo.md",
+              "status": "Needs researcher decision"
+            }
+          },
+          {
+            "id": "needs_approval_paper_logic_diagram",
+            "title": "Review Paper Logic Diagram",
+            "category": "Needs Approval",
+            "status": "Missing document",
+            "priority": "needs_approval",
+            "why": "Open the linked document and decide whether this run can continue.",
+            "suggested_command": "Record the review outcome in docs/process/researcher_review_log.md",
+            "linked_document": {
+              "label": "Paper Logic Diagram",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/plan/paper_logic_diagram.md",
+              "status": "Missing document"
+            }
+          },
+          {
+            "id": "recommended_review_live_workflow_diagram",
+            "title": "Review Live Workflow Diagram",
+            "category": "Recommended Review",
+            "status": "Ready to review",
+            "priority": "recommended_review",
+            "why": "Review active workflow state, blocked behavior, stale artifacts, and next researcher checkpoint.",
+            "suggested_command": "python scripts/generate_workflow_map.py",
+            "linked_document": {
+              "label": "Live Workflow Diagram",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/process/live_workflow_diagram.md",
+              "status": "Ready to review"
+            }
+          },
+          {
+            "id": "recommended_review_research_state",
+            "title": "Review Research State",
+            "category": "Recommended Review",
+            "status": "Missing document",
+            "priority": "recommended_review",
+            "why": "Open the linked document and decide whether this run can continue.",
+            "suggested_command": "Record the review outcome in docs/process/researcher_review_log.md",
+            "linked_document": {
+              "label": "Research State",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/process/research_state.md",
+              "status": "Missing document"
+            }
+          },
+          {
+            "id": "recommended_review_researcher_review_log",
+            "title": "Review Researcher Review Log",
+            "category": "Recommended Review",
+            "status": "Ready to review",
+            "priority": "recommended_review",
+            "why": "Open the linked document and decide whether this run can continue.",
+            "suggested_command": "Record the review outcome in docs/process/researcher_review_log.md",
+            "linked_document": {
+              "label": "Researcher Review Log",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/process/researcher_review_log.md",
+              "status": "Ready to review"
+            }
+          },
+          {
+            "id": "recommended_review_decision_log",
+            "title": "Review Decision Log",
+            "category": "Recommended Review",
+            "status": "Missing document",
+            "priority": "recommended_review",
+            "why": "Open the linked document and decide whether this run can continue.",
+            "suggested_command": "Record the review outcome in docs/process/researcher_review_log.md",
+            "linked_document": {
+              "label": "Decision Log",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/process/decision_log.md",
+              "status": "Missing document"
+            }
+          },
+          {
+            "id": "recommended_review_baseline_registry",
+            "title": "Review Baseline Registry",
+            "category": "Recommended Review",
+            "status": "Ready to review",
+            "priority": "recommended_review",
+            "why": "Check that interpretation is backed by a toy model, known limit, reproduction, or explicit waiver.",
+            "suggested_command": "python scripts/check_baseline_gate.py --run <run-dir>",
+            "linked_document": {
+              "label": "Baseline Registry",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/gates/baseline_registry.md",
+              "status": "Ready to review"
+            }
+          },
+          {
+            "id": "recommended_review_validation_log",
+            "title": "Review Validation Log",
+            "category": "Recommended Review",
+            "status": "Ready to review",
+            "priority": "recommended_review",
+            "why": "Review the current evidence chain before treating results as interpretation-ready.",
+            "suggested_command": "python scripts/check_figure_provenance.py --root <run-dir>",
+            "linked_document": {
+              "label": "Validation Log",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/gates/validation_log.md",
+              "status": "Ready to review"
+            }
+          },
+          {
+            "id": "recommended_review_research_retrospective",
+            "title": "Review Research Retrospective",
+            "category": "Recommended Review",
+            "status": "Ready to review",
+            "priority": "recommended_review",
+            "why": "Open the linked document and decide whether this run can continue.",
+            "suggested_command": "Record the review outcome in docs/process/researcher_review_log.md",
+            "linked_document": {
+              "label": "Research Retrospective",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/process/research_retrospective.md",
+              "status": "Ready to review"
+            }
+          }
+        ]
+      },
       "nodes": [
         {
-          "id": "intake",
-          "title": "1. Intake",
-          "phase": "setup",
-          "x": 80,
-          "y": 80,
-          "summary": "Decide whether this is a new project or an existing research retrofit.",
-          "responsible": [
-            {"label": "Existing research onboarding", "path": "skills/existing-research-onboarding/SKILL.md"},
-            {"label": "Project intake", "path": "docs/adoption/existing_project_intake.md"},
-            {"label": "Adoption log", "path": "docs/adoption/adoption_log.md"},
-            {"label": "Audit existing project script", "path": "scripts/audit_existing_project.py"}
-          ],
-          "checks": [
-            "Do not reorganize old artifacts before inventory.",
-            "Mark existing validation status honestly."
-          ],
-          "edges": ["plan"]
-        },
-        {
-          "id": "plan",
-          "title": "2. Plan",
-          "phase": "planning",
-          "x": 340,
-          "y": 80,
-          "summary": "Define research question, model scope, assumptions, expected observables, and failure criteria.",
-          "responsible": [
-            {"label": "Research plan review", "path": "skills/research-plan-review/SKILL.md"},
-            {"label": "Research plan", "path": "docs/research_plan.md"},
-            {"label": "Research state", "path": "docs/research_state.md"}
-          ],
-          "checks": [
-            "Assumptions and units are explicit.",
-            "Baseline and review checkpoint are identified."
-          ],
-          "edges": ["model"]
-        },
-        {
-          "id": "model",
-          "title": "3. Specify Model",
-          "phase": "model",
-          "x": 600,
-          "y": 80,
-          "summary": "Make physical system, degrees of freedom, equations, parameters, and validity regime explicit.",
-          "responsible": [
-            {"label": "Model specification", "path": "skills/model-specification/SKILL.md"},
-            {"label": "Assumptions log", "path": "docs/assumptions.md"},
-            {"label": "General physics rules", "path": "PHYSICS.md"}
-          ],
-          "checks": [
-            "Variables and parameters are defined.",
-            "Initial and boundary conditions are not silent."
-          ],
-          "edges": ["dimensions"]
-        },
-        {
-          "id": "dimensions",
-          "title": "4. Check Dimensions",
-          "phase": "model",
-          "x": 860,
-          "y": 80,
-          "summary": "Check units, dimensions, constants set to one, and nondimensionalization.",
-          "responsible": [
-            {"label": "Dimensional analysis", "path": "skills/dimensional-analysis/SKILL.md"},
-            {"label": "PHYSICS equation discipline", "path": "PHYSICS.md"}
-          ],
-          "checks": [
-            "Do not patch missing dimensions by guessing.",
-            "Record ambiguous nondimensionalization."
-          ],
-          "edges": ["baseline"]
-        },
-        {
-          "id": "baseline",
-          "title": "5. Baseline Gate",
-          "phase": "validation",
-          "x": 860,
-          "y": 260,
-          "summary": "Validate a toy model, known limit, reproduction target, conservation case, or dimensional sanity case.",
-          "responsible": [
-            {"label": "Baseline validation", "path": "skills/baseline-validation/SKILL.md"},
-            {"label": "Baseline registry", "path": "docs/baseline_registry.md"},
-            {"label": "Toy model log", "path": "docs/logs/toy_model_log.md"},
-            {"label": "Reproduction log", "path": "docs/logs/reproduction_log.md"}
-          ],
-          "checks": [
-            "Do not proceed to full-scale interpretation without pass or explicit waiver.",
-            "Record what this baseline does not justify."
-          ],
-          "edges": ["execute"]
-        },
-        {
-          "id": "execute",
-          "title": "6. Execute Small Iteration",
-          "phase": "execution",
-          "x": 600,
-          "y": 260,
-          "summary": "Run or derive the smallest meaningful result before expanding scope.",
-          "responsible": [
-            {"label": "Numerical validation", "path": "skills/numerical-validation/SKILL.md"},
-            {"label": "Validation log", "path": "docs/validation_log.md"},
-            {"label": "Research state", "path": "docs/research_state.md"}
-          ],
-          "checks": [
-            "Record commands, parameters, seeds, and outputs.",
-            "Run smallest relevant validation first."
-          ],
-          "edges": ["anomaly", "review"]
-        },
-        {
-          "id": "anomaly",
-          "title": "7. Anomaly Branch",
-          "phase": "debugging",
-          "x": 340,
-          "y": 260,
-          "summary": "If behavior is surprising, classify and reproduce the anomaly before patching.",
-          "responsible": [
-            {"label": "Anomaly debugging", "path": "skills/anomaly-debugging/SKILL.md"},
-            {"label": "Anomaly log", "path": "docs/logs/anomaly_log.md"},
-            {"label": "Negative results", "path": "docs/logs/negative_results.md"}
-          ],
-          "checks": [
-            "State expected behavior and observed behavior.",
-            "Classify physical, model, numerical, implementation, data, plotting, or unknown."
-          ],
-          "edges": ["execute", "review"]
-        },
-        {
-          "id": "review",
-          "title": "8. Researcher Review",
-          "phase": "review",
-          "x": 80,
-          "y": 260,
-          "summary": "Package results for researcher judgment and record decisions.",
-          "responsible": [
-            {"label": "Researcher review loop", "path": "skills/researcher-review-loop/SKILL.md"},
-            {"label": "Researcher review log", "path": "docs/researcher_review_log.md"},
-            {"label": "Decision log", "path": "docs/decision_log.md"}
-          ],
-          "checks": [
-            "Separate observations, interpretation, and speculation.",
-            "State what the researcher needs to confirm."
-          ],
-          "edges": ["claim"]
-        },
-        {
-          "id": "claim",
-          "title": "9. Claim Gate",
-          "phase": "claim",
-          "x": 340,
-          "y": 440,
-          "summary": "Before strengthening a claim, map evidence and choose safe wording.",
-          "responsible": [
-            {"label": "Scientific verification before claim", "path": "skills/scientific-verification-before-claim/SKILL.md"},
-            {"label": "Claim to evidence", "path": "skills/claim-to-evidence/SKILL.md"},
-            {"label": "Decision log", "path": "docs/decision_log.md"}
-          ],
-          "checks": [
-            "Use the weakest wording supported by evidence.",
-            "Do not infer mechanism or universality without support."
-          ],
-          "edges": ["retrospective", "paper_question"]
-        },
-        {
-          "id": "retrospective",
-          "title": "10. Retrospective",
-          "phase": "memory",
-          "x": 600,
-          "y": 440,
-          "summary": "Record what changed, evidence delta, reusable artifact, and next smallest iteration.",
-          "responsible": [
-            {"label": "Research retrospective", "path": "skills/research-retrospective/SKILL.md"},
-            {"label": "Research retrospective log", "path": "docs/research_retrospective.md"},
-            {"label": "Lineage template", "path": "docs/lineage/iteration_template.md"},
-            {"label": "Tacit patterns", "path": "docs/logs/tacit_patterns.md"}
-          ],
-          "checks": [
-            "Every iteration should leave a reusable artifact or explain why not.",
-            "Update research state for the next session."
-          ],
-          "edges": ["plan"]
-        },
-        {
-          "id": "paper_question",
-          "title": "Paper Path?",
-          "phase": "paper",
-          "x": 860,
-          "y": 440,
-          "summary": "If the result may become a paper, move into the paper logic map before drafting strong claims.",
-          "responsible": [
-            {"label": "Paper logic diagram", "path": "docs/paper_logic_diagram.md"},
-            {"label": "Workflow diagrams", "path": "docs/workflow_diagrams.md"},
-            {"label": "Scientific verification before claim", "path": "skills/scientific-verification-before-claim/SKILL.md"}
-          ],
-          "checks": [
-            "Do not draft manuscript logic stronger than the evidence chain.",
-            "Map each result to a claim role."
-          ],
-          "edges": []
-        }
-      ]
-    },
-    {
-      "id": "paper_logic",
-      "title": "Paper Logic Structure",
-      "description": "Logical path from research question to manuscript claims, including evidence gates and limitation handling.",
-      "nodes": [
-        {
-          "id": "paper_question",
-          "title": "1. Research Question",
-          "phase": "paper",
+          "id": "professor_interview",
+          "title": "Professor interview",
+          "phase": "pending",
           "x": 80,
           "y": 90,
-          "summary": "State the precise physical question the paper can answer.",
-          "responsible": [
-            {"label": "Research plan", "path": "docs/research_plan.md"},
-            {"label": "Open questions", "path": "docs/logs/open_questions.md"}
+          "summary": "PENDING: ",
+          "result_summary": {},
+          "images": [],
+          "node_type": "validation_gate",
+          "link_status": "pending_review",
+          "evidence_strength": "none",
+          "claim_ceiling": "unsupported",
+          "review_owner": "lead-agent",
+          "requires_researcher_review": false,
+          "code_links": [],
+          "result_links": [],
+          "interpretation_links": [
+            {
+              "label": "docs/research_plan.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/research_plan.md"
+            },
+            {
+              "label": "docs/literature_review_plan.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/literature_review_plan.md"
+            },
+            {
+              "label": "docs/paper_request_queue.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/paper_request_queue.md"
+            },
+            {
+              "label": "docs/replanning_memo.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/replanning_memo.md"
+            },
+            {
+              "label": "literature/index.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/index.md"
+            },
+            {
+              "label": "literature/reviews/",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/reviews"
+            },
+            {
+              "label": "literature/extracted_text/",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/extracted_text"
+            },
+            {
+              "label": "docs/baseline_registry.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/baseline_registry.md"
+            },
+            {
+              "label": "docs/validation_log.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/validation_log.md"
+            },
+            {
+              "label": "docs/researcher_review_log.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/researcher_review_log.md"
+            },
+            {
+              "label": "docs/research_retrospective.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/research_retrospective.md"
+            }
           ],
-          "checks": ["Question is answerable by the model and data."],
-          "edges": ["paper_gap"]
+          "graph_links": [],
+          "responsible": [
+            {
+              "label": "docs/research_plan.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/research_plan.md"
+            },
+            {
+              "label": "docs/literature_review_plan.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/literature_review_plan.md"
+            },
+            {
+              "label": "docs/paper_request_queue.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/paper_request_queue.md"
+            },
+            {
+              "label": "docs/replanning_memo.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/replanning_memo.md"
+            },
+            {
+              "label": "literature/index.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/index.md"
+            },
+            {
+              "label": "literature/reviews/",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/reviews"
+            },
+            {
+              "label": "literature/extracted_text/",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/extracted_text"
+            },
+            {
+              "label": "docs/baseline_registry.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/baseline_registry.md"
+            },
+            {
+              "label": "docs/validation_log.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/validation_log.md"
+            },
+            {
+              "label": "docs/researcher_review_log.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/researcher_review_log.md"
+            },
+            {
+              "label": "docs/research_retrospective.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/research_retrospective.md"
+            },
+            {
+              "label": "Live workflow diagram",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/process/live_workflow_diagram.md"
+            }
+          ],
+          "checks": [
+            "This is a process-tracking artifact, not scientific evidence.",
+            "The live workflow must not strengthen scientific claims.",
+            "Next checkpoint: - Researcher decision needed:\n- Question to ask:\n- Smallest useful next action:"
+          ],
+          "edges": [
+            "literature_review_and_replanning"
+          ]
         },
         {
-          "id": "paper_gap",
-          "title": "2. Literature Gap",
-          "phase": "paper",
-          "x": 320,
+          "id": "literature_review_and_replanning",
+          "title": "Literature review and replanning",
+          "phase": "pending",
+          "x": 330,
           "y": 90,
-          "summary": "State what is missing in prior work without inventing novelty.",
-          "responsible": [
-            {"label": "Claim to evidence", "path": "skills/claim-to-evidence/SKILL.md"},
-            {"label": "Scientific verification before claim", "path": "skills/scientific-verification-before-claim/SKILL.md"}
+          "summary": "PENDING: ",
+          "result_summary": {},
+          "images": [],
+          "node_type": "validation_gate",
+          "link_status": "pending_review",
+          "evidence_strength": "none",
+          "claim_ceiling": "unsupported",
+          "review_owner": "lead-agent",
+          "requires_researcher_review": false,
+          "code_links": [],
+          "result_links": [],
+          "interpretation_links": [
+            {
+              "label": "docs/research_plan.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/research_plan.md"
+            },
+            {
+              "label": "docs/literature_review_plan.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/literature_review_plan.md"
+            },
+            {
+              "label": "docs/paper_request_queue.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/paper_request_queue.md"
+            },
+            {
+              "label": "docs/replanning_memo.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/replanning_memo.md"
+            },
+            {
+              "label": "literature/index.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/index.md"
+            },
+            {
+              "label": "literature/reviews/",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/reviews"
+            },
+            {
+              "label": "literature/extracted_text/",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/extracted_text"
+            },
+            {
+              "label": "docs/baseline_registry.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/baseline_registry.md"
+            },
+            {
+              "label": "docs/validation_log.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/validation_log.md"
+            },
+            {
+              "label": "docs/researcher_review_log.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/researcher_review_log.md"
+            },
+            {
+              "label": "docs/research_retrospective.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/research_retrospective.md"
+            }
           ],
-          "checks": ["Novelty claims need citation support."],
-          "edges": ["paper_model"]
+          "graph_links": [],
+          "responsible": [
+            {
+              "label": "docs/research_plan.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/research_plan.md"
+            },
+            {
+              "label": "docs/literature_review_plan.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/literature_review_plan.md"
+            },
+            {
+              "label": "docs/paper_request_queue.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/paper_request_queue.md"
+            },
+            {
+              "label": "docs/replanning_memo.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/replanning_memo.md"
+            },
+            {
+              "label": "literature/index.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/index.md"
+            },
+            {
+              "label": "literature/reviews/",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/reviews"
+            },
+            {
+              "label": "literature/extracted_text/",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/extracted_text"
+            },
+            {
+              "label": "docs/baseline_registry.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/baseline_registry.md"
+            },
+            {
+              "label": "docs/validation_log.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/validation_log.md"
+            },
+            {
+              "label": "docs/researcher_review_log.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/researcher_review_log.md"
+            },
+            {
+              "label": "docs/research_retrospective.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/research_retrospective.md"
+            },
+            {
+              "label": "Live workflow diagram",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/process/live_workflow_diagram.md"
+            }
+          ],
+          "checks": [
+            "This is a process-tracking artifact, not scientific evidence.",
+            "The live workflow must not strengthen scientific claims.",
+            "Next checkpoint: - Researcher decision needed:\n- Question to ask:\n- Smallest useful next action:"
+          ],
+          "edges": [
+            "test_design_seed"
+          ]
         },
         {
-          "id": "paper_model",
-          "title": "3. Model and Assumptions",
-          "phase": "paper",
-          "x": 560,
+          "id": "test_design_seed",
+          "title": "Test-design seed",
+          "phase": "pending",
+          "x": 580,
           "y": 90,
-          "summary": "Introduce the model only as far as needed to support the paper question.",
-          "responsible": [
-            {"label": "Model specification", "path": "skills/model-specification/SKILL.md"},
-            {"label": "Assumptions log", "path": "docs/assumptions.md"},
-            {"label": "PHYSICS", "path": "PHYSICS.md"}
+          "summary": "PENDING: ",
+          "result_summary": {},
+          "images": [],
+          "node_type": "validation_gate",
+          "link_status": "pending_review",
+          "evidence_strength": "none",
+          "claim_ceiling": "unsupported",
+          "review_owner": "lead-agent",
+          "requires_researcher_review": false,
+          "code_links": [],
+          "result_links": [],
+          "interpretation_links": [
+            {
+              "label": "docs/research_plan.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/research_plan.md"
+            },
+            {
+              "label": "docs/literature_review_plan.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/literature_review_plan.md"
+            },
+            {
+              "label": "docs/paper_request_queue.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/paper_request_queue.md"
+            },
+            {
+              "label": "docs/replanning_memo.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/replanning_memo.md"
+            },
+            {
+              "label": "literature/index.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/index.md"
+            },
+            {
+              "label": "literature/reviews/",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/reviews"
+            },
+            {
+              "label": "literature/extracted_text/",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/extracted_text"
+            },
+            {
+              "label": "docs/baseline_registry.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/baseline_registry.md"
+            },
+            {
+              "label": "docs/validation_log.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/validation_log.md"
+            },
+            {
+              "label": "docs/researcher_review_log.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/researcher_review_log.md"
+            },
+            {
+              "label": "docs/research_retrospective.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/research_retrospective.md"
+            }
           ],
-          "checks": ["Assumptions and validity regime are visible."],
-          "edges": ["paper_methods"]
+          "graph_links": [],
+          "responsible": [
+            {
+              "label": "docs/research_plan.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/research_plan.md"
+            },
+            {
+              "label": "docs/literature_review_plan.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/literature_review_plan.md"
+            },
+            {
+              "label": "docs/paper_request_queue.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/paper_request_queue.md"
+            },
+            {
+              "label": "docs/replanning_memo.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/replanning_memo.md"
+            },
+            {
+              "label": "literature/index.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/index.md"
+            },
+            {
+              "label": "literature/reviews/",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/reviews"
+            },
+            {
+              "label": "literature/extracted_text/",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/extracted_text"
+            },
+            {
+              "label": "docs/baseline_registry.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/baseline_registry.md"
+            },
+            {
+              "label": "docs/validation_log.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/validation_log.md"
+            },
+            {
+              "label": "docs/researcher_review_log.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/researcher_review_log.md"
+            },
+            {
+              "label": "docs/research_retrospective.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/research_retrospective.md"
+            },
+            {
+              "label": "Live workflow diagram",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/process/live_workflow_diagram.md"
+            }
+          ],
+          "checks": [
+            "This is a process-tracking artifact, not scientific evidence.",
+            "The live workflow must not strengthen scientific claims.",
+            "Next checkpoint: - Researcher decision needed:\n- Question to ask:\n- Smallest useful next action:"
+          ],
+          "edges": [
+            "baseline_or_reproduction_target"
+          ]
         },
         {
-          "id": "paper_methods",
-          "title": "4. Methods and Validation",
-          "phase": "paper",
-          "x": 800,
+          "id": "baseline_or_reproduction_target",
+          "title": "Baseline or reproduction target",
+          "phase": "pending",
+          "x": 830,
           "y": 90,
-          "summary": "Show how analytical, numerical, or empirical methods were validated.",
-          "responsible": [
-            {"label": "Baseline validation", "path": "skills/baseline-validation/SKILL.md"},
-            {"label": "Numerical validation", "path": "skills/numerical-validation/SKILL.md"},
-            {"label": "Validation log", "path": "docs/validation_log.md"}
+          "summary": "PENDING: ",
+          "result_summary": {},
+          "images": [],
+          "node_type": "validation_gate",
+          "link_status": "pending_review",
+          "evidence_strength": "none",
+          "claim_ceiling": "unsupported",
+          "review_owner": "lead-agent",
+          "requires_researcher_review": false,
+          "code_links": [],
+          "result_links": [],
+          "interpretation_links": [
+            {
+              "label": "docs/research_plan.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/research_plan.md"
+            },
+            {
+              "label": "docs/literature_review_plan.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/literature_review_plan.md"
+            },
+            {
+              "label": "docs/paper_request_queue.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/paper_request_queue.md"
+            },
+            {
+              "label": "docs/replanning_memo.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/replanning_memo.md"
+            },
+            {
+              "label": "literature/index.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/index.md"
+            },
+            {
+              "label": "literature/reviews/",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/reviews"
+            },
+            {
+              "label": "literature/extracted_text/",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/extracted_text"
+            },
+            {
+              "label": "docs/baseline_registry.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/baseline_registry.md"
+            },
+            {
+              "label": "docs/validation_log.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/validation_log.md"
+            },
+            {
+              "label": "docs/researcher_review_log.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/researcher_review_log.md"
+            },
+            {
+              "label": "docs/research_retrospective.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/research_retrospective.md"
+            }
           ],
-          "checks": ["Validation is adequate for the intended claim level."],
-          "edges": ["paper_result"]
+          "graph_links": [],
+          "responsible": [
+            {
+              "label": "docs/research_plan.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/research_plan.md"
+            },
+            {
+              "label": "docs/literature_review_plan.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/literature_review_plan.md"
+            },
+            {
+              "label": "docs/paper_request_queue.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/paper_request_queue.md"
+            },
+            {
+              "label": "docs/replanning_memo.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/replanning_memo.md"
+            },
+            {
+              "label": "literature/index.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/index.md"
+            },
+            {
+              "label": "literature/reviews/",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/reviews"
+            },
+            {
+              "label": "literature/extracted_text/",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/extracted_text"
+            },
+            {
+              "label": "docs/baseline_registry.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/baseline_registry.md"
+            },
+            {
+              "label": "docs/validation_log.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/validation_log.md"
+            },
+            {
+              "label": "docs/researcher_review_log.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/researcher_review_log.md"
+            },
+            {
+              "label": "docs/research_retrospective.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/research_retrospective.md"
+            },
+            {
+              "label": "Live workflow diagram",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/process/live_workflow_diagram.md"
+            }
+          ],
+          "checks": [
+            "This is a process-tracking artifact, not scientific evidence.",
+            "The live workflow must not strengthen scientific claims.",
+            "Next checkpoint: - Researcher decision needed:\n- Question to ask:\n- Smallest useful next action:"
+          ],
+          "edges": [
+            "execution"
+          ]
         },
         {
-          "id": "paper_result",
-          "title": "5. Result",
-          "phase": "paper",
-          "x": 800,
-          "y": 300,
-          "summary": "Present the core result with uncertainty, regime, and provenance.",
-          "responsible": [
-            {"label": "Researcher review loop", "path": "skills/researcher-review-loop/SKILL.md"},
-            {"label": "Research state", "path": "docs/research_state.md"},
-            {"label": "Lineage", "path": "docs/lineage/README.md"}
-          ],
-          "checks": ["Result links back to scripts, data, equations, or logs."],
-          "edges": ["paper_claim"]
-        },
-        {
-          "id": "paper_claim",
-          "title": "6. Claim",
-          "phase": "paper",
-          "x": 560,
-          "y": 300,
-          "summary": "Translate result into the strongest safe manuscript claim.",
-          "responsible": [
-            {"label": "Scientific verification before claim", "path": "skills/scientific-verification-before-claim/SKILL.md"},
-            {"label": "Claim to evidence", "path": "skills/claim-to-evidence/SKILL.md"},
-            {"label": "Decision log", "path": "docs/decision_log.md"}
-          ],
-          "checks": ["Claim language matches evidence level."],
-          "edges": ["paper_limits"]
-        },
-        {
-          "id": "paper_limits",
-          "title": "7. Limitations",
-          "phase": "paper",
-          "x": 320,
-          "y": 300,
-          "summary": "State what the model, data, and validation do not justify.",
-          "responsible": [
-            {"label": "Negative results", "path": "docs/logs/negative_results.md"},
-            {"label": "Anomaly log", "path": "docs/logs/anomaly_log.md"},
-            {"label": "Open questions", "path": "docs/logs/open_questions.md"}
-          ],
-          "checks": ["Limitations include failed or partial validation where relevant."],
-          "edges": ["paper_conclusion"]
-        },
-        {
-          "id": "paper_conclusion",
-          "title": "8. Conclusion",
-          "phase": "paper",
+          "id": "execution",
+          "title": "Execution",
+          "phase": "pending",
           "x": 80,
-          "y": 300,
-          "summary": "Return to the research question and state only what is now supported.",
-          "responsible": [
-            {"label": "Research retrospective", "path": "skills/research-retrospective/SKILL.md"},
-            {"label": "Researcher review log", "path": "docs/researcher_review_log.md"}
+          "y": 260,
+          "summary": "PENDING: ",
+          "result_summary": {},
+          "images": [],
+          "node_type": "validation_gate",
+          "link_status": "pending_review",
+          "evidence_strength": "none",
+          "claim_ceiling": "unsupported",
+          "review_owner": "lead-agent",
+          "requires_researcher_review": false,
+          "code_links": [],
+          "result_links": [],
+          "interpretation_links": [
+            {
+              "label": "docs/research_plan.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/research_plan.md"
+            },
+            {
+              "label": "docs/literature_review_plan.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/literature_review_plan.md"
+            },
+            {
+              "label": "docs/paper_request_queue.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/paper_request_queue.md"
+            },
+            {
+              "label": "docs/replanning_memo.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/replanning_memo.md"
+            },
+            {
+              "label": "literature/index.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/index.md"
+            },
+            {
+              "label": "literature/reviews/",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/reviews"
+            },
+            {
+              "label": "literature/extracted_text/",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/extracted_text"
+            },
+            {
+              "label": "docs/baseline_registry.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/baseline_registry.md"
+            },
+            {
+              "label": "docs/validation_log.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/validation_log.md"
+            },
+            {
+              "label": "docs/researcher_review_log.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/researcher_review_log.md"
+            },
+            {
+              "label": "docs/research_retrospective.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/research_retrospective.md"
+            }
           ],
-          "checks": ["Conclusion does not exceed claim gate."],
+          "graph_links": [],
+          "responsible": [
+            {
+              "label": "docs/research_plan.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/research_plan.md"
+            },
+            {
+              "label": "docs/literature_review_plan.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/literature_review_plan.md"
+            },
+            {
+              "label": "docs/paper_request_queue.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/paper_request_queue.md"
+            },
+            {
+              "label": "docs/replanning_memo.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/replanning_memo.md"
+            },
+            {
+              "label": "literature/index.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/index.md"
+            },
+            {
+              "label": "literature/reviews/",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/reviews"
+            },
+            {
+              "label": "literature/extracted_text/",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/extracted_text"
+            },
+            {
+              "label": "docs/baseline_registry.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/baseline_registry.md"
+            },
+            {
+              "label": "docs/validation_log.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/validation_log.md"
+            },
+            {
+              "label": "docs/researcher_review_log.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/researcher_review_log.md"
+            },
+            {
+              "label": "docs/research_retrospective.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/research_retrospective.md"
+            },
+            {
+              "label": "Live workflow diagram",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/process/live_workflow_diagram.md"
+            }
+          ],
+          "checks": [
+            "This is a process-tracking artifact, not scientific evidence.",
+            "The live workflow must not strengthen scientific claims.",
+            "Next checkpoint: - Researcher decision needed:\n- Question to ask:\n- Smallest useful next action:"
+          ],
+          "edges": [
+            "visualization"
+          ]
+        },
+        {
+          "id": "visualization",
+          "title": "Visualization",
+          "phase": "pending",
+          "x": 330,
+          "y": 260,
+          "summary": "PENDING: ",
+          "result_summary": {},
+          "images": [],
+          "node_type": "validation_gate",
+          "link_status": "pending_review",
+          "evidence_strength": "none",
+          "claim_ceiling": "unsupported",
+          "review_owner": "lead-agent",
+          "requires_researcher_review": false,
+          "code_links": [],
+          "result_links": [],
+          "interpretation_links": [
+            {
+              "label": "docs/research_plan.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/research_plan.md"
+            },
+            {
+              "label": "docs/literature_review_plan.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/literature_review_plan.md"
+            },
+            {
+              "label": "docs/paper_request_queue.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/paper_request_queue.md"
+            },
+            {
+              "label": "docs/replanning_memo.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/replanning_memo.md"
+            },
+            {
+              "label": "literature/index.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/index.md"
+            },
+            {
+              "label": "literature/reviews/",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/reviews"
+            },
+            {
+              "label": "literature/extracted_text/",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/extracted_text"
+            },
+            {
+              "label": "docs/baseline_registry.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/baseline_registry.md"
+            },
+            {
+              "label": "docs/validation_log.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/validation_log.md"
+            },
+            {
+              "label": "docs/researcher_review_log.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/researcher_review_log.md"
+            },
+            {
+              "label": "docs/research_retrospective.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/research_retrospective.md"
+            }
+          ],
+          "graph_links": [],
+          "responsible": [
+            {
+              "label": "docs/research_plan.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/research_plan.md"
+            },
+            {
+              "label": "docs/literature_review_plan.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/literature_review_plan.md"
+            },
+            {
+              "label": "docs/paper_request_queue.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/paper_request_queue.md"
+            },
+            {
+              "label": "docs/replanning_memo.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/replanning_memo.md"
+            },
+            {
+              "label": "literature/index.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/index.md"
+            },
+            {
+              "label": "literature/reviews/",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/reviews"
+            },
+            {
+              "label": "literature/extracted_text/",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/extracted_text"
+            },
+            {
+              "label": "docs/baseline_registry.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/baseline_registry.md"
+            },
+            {
+              "label": "docs/validation_log.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/validation_log.md"
+            },
+            {
+              "label": "docs/researcher_review_log.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/researcher_review_log.md"
+            },
+            {
+              "label": "docs/research_retrospective.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/research_retrospective.md"
+            },
+            {
+              "label": "Live workflow diagram",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/process/live_workflow_diagram.md"
+            }
+          ],
+          "checks": [
+            "This is a process-tracking artifact, not scientific evidence.",
+            "The live workflow must not strengthen scientific claims.",
+            "Next checkpoint: - Researcher decision needed:\n- Question to ask:\n- Smallest useful next action:"
+          ],
+          "edges": [
+            "professor_evaluation"
+          ]
+        },
+        {
+          "id": "professor_evaluation",
+          "title": "Professor evaluation",
+          "phase": "pending",
+          "x": 580,
+          "y": 260,
+          "summary": "PENDING: ",
+          "result_summary": {},
+          "images": [],
+          "node_type": "validation_gate",
+          "link_status": "pending_review",
+          "evidence_strength": "none",
+          "claim_ceiling": "unsupported",
+          "review_owner": "lead-agent",
+          "requires_researcher_review": false,
+          "code_links": [],
+          "result_links": [],
+          "interpretation_links": [
+            {
+              "label": "docs/research_plan.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/research_plan.md"
+            },
+            {
+              "label": "docs/literature_review_plan.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/literature_review_plan.md"
+            },
+            {
+              "label": "docs/paper_request_queue.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/paper_request_queue.md"
+            },
+            {
+              "label": "docs/replanning_memo.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/replanning_memo.md"
+            },
+            {
+              "label": "literature/index.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/index.md"
+            },
+            {
+              "label": "literature/reviews/",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/reviews"
+            },
+            {
+              "label": "literature/extracted_text/",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/extracted_text"
+            },
+            {
+              "label": "docs/baseline_registry.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/baseline_registry.md"
+            },
+            {
+              "label": "docs/validation_log.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/validation_log.md"
+            },
+            {
+              "label": "docs/researcher_review_log.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/researcher_review_log.md"
+            },
+            {
+              "label": "docs/research_retrospective.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/research_retrospective.md"
+            }
+          ],
+          "graph_links": [],
+          "responsible": [
+            {
+              "label": "docs/research_plan.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/research_plan.md"
+            },
+            {
+              "label": "docs/literature_review_plan.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/literature_review_plan.md"
+            },
+            {
+              "label": "docs/paper_request_queue.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/paper_request_queue.md"
+            },
+            {
+              "label": "docs/replanning_memo.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/replanning_memo.md"
+            },
+            {
+              "label": "literature/index.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/index.md"
+            },
+            {
+              "label": "literature/reviews/",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/reviews"
+            },
+            {
+              "label": "literature/extracted_text/",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/extracted_text"
+            },
+            {
+              "label": "docs/baseline_registry.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/baseline_registry.md"
+            },
+            {
+              "label": "docs/validation_log.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/validation_log.md"
+            },
+            {
+              "label": "docs/researcher_review_log.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/researcher_review_log.md"
+            },
+            {
+              "label": "docs/research_retrospective.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/research_retrospective.md"
+            },
+            {
+              "label": "Live workflow diagram",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/process/live_workflow_diagram.md"
+            }
+          ],
+          "checks": [
+            "This is a process-tracking artifact, not scientific evidence.",
+            "The live workflow must not strengthen scientific claims.",
+            "Next checkpoint: - Researcher decision needed:\n- Question to ask:\n- Smallest useful next action:"
+          ],
+          "edges": [
+            "completion_conference"
+          ]
+        },
+        {
+          "id": "completion_conference",
+          "title": "Completion conference",
+          "phase": "pending",
+          "x": 830,
+          "y": 260,
+          "summary": "PENDING: ",
+          "result_summary": {},
+          "images": [],
+          "node_type": "validation_gate",
+          "link_status": "pending_review",
+          "evidence_strength": "none",
+          "claim_ceiling": "unsupported",
+          "review_owner": "lead-agent",
+          "requires_researcher_review": false,
+          "code_links": [],
+          "result_links": [],
+          "interpretation_links": [
+            {
+              "label": "docs/research_plan.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/research_plan.md"
+            },
+            {
+              "label": "docs/literature_review_plan.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/literature_review_plan.md"
+            },
+            {
+              "label": "docs/paper_request_queue.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/paper_request_queue.md"
+            },
+            {
+              "label": "docs/replanning_memo.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/replanning_memo.md"
+            },
+            {
+              "label": "literature/index.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/index.md"
+            },
+            {
+              "label": "literature/reviews/",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/reviews"
+            },
+            {
+              "label": "literature/extracted_text/",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/extracted_text"
+            },
+            {
+              "label": "docs/baseline_registry.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/baseline_registry.md"
+            },
+            {
+              "label": "docs/validation_log.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/validation_log.md"
+            },
+            {
+              "label": "docs/researcher_review_log.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/researcher_review_log.md"
+            },
+            {
+              "label": "docs/research_retrospective.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/research_retrospective.md"
+            }
+          ],
+          "graph_links": [],
+          "responsible": [
+            {
+              "label": "docs/research_plan.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/research_plan.md"
+            },
+            {
+              "label": "docs/literature_review_plan.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/literature_review_plan.md"
+            },
+            {
+              "label": "docs/paper_request_queue.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/paper_request_queue.md"
+            },
+            {
+              "label": "docs/replanning_memo.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/replanning_memo.md"
+            },
+            {
+              "label": "literature/index.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/index.md"
+            },
+            {
+              "label": "literature/reviews/",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/reviews"
+            },
+            {
+              "label": "literature/extracted_text/",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/extracted_text"
+            },
+            {
+              "label": "docs/baseline_registry.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/baseline_registry.md"
+            },
+            {
+              "label": "docs/validation_log.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/validation_log.md"
+            },
+            {
+              "label": "docs/researcher_review_log.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/researcher_review_log.md"
+            },
+            {
+              "label": "docs/research_retrospective.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/research_retrospective.md"
+            },
+            {
+              "label": "Live workflow diagram",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/process/live_workflow_diagram.md"
+            }
+          ],
+          "checks": [
+            "This is a process-tracking artifact, not scientific evidence.",
+            "The live workflow must not strengthen scientific claims.",
+            "Next checkpoint: - Researcher decision needed:\n- Question to ask:\n- Smallest useful next action:"
+          ],
+          "edges": [
+            "user_report"
+          ]
+        },
+        {
+          "id": "user_report",
+          "title": "User report",
+          "phase": "pending",
+          "x": 80,
+          "y": 430,
+          "summary": "PENDING: ",
+          "result_summary": {},
+          "images": [],
+          "node_type": "validation_gate",
+          "link_status": "pending_review",
+          "evidence_strength": "none",
+          "claim_ceiling": "unsupported",
+          "review_owner": "lead-agent",
+          "requires_researcher_review": false,
+          "code_links": [],
+          "result_links": [],
+          "interpretation_links": [
+            {
+              "label": "docs/research_plan.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/research_plan.md"
+            },
+            {
+              "label": "docs/literature_review_plan.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/literature_review_plan.md"
+            },
+            {
+              "label": "docs/paper_request_queue.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/paper_request_queue.md"
+            },
+            {
+              "label": "docs/replanning_memo.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/replanning_memo.md"
+            },
+            {
+              "label": "literature/index.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/index.md"
+            },
+            {
+              "label": "literature/reviews/",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/reviews"
+            },
+            {
+              "label": "literature/extracted_text/",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/extracted_text"
+            },
+            {
+              "label": "docs/baseline_registry.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/baseline_registry.md"
+            },
+            {
+              "label": "docs/validation_log.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/validation_log.md"
+            },
+            {
+              "label": "docs/researcher_review_log.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/researcher_review_log.md"
+            },
+            {
+              "label": "docs/research_retrospective.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/research_retrospective.md"
+            }
+          ],
+          "graph_links": [],
+          "responsible": [
+            {
+              "label": "docs/research_plan.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/research_plan.md"
+            },
+            {
+              "label": "docs/literature_review_plan.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/literature_review_plan.md"
+            },
+            {
+              "label": "docs/paper_request_queue.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/paper_request_queue.md"
+            },
+            {
+              "label": "docs/replanning_memo.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/replanning_memo.md"
+            },
+            {
+              "label": "literature/index.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/index.md"
+            },
+            {
+              "label": "literature/reviews/",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/reviews"
+            },
+            {
+              "label": "literature/extracted_text/",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/extracted_text"
+            },
+            {
+              "label": "docs/baseline_registry.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/baseline_registry.md"
+            },
+            {
+              "label": "docs/validation_log.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/validation_log.md"
+            },
+            {
+              "label": "docs/researcher_review_log.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/researcher_review_log.md"
+            },
+            {
+              "label": "docs/research_retrospective.md",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/research_retrospective.md"
+            },
+            {
+              "label": "Live workflow diagram",
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/process/live_workflow_diagram.md"
+            }
+          ],
+          "checks": [
+            "This is a process-tracking artifact, not scientific evidence.",
+            "The live workflow must not strengthen scientific claims.",
+            "Next checkpoint: - Researcher decision needed:\n- Question to ask:\n- Smallest useful next action:"
+          ],
+          "edges": [
+            "example-figure-node"
+          ]
+        },
+        {
+          "id": "example-figure-node",
+          "title": "Example Figure Node",
+          "phase": "pending_review",
+          "node_type": "figure",
+          "link_status": "pending_review",
+          "evidence_strength": "none",
+          "claim_ceiling": "observation",
+          "review_owner": "professor",
+          "requires_researcher_review": true,
+          "x": 80,
+          "y": 430,
+          "summary": "Replace this with the observed workflow update.",
+          "result_summary": {
+            "node_type": "figure",
+            "link_status": "pending_review",
+            "evidence_strength": "none",
+            "claim_ceiling": "observation",
+            "review_owner": "professor"
+          },
+          "images": [
+            {
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/outputs/example.png",
+              "kind": "figure",
+              "relation": "generated_by",
+              "status": "pending_review",
+              "preview": "thumbnail",
+              "label": "figure"
+            }
+          ],
+          "responsible": [
+            {
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/scripts/example.py",
+              "line": 1,
+              "role": "replace with exact code role",
+              "relation": "generates_figure",
+              "status": "pending_review",
+              "label": "replace with exact code role"
+            },
+            {
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/outputs/example.png",
+              "kind": "figure",
+              "relation": "generated_by",
+              "status": "pending_review",
+              "preview": "thumbnail",
+              "label": "figure"
+            },
+            {
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/validation_log.md",
+              "anchor": "example",
+              "relation": "documents_uncertainty",
+              "status": "pending_review",
+              "label": "documents_uncertainty"
+            }
+          ],
+          "code_links": [
+            {
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/scripts/example.py",
+              "line": 1,
+              "role": "replace with exact code role",
+              "relation": "generates_figure",
+              "status": "pending_review",
+              "label": "replace with exact code role"
+            }
+          ],
+          "result_links": [
+            {
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/outputs/example.png",
+              "kind": "figure",
+              "relation": "generated_by",
+              "status": "pending_review",
+              "preview": "thumbnail",
+              "label": "figure"
+            }
+          ],
+          "interpretation_links": [
+            {
+              "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/validation_log.md",
+              "anchor": "example",
+              "relation": "documents_uncertainty",
+              "status": "pending_review",
+              "label": "documents_uncertainty"
+            }
+          ],
+          "graph_links": [
+            {
+              "from": "example-run-node",
+              "to": "example-figure-node",
+              "relation": "generated_by",
+              "status": "pending_review"
+            }
+          ],
+          "checks": [
+            "Cartographer records link state only; it does not judge scientific meaning.",
+            "Open issues, stale links, waivers, and missing evidence must stay visible."
+          ],
           "edges": []
         }
       ]

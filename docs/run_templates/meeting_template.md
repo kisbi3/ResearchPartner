@@ -30,7 +30,7 @@
 
 <!-- Presents the work and current best answer to the question -->
 
-#### Professor Orchestrator
+#### Lead Agent
 
 <!-- Socratic or Contrarian challenge -->
 

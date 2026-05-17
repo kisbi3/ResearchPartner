@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Roll up Context Summary blocks from all paper reviews into one summary file.
 
-For long literature passes the Professor Orchestrator only needs the compact
+For long literature passes the Lead Agent only needs the compact
 Context Summary block from each review note for most replanning decisions.
 Loading 17 full reviews (200-400 lines each) into context is wasteful when
 the summary alone (10-15 lines each) is enough until a specific paper needs a

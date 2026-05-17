@@ -29,6 +29,19 @@ def test_quality_check_passes_review_with_required_evidence_links(tmp_path):
 - Paper Review Index: [literature/index.md](../index.md)
 - Replanning Memo: [docs/replanning_memo.md](../../docs/replanning_memo.md)
 
+## Context Summary
+
+<!-- context-summary:start -->
+- One-line claim: Example benchmark study.
+- Method: standard benchmark protocol.
+- Key result: reproducible trend.
+- Novelty status: unverified.
+- Reproduction target: Figure 1.
+- Limitations: 확인 필요.
+- Why we care: comparison baseline.
+- Citation key: example2026.
+<!-- context-summary:end -->
+
 ## Source Text Extraction
 
 - Extracted text path: [Extracted text](../extracted_text/P1-example.txt)

@@ -29,12 +29,12 @@ Create an iterative literature replanning loop that turns paper requests, resear
 
 ## Required Loop
 
-Repeat this loop until the Professor Orchestrator marks the plan ready or the researcher explicitly waives the literature gate:
+Repeat this loop until the Lead Agent marks the plan ready or the researcher explicitly waives the literature gate:
 
 1. **Question framing**: state the research question, physical system, observable, and candidate claim.
 2. **Paper request**: ask the researcher to collect specific PDFs that the LLM cannot access directly, using institutional access when needed.
 3. **Paper intake**: record each PDF path, citation metadata, access status, relevance, and whether it has been read.
-4. **Direct review**: create one detailed review note per important paper in `literature/reviews/`. The note must be a section-by-section paper review, not a short abstract summary. It should reconstruct the paper's context, concepts, method, equations, assumptions, units, figures/tables, limitations, and reusable research value. Each review note must fill in the **`Context Summary`** block (between the `<!-- context-summary:start -->` and `<!-- context-summary:end -->` HTML markers) — this block is the compact form the Professor Orchestrator loads during replanning instead of full reviews. Run `python scripts/compile_literature_summary.py --run <run-dir>` after adding or updating a review to regenerate `literature/summary.md`; prefer loading `summary.md` for routine replanning and load a full review only when a specific paper needs deeper inspection.
+4. **Direct review**: create one detailed review note per important paper in `literature/reviews/`. The note must be a section-by-section paper review, not a short abstract summary. It should reconstruct the paper's context, concepts, method, equations, assumptions, units, figures/tables, limitations, and reusable research value. Each review note must fill in the **`Context Summary`** block (between the `<!-- context-summary:start -->` and `<!-- context-summary:end -->` HTML markers) — this block is the compact form the Lead Agent loads during replanning instead of full reviews. Run `python scripts/compile_literature_summary.py --run <run-dir>` after adding or updating a review to regenerate `literature/summary.md`; prefer loading `summary.md` for routine replanning and load a full review only when a specific paper needs deeper inspection.
 5. **Novelty map**: compare the planned contribution against reviewed papers and mark novelty as supported, weak, contradicted, or unverified.
 6. **Reproduction target selection**: choose the smallest paper result, figure, equation, dataset, or benchmark that should be reproduced before new work.
 7. **Replanning memo**: revise the research plan, validation gates, baselines, observables, and claim ceiling based on the literature.
@@ -42,7 +42,7 @@ Repeat this loop until the Professor Orchestrator marks the plan ready or the re
 
 ## Paper Request Rules
 
-Before asking the researcher for any paper, the Professor Orchestrator must first attempt web discovery:
+Before asking the researcher for any paper, the Lead Agent must first attempt web discovery:
 
 1. **Web search first**: use the WebSearch tool (arXiv, Semantic Scholar, Google Scholar, publisher sites) to identify the exact title, authors, year, venue, and DOI or arXiv ID for each paper in the needed category.
 2. **Check open access**: if a paper has an arXiv preprint or is available on PubMed Central or an open-access journal, fetch it directly using WebFetch. Do not request it from the researcher.
@@ -78,7 +78,7 @@ Use `scripts/scaffold_paper_review.py` to initialize a detailed review note and 
 
 Use `scripts/extract_paper_text.py` to create an extracted-text artifact and link it from the review note. PDF text extraction is a reading aid, not evidence by itself; verify equations, figures, captions, tables, and claims against the PDF.
 
-Use `scripts/draft_paper_review.py` only to insert a `Machine-Assisted Draft From Extracted Text` section with provisional candidates. This does not establish novelty or validate claims; the Professor Orchestrator must require human/PDF verification before any candidate text affects the replanning memo.
+Use `scripts/draft_paper_review.py` only to insert a `Machine-Assisted Draft From Extracted Text` section with provisional candidates. This does not establish novelty or validate claims; the Lead Agent must require human/PDF verification before any candidate text affects the replanning memo.
 
 Use `scripts/process_paper_for_review.py` when the PDF is already in the run directory and the researcher wants the standard scaffold, extracted-text artifact, and provisional draft in one step.
 

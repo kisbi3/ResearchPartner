@@ -271,7 +271,7 @@ def test_embedded_workflow_data_remains_valid_json():
     generator = load_generator()
 
     html = generator.build_html(generator.build_data())
-    match = re.search(r"const DATA = (?P<data>.*?);\n", html, re.DOTALL)
+    match = re.search(r"(?:const|let) DATA = (?P<data>.*?);\n", html, re.DOTALL)
 
     assert match is not None
     embedded = json.loads(match.group("data"))

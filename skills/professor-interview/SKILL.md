@@ -1,6 +1,6 @@
 ---
 name: professor-interview
-description: Use after task-intake to run a free-form brainstorming dialogue between the Professor Orchestrator and the researcher. The professor probes assumptions, challenges framing, and crystallizes the research question before Specify, Seed, or literature work begins. This is the Interview phase.
+description: Use after task-intake to run a free-form brainstorming dialogue between the Lead Agent and the researcher. The professor probes assumptions, challenges framing, and crystallizes the research question before Specify, Seed, or literature work begins. This is the Interview phase.
 ---
 
 # Professor Interview Skill
@@ -9,7 +9,7 @@ Use this skill immediately after task-intake completes the Orient phase. Do not 
 
 ## Goal
 
-Run a multi-turn Socratic dialogue between the Professor Orchestrator and the researcher. The conversation should progressively sharpen the research question — not evaluate it, not implement it. By the end, both the professor and the researcher should be able to state the question in one clear sentence, and the researcher should feel that the question is now more precise than when they started.
+Run a multi-turn Socratic dialogue between the Lead Agent and the researcher. The conversation should progressively sharpen the research question — not evaluate it, not implement it. By the end, both the professor and the researcher should be able to state the question in one clear sentence, and the researcher should feel that the question is now more precise than when they started.
 
 ## Prerequisites
 

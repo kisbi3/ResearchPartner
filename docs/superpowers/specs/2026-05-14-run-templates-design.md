@@ -1,5 +1,8 @@
 # Run Templates Design
 
+> **Historical design doc.** This describes the original 3-tier Lead-Agent design from 2026-05-14. The current implementation absorbs that role into the **Lead Agent** (main conversation context); see [docs/orchestration_protocol.md](../../orchestration_protocol.md) for the current 2-tier spawn hierarchy. Terminology in this file is kept as written to preserve design history.
+
+
 ## Scope
 
 This design adds lightweight run-level templates for the professor-led orchestration protocol. It avoids a large template family and keeps only the artifacts that should be reused during real research runs.
@@ -14,22 +17,22 @@ The task classification is:
 
 ## Goal
 
-Every substantial research run should have a small, reusable packet that records how the agents clarified, executed, evaluated, visualized, and reported the work. The packet should support the Professor Orchestrator, Graduate Test-Design Agents, Coding Subagents, and Diagram/Cartographer Agent without turning the process into paperwork.
+Every substantial research run should have a small, reusable packet that records how the agents clarified, executed, evaluated, visualized, and reported the work. The packet should support the Lead Agent, Graduate Test-Design Agents, Coding Subagents, and Cartographer (hook-driven, not spawned) without turning the process into paperwork.
 
 ## Minimal Template Set
 
 Create two templates under `docs/run_templates/`:
 
-- `live_workflow_diagram_template.md`: the Diagram/Cartographer Agent's live Mermaid workflow artifact. It records process state only and does not give project opinions or scientific interpretations.
+- `live_workflow_diagram_template.md`: the Cartographer (hook-driven, not spawned)'s live Mermaid workflow artifact. It records process state only and does not give project opinions or scientific interpretations.
 - `research_run_packet_template.md`: the main run packet. It includes Interview, Seed, Execute, Evaluate, Completion Conference, User Report, and Retrospective sections in one file.
 
 Do not create separate interview-log or user-report templates in this pass. Those would duplicate the run packet and make the workflow heavier.
 
 ## Template Boundaries
 
-The live workflow template is owned by the Diagram/Cartographer Agent. It should listen to the Professor Orchestrator, Graduate Test-Design Agents, and Coding Subagents, then record active steps, gates, evidence links, blocked behaviors, and review checkpoints.
+The live workflow template is owned by the Cartographer (hook-driven, not spawned). It should listen to the Lead Agent, Graduate Test-Design Agents, and Coding Subagents, then record active steps, gates, evidence links, blocked behaviors, and review checkpoints.
 
-The research run packet is owned by the Professor Orchestrator. Graduate agents provide test-design notes, coding subagents provide execution reports, and the Diagram/Cartographer Agent provides workflow state. The Professor Orchestrator uses those inputs to run the completion conference and prepare the user-facing report.
+The research run packet is owned by the Lead Agent. Graduate agents provide test-design notes, coding subagents provide execution reports, and the Cartographer (hook-driven, not spawned) provides workflow state. The Lead Agent uses those inputs to run the completion conference and prepare the user-facing report.
 
 ## Documentation and Evaluation
 

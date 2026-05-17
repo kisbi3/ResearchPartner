@@ -73,9 +73,9 @@ flowchart TD
 
 ```mermaid
 flowchart TB
-    P["Professor Orchestrator"] --> G["Graduate Test-Design Agents"]
+    P["Lead Agent"] --> G["Graduate Test-Design Agents"]
     G --> C["Coding Subagents"]
-    P --> D["Diagram/Cartographer Agent"]
+    P --> D["Cartographer (hook-driven, not spawned)"]
     G --> D
     C --> D
     D --> W["Live Workflow Artifact"]

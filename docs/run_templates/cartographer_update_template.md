@@ -1,8 +1,8 @@
 # Cartographer Update Template
 
-Use this packet when the Professor Orchestrator, a Graduate Test-Design Agent, or a Coding Subagent needs the Diagram/Cartographer Agent to update the live workflow graph.
+Use this packet when the Lead Agent, a Graduate Test-Design Agent, or a Coding Subagent needs the Cartographer (hook-driven, not spawned) to update the live workflow graph.
 
-The sender reports facts, links, status, and limits. The Diagram/Cartographer Agent records them as graph nodes and links. It does not infer mechanisms, judge scientific meaning, or strengthen claims.
+The sender reports facts, links, status, and limits. The Cartographer (hook-driven, not spawned) records them as graph nodes and links. It does not infer mechanisms, judge scientific meaning, or strengthen claims.
 
 ## Update Packet
 
@@ -65,6 +65,6 @@ The sender reports facts, links, status, and limits. The Diagram/Cartographer Ag
 - Result links point to inspectable artifacts, not verbal summaries.
 - Interpretation links point to validation notes, decisions, caveats, reviews, or claim-to-evidence records.
 - Link Status is explicit.
-- Evidence Strength and claim ceiling are supplied by the Professor Orchestrator when they affect interpretation.
+- Evidence Strength and claim ceiling are supplied by the Lead Agent when they affect interpretation.
 - Researcher Checkpoint Marker is true for figures, claims, waivers, anomalies, stale artifacts, and unresolved open issues.
 - Staleness propagation is requested when code, data, parameters, units, analysis, or plotting changed.

@@ -44,7 +44,7 @@ Create one detailed note per important paper in `literature/reviews/`. Do not wr
 
 ### Context Summary
 
-This block is the single source of truth for `literature/summary.md`. Keep one short line per field so the Professor Orchestrator can load all paper summaries together without loading full reviews. Do not delete the HTML markers — `scripts/compile_literature_summary.py` reads between them.
+This block is the single source of truth for `literature/summary.md`. Keep one short line per field so the Lead Agent can load all paper summaries together without loading full reviews. Do not delete the HTML markers — `scripts/compile_literature_summary.py` reads between them.
 
 <!-- context-summary:start -->
 - **Paper ID**:

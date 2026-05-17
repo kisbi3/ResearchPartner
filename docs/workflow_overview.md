@@ -73,7 +73,7 @@ The hooks are grouped by the risk they control:
 
 ## Live Linked Research Graph
 
-The visible workflow map should not merely redraw the fixed loop. It should grow from the order in which research actually happens. Each Professor Orchestrator, Graduate Test-Design Agent, and Coding Subagent update should send a small Cartographer update event using `docs/run_templates/cartographer_update_template.md`. The Diagram/Cartographer Agent records those events as graph nodes and links, but does not judge scientific meaning.
+The visible workflow map should not merely redraw the fixed loop. It should grow from the order in which research actually happens. Each Lead Agent, Graduate Test-Design Agent, and Coding Subagent update should send a small Cartographer update event using `docs/run_templates/cartographer_update_template.md`. The Cartographer (hook-driven, not spawned) records those events as graph nodes and links, but does not judge scientific meaning.
 
 Each important node should expose three link families:
 
@@ -104,7 +104,7 @@ The workflow-diagram agent should update the live Mermaid/workflow artifact when
 
 Substantial research plans, existing-project reviews, reproduction attempts, simulation campaigns, analysis pipelines, figure sets, and manuscript-claim work should be organized as a professor-led research group.
 
-- The Professor Orchestrator owns scientific judgment, assumptions, model meaning, validation gates, evidence sufficiency, reproduction fidelity, and final claim discipline.
+- The Lead Agent owns scientific judgment, assumptions, model meaning, validation gates, evidence sufficiency, reproduction fidelity, and final claim discipline.
 - Graduate Test-Design Agents interview the professor first, convert broad tasks into testable validation strategies, and then interview coding subagents to make implementation work concrete.
 - Coding Subagents perform bounded implementation, analysis, or plotting tasks after the test strategy is clear. They report commands, parameters, seeds, outputs, validation status, and failures, but they should not decide that a result supports a stronger scientific claim.
 
@@ -118,17 +118,17 @@ Interview -> Seed -> Execute -> Evaluate
 
 If evaluation exposes ambiguity, failed reproduction, dimensional risk, unsupported interpretation, or unclear workflow state, the loop returns to Interview.
 
-## Diagram/Cartographer Agent
+## Cartographer (hook-driven, not spawned)
 
-For substantial research iterations, the Diagram/Cartographer Agent maintains the live workflow artifact in real time. It listens to the Professor Orchestrator, Graduate Test-Design Agents, and Coding Subagents, then records active steps, interview checkpoints, seeds/specs, execution tasks, evaluation gates, evidence links, blocked behaviors, and the next researcher review checkpoint.
+For substantial research iterations, the Cartographer (hook-driven, not spawned) maintains the live workflow artifact in real time. It listens to the Lead Agent, Graduate Test-Design Agents, and Coding Subagents, then records active steps, interview checkpoints, seeds/specs, execution tasks, evaluation gates, evidence links, blocked behaviors, and the next researcher review checkpoint.
 
-The Diagram/Cartographer Agent does not give project opinions, choose scientific interpretations, infer mechanisms, judge whether a claim is true, or strengthen claims. It is a process-tracking role only. Its artifact is a shared thinking surface for researcher review, not scientific evidence.
+The Cartographer (hook-driven, not spawned) does not give project opinions, choose scientific interpretations, infer mechanisms, judge whether a claim is true, or strengthen claims. It is a process-tracking role only. Its artifact is a shared thinking surface for researcher review, not scientific evidence.
 
 Use `docs/run_templates/live_workflow_diagram_template.md` when starting a new run-specific live workflow artifact.
 
 ## Completion Conference
 
-When a reproduction, validation, figure-generation, or other substantial task is complete and visualization artifacts are ready, the Professor Orchestrator convenes a completion conference with all agents: graduate agents, coding subagents, and the Diagram/Cartographer Agent.
+When a reproduction, validation, figure-generation, or other substantial task is complete and visualization artifacts are ready, the Lead Agent convenes a completion conference with all agents: graduate agents, coding subagents, and the Cartographer (hook-driven, not spawned).
 
 The completion conference should produce a user-facing report that summarizes:
 

@@ -38,7 +38,7 @@ Do not design Task 1 as any other kind of work (e.g., parameter sweep, new featu
 Each seed task must specify:
 
 1. **Title**: a short imperative description of the task.
-2. **Role**: Graduate Student Agent (owns execution), Implementation Agent (code), Scientific Validator (run+check), or Professor Orchestrator.
+2. **Role**: Graduate Student Agent (owns execution), Implementation Agent (code), Scientific Validator (run+check), or Lead Agent.
 3. **Input files**: exact paths to code, data, parameter files, or prior output files.
 4. **Script to write**: exact path under `src/` for the Implementation Agent.
 5. **Expected output**: exact file names, log entries, figure paths, or printed values.
@@ -77,7 +77,7 @@ If the plan requires multiple tasks, list them in dependency order. Mark which t
 
 **Each task in this seed corresponds to exactly one Graduate Student instance.** A Graduate Student is never reused across tasks, and a task is never split across multiple Graduate Students. Do not categorize tasks by "student type" (e.g. "baseline student tasks", "literature student tasks") — every Graduate Student has identical capabilities and is bound only to the single task they were spawned with.
 
-When Professor Orchestrator reads this seed and spawns Graduate Students, the spawning protocol is:
+When Lead Agent reads this seed and spawns Graduate Students, the spawning protocol is:
 
 - For every task with `depends_on: []` (no inbound dependency), Professor must spawn its Graduate Student in the **same assistant message** as every other independent task, using parallel `Agent()` tool calls in that one message.
 - A task with `depends_on: [Task K]` is spawned only after Task K's Graduate Student reports back.
@@ -133,7 +133,7 @@ Fill in the canonical Graduate Student template from [`docs/orchestration_protoc
 
 ### Dependency Map
 
-A simple ordered list or diagram showing which tasks depend on others and which may run in parallel. Use this exact format so the Professor Orchestrator can read it mechanically:
+A simple ordered list or diagram showing which tasks depend on others and which may run in parallel. Use this exact format so the Lead Agent can read it mechanically:
 
 ```
 Task 1  depends_on: []           parallel_batch: A

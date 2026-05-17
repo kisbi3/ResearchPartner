@@ -92,9 +92,9 @@ SCENARIOS = [
         ),
         rule_terms=(
             "scripts/start_research_run.py",
-            "Diagram/Cartographer Agent",
+            "Cartographer (hook-driven, not spawned)",
             "does not give project opinions",
-            "listens to the Professor Orchestrator",
+            "listens to the Lead Agent",
             "live workflow artifact",
             "active step",
             "gates",
@@ -131,7 +131,7 @@ SCENARIOS = [
             "docs/decision_log.md",
         ),
         rule_terms=(
-            "Professor Orchestrator",
+            "Lead Agent",
             "Socratic Interviewer",
             "Ontologist",
             "Seed Architect",
@@ -449,7 +449,7 @@ SCENARIOS = [
         ),
         rule_terms=(
             "Agent Spawning Protocol",
-            "3-Tier Hierarchy",
+            "2-Tier Spawn Hierarchy",
             "Parallel Task Spawning Rule",
             "One seed task = one Graduate Student",
             "Graduate Students are not specialized by task type",
@@ -488,7 +488,13 @@ def read_text(relative_path: str) -> str:
 
 
 def harness_rule_text() -> str:
-    files = ["AGENTS.md", "GEMINI.md", "PHYSICS.md", "README.md"]
+    files = [
+        "AGENTS.md",
+        "GEMINI.md",
+        "PHYSICS.md",
+        "README.md",
+        "docs/orchestration_protocol.md",
+    ]
     return "\n".join(read_text(path) for path in files)
 
 

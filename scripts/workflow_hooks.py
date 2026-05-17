@@ -23,8 +23,86 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import update_workflow_diagram as uwd  # noqa: E402
 
 
-AGENT_NAME = "professor-orchestrator"
+AGENT_NAME = "lead-agent"
 MAX_STEP_LEN = 100
+
+# Signal artifacts whose Write/Edit should produce a Cartographer event.
+# Maps relative path (within a run dir) -> (event label, optional gate name,
+# optional gate status). When `gate` is None, only an event-log line is added.
+SIGNAL_ARTIFACTS = {
+    "docs/orient_note.md":             ("Orient note recorded",          "Professor interview", "pending"),
+    "docs/interview_notes.md":         ("Interview notes recorded",      "Professor interview", "pass"),
+    "docs/literature_review_plan.md":  ("Literature review plan recorded","Literature review and replanning", "pass"),
+    "docs/model_spec.md":              ("Model spec recorded",            None, None),
+    "docs/baseline_strategy.md":       ("Baseline strategy decided",      "Baseline or reproduction target", "pass"),
+    "docs/research_plan.md":           ("Research plan updated",          None, None),
+    "docs/replanning_memo.md":         ("Replanning memo updated",        None, None),
+    "docs/gates/agent_spawn_log.md":   ("Agent spawn log updated",        None, None),
+    "docs/gates/validation_log.md":    ("Validation log updated",         "Execution", "in_progress"),
+    "docs/research_retrospective.md":  ("Retrospective recorded",         "Completion conference", "pass"),
+}
+
+
+FIGURE_EXTS = (".png", ".pdf", ".svg", ".jpg", ".jpeg")
+CACHE_EXTS = (".npy", ".npz", ".pkl", ".pickle", ".joblib")
+
+
+def signal_for(file_path_str: str):
+    """Return (event, gate, gate_status, run_dir) if path matches a signal artifact."""
+    if not file_path_str:
+        return None
+    p = Path(file_path_str).resolve()
+    parts = list(p.parts)
+    for i, part in enumerate(parts):
+        if part.lower() == "researchpartner-runs" and i + 1 < len(parts):
+            run_dir = Path(*parts[: i + 2])
+            try:
+                rel = p.relative_to(run_dir).as_posix()
+            except ValueError:
+                return None
+            # docs/checkpoints/stage_N_checkpoint.md is a stage-advance signal
+            if rel.startswith("docs/checkpoints/stage_") and rel.endswith("_checkpoint.md"):
+                return ("Stage checkpoint written", "Completion conference", "pass", run_dir)
+            # docs/meetings/YYYY-MM-DD-*.md is a meeting record signal
+            if rel.startswith("docs/meetings/") and rel.endswith(".md"):
+                return (f"Meeting recorded ({Path(rel).stem})", None, None, run_dir)
+            # outputs/figures/*.png|pdf|svg|jpg → "Figure generated"
+            if rel.startswith("outputs/figures/") and rel.lower().endswith(FIGURE_EXTS):
+                return (f"Figure generated ({Path(rel).name})", "Visualization", "in_progress", run_dir)
+            # errors/*.err → "Error file created" (negative signal — does NOT advance any gate)
+            if rel.startswith("errors/") and rel.endswith(".err"):
+                return (f"Error file created ({Path(rel).name})", None, None, run_dir)
+            # cache/*.npy|npz|pkl|pickle|joblib → "Cache artifact written"
+            if rel.startswith("cache/") and rel.lower().endswith(CACHE_EXTS):
+                return (f"Cache artifact written ({Path(rel).name})", None, None, run_dir)
+            if rel in SIGNAL_ARTIFACTS:
+                ev, gate, gs = SIGNAL_ARTIFACTS[rel]
+                return (ev, gate, gs, run_dir)
+            return None
+    return None
+
+
+def run_artifact_event(tool_name: str, file_path_str: str, phase: str) -> None:
+    """Record a Cartographer event for Write/Edit of a signal artifact."""
+    sig = signal_for(file_path_str)
+    if sig is None:
+        return
+    event_label, gate, gate_status, run_dir = sig
+    diagram_path = run_dir / "docs" / "live_workflow_diagram.md"
+    if not diagram_path.exists():
+        # Fall back to auto-discovery in case the run uses a non-standard location
+        diagram_path = uwd.find_active_diagram()
+        if diagram_path is None:
+            return
+    try:
+        content = diagram_path.read_text(encoding="utf-8")
+        event = "complete" if phase == "post" else "in_progress"
+        content = uwd.append_event(content, event, event_label, AGENT_NAME)
+        if phase == "post" and gate and gate_status:
+            content = uwd.update_gate_status(content, gate, gate_status)
+        diagram_path.write_text(content, encoding="utf-8")
+    except Exception as exc:
+        print(f"WORKFLOW WARNING: artifact event failed: {exc}", file=sys.stderr)
 
 
 def extract_step(tool_input: dict) -> str:
@@ -91,14 +169,17 @@ def main() -> int:
     tool_name = payload.get("tool_name", "")
     tool_input = payload.get("tool_input", {})
 
-    # Only act on Agent tool calls
-    if tool_name != "Agent":
+    if tool_name == "Agent":
+        if phase == "pre":
+            run_pre(tool_input)
+        else:
+            run_post(tool_input)
         return 0
 
-    if phase == "pre":
-        run_pre(tool_input)
-    else:
-        run_post(tool_input)
+    if tool_name in ("Write", "Edit"):
+        file_path_str = tool_input.get("file_path", "")
+        run_artifact_event(tool_name, file_path_str, phase)
+        return 0
 
     return 0
 

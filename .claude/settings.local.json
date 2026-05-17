@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(Get-ChildItem -Path \"C:\\\\ResearchPartner\\\\.claude\\\\worktrees\\\\quirky-hugle-7329ce\" -Recurse -Directory)",
-      "Bash(Select-Object -First 30 FullName)"
+      "Bash(Select-Object -First 30 FullName)",
+      "Bash(python scripts/check_contract_sync.py)"
     ]
   },
   "hooks": {
@@ -13,6 +14,32 @@
           {
             "type": "command",
             "command": "python scripts/workflow_hooks.py pre"
+          },
+          {
+            "type": "command",
+            "command": "python scripts/check_peer_review_invocation.py"
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python scripts/check_src_write_authorization.py"
+          },
+          {
+            "type": "command",
+            "command": "python scripts/workflow_hooks.py pre"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash|PowerShell",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python scripts/check_bash_code_write.py"
           }
         ]
       }
@@ -20,6 +47,15 @@
     "PostToolUse": [
       {
         "matcher": "Agent",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python scripts/workflow_hooks.py post"
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit",
         "hooks": [
           {
             "type": "command",
