@@ -69,6 +69,38 @@ def test_latest_live_workflow_path_reads_current_scaffold_layout(tmp_path, monke
     assert generator.build_data()["maps"][0]["id"] == "live_research_run"
 
 
+def test_live_map_uses_run_root_for_current_process_layout(tmp_path, monkeypatch):
+    generator = load_generator()
+    runs_root = tmp_path / "ResearchPartner-runs"
+    run_root = runs_root / "2026-05-17-current-layout"
+    process_docs = run_root / "docs" / "process"
+    process_docs.mkdir(parents=True)
+    live_path = process_docs / "live_workflow_diagram.md"
+    live_path.write_text(LIVE_WORKFLOW_FIXTURE, encoding="utf-8")
+    (run_root / "docs" / "gates").mkdir(parents=True)
+    (run_root / "docs" / "gates" / "orient_note.md").write_text("# Orient\n", encoding="utf-8")
+    (run_root / "docs" / "plan").mkdir(parents=True)
+    (run_root / "docs" / "plan" / "research_plan.md").write_text("# Plan\n", encoding="utf-8")
+    monkeypatch.setattr(generator, "RUNS_ROOT", runs_root)
+    monkeypatch.setattr(generator, "OUTPUT", tmp_path / "harness" / "docs" / "workflow_map.html")
+
+    map_data = generator.build_data()["maps"][0]
+
+    assert map_data["title"] == "Live Research Workflow: 2026-05-17-current-layout"
+    assert any(
+        item["path"].endswith("2026-05-17-current-layout/docs/convergence_sweep.csv")
+        for node in map_data["nodes"]
+        for item in node["responsible"]
+    )
+    assert map_data["dashboard"]["title"] == "Current Run Dashboard"
+    assert map_data["dashboard"]["document_groups"][0]["id"] == "needs_input"
+    assert any(
+        doc["path"].endswith("2026-05-17-current-layout/docs/gates/orient_note.md")
+        for group in map_data["dashboard"]["document_groups"]
+        for doc in group["documents"]
+    )
+
+
 def test_latest_live_workflow_path_prefers_newest_current_or_legacy_layout(tmp_path, monkeypatch):
     generator = load_generator()
     runs_root = tmp_path / "ResearchPartner-runs"
@@ -85,6 +117,33 @@ def test_latest_live_workflow_path_prefers_newest_current_or_legacy_layout(tmp_p
     monkeypatch.setattr(generator, "RUNS_ROOT", runs_root)
 
     assert generator.latest_live_workflow_path() == current_path
+
+
+def test_write_outputs_refreshes_latest_run_local_dashboard(tmp_path, monkeypatch):
+    generator = load_generator()
+    runs_root = tmp_path / "ResearchPartner-runs"
+    run_root = runs_root / "2026-05-17-current-layout"
+    process_docs = run_root / "docs" / "process"
+    process_docs.mkdir(parents=True)
+    (process_docs / "live_workflow_diagram.md").write_text(LIVE_WORKFLOW_FIXTURE, encoding="utf-8")
+    source = tmp_path / "harness" / "docs" / "workflow_map.json"
+    output = tmp_path / "harness" / "docs" / "workflow_map.html"
+    source.parent.mkdir(parents=True)
+    source.write_text(json.dumps({"maps": []}), encoding="utf-8")
+    monkeypatch.setattr(generator, "RUNS_ROOT", runs_root)
+    monkeypatch.setattr(generator, "SOURCE", source)
+    monkeypatch.setattr(generator, "OUTPUT", output)
+
+    written = generator.write_outputs()
+
+    assert output in written
+    assert run_root / "workflow_map.html" in written
+    assert run_root / "workflow_map.json" in written
+    assert (run_root / "workflow_map.html").exists()
+    assert (run_root / "workflow_map.json").exists()
+    run_data = json.loads((run_root / "workflow_map.json").read_text(encoding="utf-8"))
+    assert run_data["maps"][0]["id"] == "live_research_run"
+    assert "Current Run Dashboard" in (run_root / "workflow_map.html").read_text(encoding="utf-8")
 
 
 def test_default_build_data_contains_only_live_research_workflow(tmp_path, monkeypatch):

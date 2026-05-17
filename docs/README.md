@@ -21,7 +21,7 @@ Use these files during ordinary research iterations:
 - `workflow_diagrams.md`: Mermaid workflow diagrams.
 - `workflow_code_map.md`: map from skills and scripts to docs.
 - `workflow_map.json`: source data for the interactive map.
-- `workflow_map.html`: generated interactive dashboard.
+- `workflow_map.html`: generated central copy of the interactive dashboard; `scripts/generate_workflow_map.py` also writes the latest run-local dashboard to `ResearchPartner-runs/.../workflow_map.html`.
 - `paper_logic_diagram.md`: manuscript logic map, used only when paper planning starts.
 
 ## Subfolders

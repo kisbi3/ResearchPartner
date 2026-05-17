@@ -16,6 +16,71 @@ SOURCE = ROOT / "docs" / "workflow_map.json"
 OUTPUT = ROOT / "docs" / "workflow_map.html"
 RUNS_ROOT = ROOT.parent / "ResearchPartner-runs"
 
+DASHBOARD_DOCUMENT_GROUPS = [
+    {
+        "id": "needs_input",
+        "title": "Needs Input",
+        "description": "Documents where the researcher may need to answer, provide material, or clarify scope.",
+        "documents": [
+            ("Orient Note", ["docs/gates/orient_note.md", "docs/orient_note.md"]),
+            ("Interview Notes", ["docs/gates/interview_notes.md", "docs/interview_notes.md"]),
+            (
+                "Paper Request Queue",
+                ["docs/literature/paper_request_queue.md", "docs/paper_request_queue.md"],
+            ),
+            (
+                "Literature Review Plan",
+                ["docs/literature/literature_review_plan.md", "docs/literature_review_plan.md"],
+            ),
+            ("Meeting Notes", ["docs/meetings"]),
+        ],
+    },
+    {
+        "id": "needs_approval",
+        "title": "Needs Approval",
+        "description": "Documents that should be approved before the harness treats the run direction as settled.",
+        "documents": [
+            ("Research Plan", ["docs/plan/research_plan.md", "docs/research_plan.md"]),
+            ("Model Spec", ["docs/plan/model_spec.md", "docs/model_spec.md"]),
+            (
+                "Baseline Strategy",
+                ["docs/plan/baseline_strategy.md", "docs/baseline_strategy.md"],
+            ),
+            (
+                "Replanning Memo",
+                ["docs/literature/replanning_memo.md", "docs/replanning_memo.md"],
+            ),
+            (
+                "Paper Logic Diagram",
+                ["docs/plan/paper_logic_diagram.md", "docs/paper_logic_diagram.md"],
+            ),
+        ],
+    },
+    {
+        "id": "recommended_review",
+        "title": "Recommended Review",
+        "description": "Documents worth checking to understand current status, evidence, decisions, and remaining risk.",
+        "documents": [
+            (
+                "Live Workflow Diagram",
+                ["docs/process/live_workflow_diagram.md", "docs/live_workflow_diagram.md"],
+            ),
+            ("Research State", ["docs/process/research_state.md", "docs/research_state.md"]),
+            (
+                "Researcher Review Log",
+                ["docs/process/researcher_review_log.md", "docs/researcher_review_log.md"],
+            ),
+            ("Decision Log", ["docs/process/decision_log.md", "docs/decision_log.md"]),
+            ("Baseline Registry", ["docs/gates/baseline_registry.md", "docs/baseline_registry.md"]),
+            ("Validation Log", ["docs/gates/validation_log.md", "docs/validation_log.md"]),
+            (
+                "Research Retrospective",
+                ["docs/process/research_retrospective.md", "docs/research_retrospective.md"],
+            ),
+        ],
+    },
+]
+
 
 def relative_href(path: str) -> str:
     source = ROOT / path
@@ -36,8 +101,42 @@ def latest_live_workflow_path() -> Path | None:
     return candidates[0] if candidates else None
 
 
-def run_relative_path(path: Path) -> str:
-    return Path(os.path.relpath(path, OUTPUT.parent)).as_posix()
+def run_relative_path(path: Path, base_dir: Path | None = None) -> str:
+    base = base_dir or OUTPUT.parent
+    return Path(os.path.relpath(path, base)).as_posix()
+
+
+def live_workflow_run_root(live_path: Path) -> Path:
+    if live_path.parent.name == "process" and live_path.parent.parent.name == "docs":
+        return live_path.parent.parent.parent
+    if live_path.parent.name == "docs":
+        return live_path.parent.parent
+    return live_path.parents[1]
+
+
+def dashboard_document_groups(run_root: Path, base_dir: Path | None = None) -> list[dict]:
+    groups = []
+    for group in DASHBOARD_DOCUMENT_GROUPS:
+        documents = []
+        for label, candidates in group["documents"]:
+            candidate_paths = [run_root / candidate for candidate in candidates]
+            selected = next((path for path in candidate_paths if path.exists()), candidate_paths[0])
+            documents.append(
+                {
+                    "label": label,
+                    "path": run_relative_path(selected, base_dir),
+                    "status": "available" if selected.exists() else "missing",
+                }
+            )
+        groups.append(
+            {
+                "id": group["id"],
+                "title": group["title"],
+                "description": group["description"],
+                "documents": documents,
+            }
+        )
+    return groups
 
 
 def extract_section(markdown: str, heading: str) -> str:
@@ -49,7 +148,9 @@ def extract_section(markdown: str, heading: str) -> str:
     return match.group("body").strip() if match else ""
 
 
-def extract_bullet_links(markdown: str, run_root: Path) -> list[dict[str, str]]:
+def extract_bullet_links(
+    markdown: str, run_root: Path, base_dir: Path | None = None
+) -> list[dict[str, str]]:
     links = []
     for line in markdown.splitlines():
         stripped = line.strip()
@@ -59,7 +160,7 @@ def extract_bullet_links(markdown: str, run_root: Path) -> list[dict[str, str]]:
         links.append(
             {
                 "label": path_text,
-                "path": run_relative_path(run_root / path_text),
+                "path": run_relative_path(run_root / path_text, base_dir),
             }
         )
     return links
@@ -94,11 +195,11 @@ def extract_json_objects(markdown: str) -> list[dict]:
     return objects
 
 
-def with_run_path(link: dict, run_root: Path) -> dict:
+def with_run_path(link: dict, run_root: Path, base_dir: Path | None = None) -> dict:
     normalized = dict(link)
     path_text = str(normalized.get("path", ""))
     if path_text:
-        normalized["path"] = run_relative_path(run_root / path_text)
+        normalized["path"] = run_relative_path(run_root / path_text, base_dir)
     normalized.setdefault(
         "label",
         normalized.get("role")
@@ -110,7 +211,9 @@ def with_run_path(link: dict, run_root: Path) -> dict:
     return normalized
 
 
-def cartographer_event_nodes(markdown: str, run_root: Path) -> list[dict]:
+def cartographer_event_nodes(
+    markdown: str, run_root: Path, base_dir: Path | None = None
+) -> list[dict]:
     section = extract_section(markdown, "Cartographer Update Events")
     events = []
     for value in extract_json_objects(section):
@@ -126,10 +229,15 @@ def cartographer_event_nodes(markdown: str, run_root: Path) -> list[dict]:
             "_",
             str(event.get("title") or event.get("summary") or f"event_{index}").lower(),
         ).strip("_")
-        code_links = [with_run_path(link, run_root) for link in event.get("code_links", [])]
-        result_links = [with_run_path(link, run_root) for link in event.get("result_links", [])]
+        code_links = [
+            with_run_path(link, run_root, base_dir) for link in event.get("code_links", [])
+        ]
+        result_links = [
+            with_run_path(link, run_root, base_dir) for link in event.get("result_links", [])
+        ]
         interpretation_links = [
-            with_run_path(link, run_root) for link in event.get("interpretation_links", [])
+            with_run_path(link, run_root, base_dir)
+            for link in event.get("interpretation_links", [])
         ]
         nodes.append(
             {
@@ -191,11 +299,18 @@ def fmt_float(value: object, digits: int = 4) -> str:
     return f"{value:.{digits}g}"
 
 
-def image_ref(run_root: Path, filename: str, label: str) -> dict[str, str]:
-    return {"label": label, "path": run_relative_path(run_root / "outputs" / filename)}
+def image_ref(
+    run_root: Path, filename: str, label: str, base_dir: Path | None = None
+) -> dict[str, str]:
+    return {
+        "label": label,
+        "path": run_relative_path(run_root / "outputs" / filename, base_dir),
+    }
 
 
-def result_fields_for_gate(gate_id: str, run_root: Path) -> tuple[dict[str, str], list[dict[str, str]]]:
+def result_fields_for_gate(
+    gate_id: str, run_root: Path, base_dir: Path | None = None
+) -> tuple[dict[str, str], list[dict[str, str]]]:
     validation = read_json(run_root / "outputs" / "validation_summary.json")
     fixed = read_json(run_root / "outputs" / "fixed_ratio_convergence_summary.json")
     anomaly = read_json(run_root / "outputs" / "unstable_anomaly_probe.json")
@@ -211,8 +326,8 @@ def result_fields_for_gate(gate_id: str, run_root: Path) -> tuple[dict[str, str]
                 "stability_ratio": fmt_float(validation.get("stability_ratio")),
             },
             [
-                image_ref(run_root, "amplitude_decay.png", "Amplitude decay"),
-                image_ref(run_root, "profile_evolution.png", "Profile evolution"),
+                image_ref(run_root, "amplitude_decay.png", "Amplitude decay", base_dir),
+                image_ref(run_root, "profile_evolution.png", "Profile evolution", base_dir),
             ],
         )
     if gate_id == "refinement_trend":
@@ -224,7 +339,7 @@ def result_fields_for_gate(gate_id: str, run_root: Path) -> tuple[dict[str, str]
                 "finest_error": fmt_float(last_error),
                 "claim_scope": "trend only",
             },
-            [image_ref(run_root, "convergence_sweep.png", "Refinement trend")],
+            [image_ref(run_root, "convergence_sweep.png", "Refinement trend", base_dir)],
         )
     if gate_id == "fixed_ratio_convergence":
         return (
@@ -233,7 +348,11 @@ def result_fields_for_gate(gate_id: str, run_root: Path) -> tuple[dict[str, str]
                 "target_ratio": "0.1",
                 "claim_scope": "single-mode final amplitude",
             },
-            [image_ref(run_root, "fixed_ratio_convergence.png", "Fixed-ratio convergence")],
+            [
+                image_ref(
+                    run_root, "fixed_ratio_convergence.png", "Fixed-ratio convergence", base_dir
+                )
+            ],
         )
     if gate_id == "multi_mode_validation":
         modes = multimode.get("modes", {})
@@ -245,8 +364,10 @@ def result_fields_for_gate(gate_id: str, run_root: Path) -> tuple[dict[str, str]
                 "claim_scope": "finite periodic sine modes",
             },
             [
-                image_ref(run_root, "multimode_amplitude_decay.png", "Multi-mode amplitudes"),
-                image_ref(run_root, "multimode_profile_evolution.png", "Multi-mode profile"),
+                image_ref(
+                    run_root, "multimode_amplitude_decay.png", "Multi-mode amplitudes", base_dir
+                ),
+                image_ref(run_root, "multimode_profile_evolution.png", "Multi-mode profile", base_dir),
             ],
         )
     if gate_id == "positivity_sanity":
@@ -258,8 +379,8 @@ def result_fields_for_gate(gate_id: str, run_root: Path) -> tuple[dict[str, str]
                 "claim_scope": "one smooth nonnegative periodic profile",
             },
             [
-                image_ref(run_root, "positivity_profile.png", "Positivity profile"),
-                image_ref(run_root, "positivity_history.png", "Positivity history"),
+                image_ref(run_root, "positivity_profile.png", "Positivity profile", base_dir),
+                image_ref(run_root, "positivity_history.png", "Positivity history", base_dir),
             ],
         )
     if gate_id == "dirichlet_boundary":
@@ -271,8 +392,8 @@ def result_fields_for_gate(gate_id: str, run_root: Path) -> tuple[dict[str, str]
                 "claim_scope": "one homogeneous Dirichlet sine mode",
             },
             [
-                image_ref(run_root, "dirichlet_amplitude_decay.png", "Dirichlet amplitude"),
-                image_ref(run_root, "dirichlet_profile_evolution.png", "Dirichlet profile"),
+                image_ref(run_root, "dirichlet_amplitude_decay.png", "Dirichlet amplitude", base_dir),
+                image_ref(run_root, "dirichlet_profile_evolution.png", "Dirichlet profile", base_dir),
             ],
         )
     if gate_id == "anomaly_probe":
@@ -296,18 +417,20 @@ def result_fields_for_gate(gate_id: str, run_root: Path) -> tuple[dict[str, str]
     return ({}, [])
 
 
-def live_workflow_map() -> dict | None:
+def live_workflow_map(base_dir: Path | None = None) -> dict | None:
     live_path = latest_live_workflow_path()
     if live_path is None:
         return None
 
-    run_root = live_path.parents[1]
+    run_root = live_workflow_run_root(live_path)
     markdown = live_path.read_text(encoding="utf-8", errors="ignore")
     active_step = extract_section(markdown, "Active Step") or "No active step recorded."
     checkpoint = extract_section(markdown, "Next Review Checkpoint") or "No checkpoint recorded."
-    evidence_links = extract_bullet_links(extract_section(markdown, "Evidence Links"), run_root)
+    evidence_links = extract_bullet_links(
+        extract_section(markdown, "Evidence Links"), run_root, base_dir
+    )
     gate_rows = extract_gate_rows(markdown)
-    event_nodes = cartographer_event_nodes(markdown, run_root)
+    event_nodes = cartographer_event_nodes(markdown, run_root, base_dir)
 
     phase_by_status = {
         "pass": "passed",
@@ -321,7 +444,7 @@ def live_workflow_map() -> dict | None:
     for index, row in enumerate(gate_rows):
         status = row["status"]
         gate_id = re.sub(r"[^a-z0-9]+", "_", row["gate"].lower()).strip("_")
-        result_summary, images = result_fields_for_gate(gate_id, run_root)
+        result_summary, images = result_fields_for_gate(gate_id, run_root, base_dir)
         nodes.append(
             {
                 "id": gate_id or f"gate_{index}",
@@ -346,7 +469,7 @@ def live_workflow_map() -> dict | None:
                 + [
                     {
                         "label": "Live workflow diagram",
-                        "path": run_relative_path(live_path),
+                        "path": run_relative_path(live_path, base_dir),
                     }
                 ],
                 "checks": [
@@ -392,7 +515,10 @@ def live_workflow_map() -> dict | None:
                 "interpretation_links": [],
                 "graph_links": [],
                 "responsible": [
-                    {"label": "Live workflow diagram", "path": run_relative_path(live_path)}
+                    {
+                        "label": "Live workflow diagram",
+                        "path": run_relative_path(live_path, base_dir),
+                    }
                 ],
                 "checks": [
                     "This is a process-tracking artifact, not scientific evidence.",
@@ -409,6 +535,11 @@ def live_workflow_map() -> dict | None:
             "Current run state generated from the latest live workflow artifact. "
             "This is process-tracking only and must not strengthen scientific claims."
         ),
+        "dashboard": {
+            "title": "Current Run Dashboard",
+            "run_root": run_relative_path(run_root, base_dir),
+            "document_groups": dashboard_document_groups(run_root, base_dir),
+        },
         "nodes": nodes,
     }
 
@@ -454,9 +585,9 @@ def placeholder_live_workflow_map() -> dict:
     }
 
 
-def build_data(include_paper_logic: bool = False) -> dict:
+def build_data(include_paper_logic: bool = False, base_dir: Path | None = None) -> dict:
     source_data = json.loads(SOURCE.read_text(encoding="utf-8"))
-    live_map = live_workflow_map()
+    live_map = live_workflow_map(base_dir)
     maps = [live_map or placeholder_live_workflow_map()]
     if include_paper_logic:
         paper_logic = next(
@@ -470,6 +601,26 @@ def build_data(include_paper_logic: bool = False) -> dict:
         if paper_logic is not None:
             maps.append(paper_logic)
     return {"maps": maps}
+
+
+def write_outputs(include_paper_logic: bool = False) -> list[Path]:
+    written = []
+    central_data = build_data(include_paper_logic=include_paper_logic, base_dir=OUTPUT.parent)
+    OUTPUT.parent.mkdir(parents=True, exist_ok=True)
+    OUTPUT.write_text(build_html(central_data), encoding="utf-8")
+    written.append(OUTPUT)
+
+    live_path = latest_live_workflow_path()
+    if live_path is not None:
+        run_root = live_workflow_run_root(live_path)
+        run_data = build_data(include_paper_logic=False, base_dir=run_root)
+        run_html = run_root / "workflow_map.html"
+        run_json = run_root / "workflow_map.json"
+        run_html.write_text(build_html(run_data), encoding="utf-8")
+        run_json.write_text(json.dumps(run_data, indent=2), encoding="utf-8")
+        written.extend([run_html, run_json])
+
+    return written
 
 
 def build_html(data: dict) -> str:
@@ -577,6 +728,37 @@ def build_html(data: dict) -> str:
       cursor: pointer;
     }}
     .docs a:hover, .docs button:hover {{ border-color: var(--focus); }}
+    .dashboard-groups {{
+      display: grid;
+      gap: 10px;
+    }}
+    .dashboard-group {{
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 8px;
+      background: #fbfbf8;
+    }}
+    .dashboard-group h4 {{
+      margin: 0 0 4px;
+      font-size: 13px;
+    }}
+    .dashboard-docs {{
+      display: grid;
+      gap: 6px;
+      margin-top: 8px;
+    }}
+    .dashboard-doc {{
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: center;
+      font-size: 13px;
+    }}
+    .dashboard-status {{
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+    }}
     .file-preview {{
       margin-top: 14px;
       border: 1px solid var(--line);
@@ -818,6 +1000,30 @@ def build_html(data: dict) -> str:
             </div>
           `).join('')}}</div>`
         : `<p class="meta">${{escapeHtml(emptyText)}}</p>`;
+      const renderDashboard = (map) => {{
+        const dashboard = map.dashboard;
+        if (!dashboard || !(dashboard.document_groups || []).length) return '';
+        const groups = dashboard.document_groups.map(group => `
+          <div class="dashboard-group">
+            <h4>${{escapeHtml(group.title)}}</h4>
+            <div class="meta">${{escapeHtml(group.description || '')}}</div>
+            <div class="dashboard-docs">
+              ${{(group.documents || []).map(doc => `
+                <div class="dashboard-doc">
+                  <a href="${{escapeHtml(pathHref(doc.path))}}">${{escapeHtml(doc.label)}}</a>
+                  <span class="dashboard-status">${{escapeHtml(doc.status || 'unknown')}}</span>
+                </div>
+              `).join('')}}
+            </div>
+          </div>
+        `).join('');
+        return `
+          <div class="section">
+            <h3>${{escapeHtml(dashboard.title || 'Current Run Dashboard')}}</h3>
+            <div class="dashboard-groups">${{groups}}</div>
+          </div>
+        `;
+      }};
       const checks = (node.checks || []).map(check => `<li>${{escapeHtml(check)}}</li>`).join('');
       const resultEntries = Object.entries(node.result_summary || {{}});
       const resultMarkup = resultEntries.length
@@ -840,6 +1046,7 @@ def build_html(data: dict) -> str:
         <h2>${{escapeHtml(node.title)}}</h2>
         <div class="meta">${{escapeHtml(map.title)}} / ${{escapeHtml(node.phase)}}</div>
         <p>${{escapeHtml(node.summary)}}</p>
+        ${{renderDashboard(map)}}
         <div class="section">
           <h3>Link State</h3>
           <div class="results">${{metadata}}</div>
@@ -929,11 +1136,12 @@ def main() -> int:
         help="Include the paper logic workflow when manuscript planning has been requested.",
     )
     args = parser.parse_args()
-    OUTPUT.write_text(
-        build_html(build_data(include_paper_logic=args.include_paper_logic)),
-        encoding="utf-8",
-    )
-    print(f"Generated {OUTPUT.relative_to(ROOT)}")
+    for path in write_outputs(include_paper_logic=args.include_paper_logic):
+        try:
+            display = path.relative_to(ROOT)
+        except ValueError:
+            display = path
+        print(f"Generated {display}")
     return 0
 
 

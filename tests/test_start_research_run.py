@@ -97,6 +97,9 @@ def test_create_run_copies_templates_and_initial_docs(tmp_path):
     assert "Code links" in packet
     assert "Result links" in packet
     assert "Interpretation links" in packet
+    readme = (run_path / "README.md").read_text(encoding="utf-8")
+    assert "workflow_map.html" in readme
+    assert "Current Run Dashboard" in readme
 
     review_plan = (run_path / "docs" / "literature" / "literature_review_plan.md").read_text(
         encoding="utf-8"
