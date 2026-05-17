@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(Get-ChildItem -Path \"C:\\\\ResearchPartner\\\\.claude\\\\worktrees\\\\quirky-hugle-7329ce\" -Recurse -Directory)",
-      "Bash(Select-Object -First 30 FullName)"
+      "Bash(Select-Object -First 30 FullName)",
+      "Bash(python scripts/check_contract_sync.py)"
     ]
   },
   "hooks": {
@@ -13,6 +14,15 @@
           {
             "type": "command",
             "command": "python scripts/workflow_hooks.py pre"
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python scripts/check_src_write_authorization.py"
           }
         ]
       }

@@ -66,8 +66,12 @@ If the specification is incomplete:
 
 ## Spawn Log
 
-Before reporting back, append one row to `docs/gates/agent_spawn_log.md`
-(create the file with header if it does not exist):
+**Append your spawn log row BEFORE you Write or Edit any `src/` file.** The
+PreToolUse hook `scripts/check_src_write_authorization.py` will block any
+`src/*.py` write that lacks a matching row (or a freshly touched spawn log).
+
+Append one row to `docs/gates/agent_spawn_log.md` (create the file with the
+header below if it does not exist):
 
 ```
 | Date | Role | File | Task | Status |
