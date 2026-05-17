@@ -4,19 +4,25 @@
 Usage
 -----
     python scripts/run_with_capture.py <run_dir> <script_path> [args...]
+    python scripts/run_with_capture.py --quiet <run_dir> <script_path> [args...]
 
 Examples
 --------
     python scripts/run_with_capture.py C:/ResearchPartner-runs/my-run src/simulate.py
     python scripts/run_with_capture.py . src/scan.py --k 60 --omega0 20
+    python scripts/run_with_capture.py --quiet --tail 30 . src/scan.py
 
 Output files (always created)
 ------------------------------
     <run_dir>/logs/<YYYY-MM-DD-HHMM>-<script_stem>.log   — full stdout
     <run_dir>/errors/<YYYY-MM-DD-HHMM>-<script_stem>.err — stderr (only if non-empty)
 
-The wrapper also prints a one-line status summary to the console when the
-script finishes, so you can see at a glance whether the run succeeded.
+The wrapper prints a one-line status summary when the script finishes.
+
+By default it also echoes the full stdout to the terminal. Agents spawned
+via Bash/Agent tools should pass ``--quiet`` so the tool result only carries
+the status summary + log paths + the last ``--tail N`` stdout lines, not the
+entire run. The full stdout is always in the log file regardless of mode.
 """
 
 from __future__ import annotations
@@ -40,10 +46,16 @@ def run_and_capture(
     run: Path,
     script: Path,
     extra_args: list[str],
+    *,
+    quiet: bool = False,
+    tail: int = 20,
 ) -> int:
     """Execute *script* under Python, capturing stdout and stderr.
 
-    Returns the subprocess exit code.
+    Returns the subprocess exit code. When ``quiet`` is True, the full stdout
+    is still written to the log file but the terminal output is limited to
+    the status summary + log paths + the last ``tail`` stdout lines + a
+    stdout line count. This keeps tool-call results compact for agents.
     """
     ts = _timestamp()
     stem = script.stem
@@ -78,9 +90,19 @@ def run_and_capture(
     else:
         print("  stderr: (empty)")
 
-    # Echo stdout so the user sees it in the terminal
     if result.stdout:
-        print(result.stdout, end="")
+        if quiet:
+            stdout_lines = result.stdout.splitlines()
+            total_lines = len(stdout_lines)
+            tail_lines = stdout_lines[-tail:] if tail > 0 else []
+            print(f"  stdout: {total_lines} lines (full log at {log_path})")
+            if tail_lines:
+                print(f"  --- last {len(tail_lines)} stdout line(s) ---")
+                for line in tail_lines:
+                    print(line)
+        else:
+            # Echo full stdout so the user sees it in the terminal
+            print(result.stdout, end="")
 
     rc = result.returncode
     status = "OK" if rc == 0 else f"FAILED (exit {rc})"
@@ -90,6 +112,18 @@ def run_and_capture(
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--quiet",
+        action="store_true",
+        help="Suppress full stdout echo; print only the status summary, log "
+             "paths, and the last --tail stdout lines.",
+    )
+    parser.add_argument(
+        "--tail",
+        type=int,
+        default=20,
+        help="When --quiet is set, number of trailing stdout lines to echo (default: 20).",
+    )
     parser.add_argument(
         "run_dir",
         type=Path,
@@ -115,6 +149,8 @@ def main(argv: list[str] | None = None) -> int:
         run=args.run_dir.resolve(),
         script=args.script.resolve(),
         extra_args=args.extra,
+        quiet=args.quiet,
+        tail=args.tail,
     )
 
 

@@ -27,7 +27,7 @@ You have been spawned by a Graduate Student agent to run a specific script and d
 ### Step 1: Run the script
 
 ```bash
-python scripts/run_with_capture.py <run_dir> src/<script>.py [args]
+python scripts/run_with_capture.py --quiet <run_dir> src/<script>.py [args]
 ```
 
 This captures:
@@ -67,7 +67,7 @@ Write to the designated evidence file using this structure:
 ## Validation Evidence — <YYYY-MM-DD-HHMM>
 
 - **Script**: `src/<filename>.py`
-- **Run command**: `python scripts/run_with_capture.py <run_dir> src/<filename>.py [args]`
+- **Run command**: `python scripts/run_with_capture.py --quiet <run_dir> src/<filename>.py [args]`
 - **Log**: `logs/<timestamp>-<filename>.log`
 - **Error log**: `errors/<timestamp>-<filename>.err` (empty / non-empty)
 - **Exit code**: 0 / non-zero

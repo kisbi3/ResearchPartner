@@ -105,7 +105,7 @@ Write to the designated evidence file using this structure:
 ```markdown
 ## Task N Evidence — <YYYY-MM-DD>
 
-- **Command**: `python scripts/run_with_capture.py <run_dir> src/<script>.py`
+- **Command**: `python scripts/run_with_capture.py --quiet <run_dir> src/<script>.py`
 - **Result**: pass / fail / anomaly
 - **Observed values**: (key numbers)
 - **Pass criterion**: (what was required)

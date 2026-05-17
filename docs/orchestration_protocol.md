@@ -170,7 +170,7 @@ and report format.
 
 Run directory: <absolute path>
 Script to validate: src/<filename>.py
-Run command: python scripts/run_with_capture.py <run_dir> src/<filename>.py [args]
+Run command: python scripts/run_with_capture.py --quiet <run_dir> src/<filename>.py [args]
 Pass criterion: <exact criterion — do not invent new criteria>
 Fail criterion: <exact criterion>
 Evidence record: <file to write result into>
