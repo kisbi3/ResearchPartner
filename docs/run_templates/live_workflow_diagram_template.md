@@ -51,17 +51,21 @@ python scripts/update_workflow_diagram.py --event start --step "..." --agent "..
 
 ## Evidence Links
 
-- `docs/research_plan.md`
-- `docs/literature_review_plan.md`
-- `docs/paper_request_queue.md`
-- `docs/replanning_memo.md`
+- `docs/plan/research_plan.md`
+- `docs/plan/model_spec.md`
+- `docs/plan/baseline_strategy.md`
+- `docs/literature/literature_review_plan.md`
+- `docs/literature/paper_request_queue.md`
+- `docs/literature/replanning_memo.md`
 - `literature/index.md`
 - `literature/reviews/`
 - `literature/extracted_text/`
-- `docs/baseline_registry.md`
-- `docs/validation_log.md`
-- `docs/researcher_review_log.md`
-- `docs/research_retrospective.md`
+- `docs/gates/orient_note.md`
+- `docs/gates/interview_notes.md`
+- `docs/gates/baseline_registry.md`
+- `docs/gates/validation_log.md`
+- `docs/process/researcher_review_log.md`
+- `docs/process/research_retrospective.md`
 
 ## Cartographer Update Events
 
