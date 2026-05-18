@@ -306,6 +306,18 @@ def test_live_map_html_mentions_process_tracking_not_claim_evidence():
     assert "renderDashboard(map)" not in html
 
 
+def test_workflow_map_template_includes_persistent_dark_mode_toggle():
+    generator = load_generator()
+
+    html = generator.build_html(generator.build_data())
+
+    assert 'data-theme' in html
+    assert 'workflowMapTheme' in html
+    assert 'id="themeToggle"' in html
+    assert ':root[data-theme="dark"]' in html
+    assert 'aria-label' in html
+
+
 def test_embedded_workflow_data_remains_valid_json():
     generator = load_generator()
 

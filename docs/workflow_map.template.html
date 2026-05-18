@@ -4,17 +4,89 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>__TITLE__</title>
+  <script>
+    (function () {
+      try {
+        const stored = localStorage.getItem('workflowMapTheme');
+        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.dataset.theme = stored || (prefersDark ? 'dark' : 'light');
+      } catch (error) {
+        document.documentElement.dataset.theme = 'light';
+      }
+    })();
+  </script>
   <style>
     :root {
       color-scheme: light;
       --bg: #f7f7f4;
       --panel: #ffffff;
+      --panel-soft: #fbfbf8;
       --ink: #202124;
       --muted: #5f6368;
       --line: #d2d7d3;
       --accent: #0f766e;
       --accent-2: #7c2d12;
       --focus: #0b57d0;
+      --button-bg: #ffffff;
+      --active-bg: #f0fdf4;
+      --notice-bg: #fef3c7;
+      --notice-ink: #92400e;
+      --notice-line: #fcd34d;
+      --preview-bg: #111111;
+      --preview-ink: #ffffff;
+      --pass-bg: #d1fae5;
+      --pass-ink: #065f46;
+      --fail-bg: #fee2e2;
+      --fail-ink: #991b1b;
+      --blocked-bg: #fef3c7;
+      --blocked-ink: #92400e;
+      --progress-bg: #dbeafe;
+      --progress-ink: #1e40af;
+      --pending-bg: #f3f4f6;
+      --pending-ink: #6b7280;
+      --waived-bg: #e5e7eb;
+      --waived-ink: #4b5563;
+      --stale-bg: #fdecec;
+      --stale-ink: #a83232;
+      --flow-node-ink: #111111;
+      --flow-edge: #94a3b8;
+      --flow-edge-label: #64748b;
+    }
+    :root[data-theme="dark"] {
+      color-scheme: dark;
+      --bg: #111413;
+      --panel: #1a1f1d;
+      --panel-soft: #222825;
+      --ink: #eef2ef;
+      --muted: #a8b3ad;
+      --line: #36413c;
+      --accent: #5eead4;
+      --accent-2: #fdba74;
+      --focus: #93c5fd;
+      --button-bg: #202622;
+      --active-bg: #123b33;
+      --notice-bg: #3b2f16;
+      --notice-ink: #fde68a;
+      --notice-line: #a16207;
+      --preview-bg: #0b0f0d;
+      --preview-ink: #e5e7eb;
+      --pass-bg: #103c31;
+      --pass-ink: #a7f3d0;
+      --fail-bg: #4a1f24;
+      --fail-ink: #fecaca;
+      --blocked-bg: #423115;
+      --blocked-ink: #fde68a;
+      --progress-bg: #172b4d;
+      --progress-ink: #bfdbfe;
+      --pending-bg: #29302d;
+      --pending-ink: #cbd5d1;
+      --waived-bg: #2e3532;
+      --waived-ink: #d1d5db;
+      --stale-bg: #4a1f24;
+      --stale-ink: #fecaca;
+      --flow-node-ink: #0f172a;
+      --flow-edge: #64748b;
+      --flow-edge-label: #cbd5e1;
     }
     * { box-sizing: border-box; }
     body {
@@ -27,6 +99,12 @@
       padding: 20px 24px 12px;
       border-bottom: 1px solid var(--line);
       background: var(--panel);
+    }
+    .header-row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
     }
     h1 { margin: 0 0 6px; font-size: 24px; }
     p { line-height: 1.45; }
@@ -50,9 +128,9 @@
       vertical-align: middle;
       padding: 2px 7px;
       border-radius: 4px;
-      background: #fef3c7;
-      color: #92400e;
-      border: 1px solid #fcd34d;
+      background: var(--notice-bg);
+      color: var(--notice-ink);
+      border: 1px solid var(--notice-line);
       margin-left: 4px;
     }
     .tabs {
@@ -66,7 +144,7 @@
     }
     button {
       border: 1px solid var(--line);
-      background: #fff;
+      background: var(--button-bg);
       color: var(--ink);
       border-radius: 6px;
       padding: 8px 10px;
@@ -79,13 +157,23 @@
     }
     button.active {
       background: var(--accent);
-      color: white;
+      color: var(--bg);
       border-color: var(--accent);
     }
+    .theme-toggle {
+      flex: 0 0 auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 10px;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    .theme-toggle::before { content: "◐"; font-size: 14px; line-height: 1; }
     #diagram { overflow-y: auto; }
     .active-step-bar {
       padding: 8px 14px;
-      background: #f0f9ff;
+      background: var(--active-bg);
       border-bottom: 1px solid var(--line);
       font-size: 12px;
       color: var(--muted);
@@ -105,11 +193,11 @@
       border-left: 3px solid transparent;
     }
     .gate-row:hover { background: var(--bg); }
-    .gate-row.active { background: #f0fdf4; border-left-color: var(--accent); }
+    .gate-row.active { background: var(--active-bg); border-left-color: var(--accent); }
     .gate-chevron { flex: 0 0 auto; font-size: 10px; color: var(--muted); margin-left: auto; }
     .gate-detail {
       padding: 14px 16px;
-      background: #f8faf8;
+      background: var(--panel-soft);
       border-top: 1px solid var(--line);
     }
     .gate-detail-grid {
@@ -133,12 +221,12 @@
       min-width: 80px;
       justify-content: center;
     }
-    .gate-status-pass { background: #d1fae5; color: #065f46; }
-    .gate-status-fail { background: #fee2e2; color: #991b1b; }
-    .gate-status-blocked { background: #fef3c7; color: #92400e; }
-    .gate-status-in_progress { background: #dbeafe; color: #1e40af; }
-    .gate-status-pending { background: #f3f4f6; color: #6b7280; }
-    .gate-status-waived { background: #e5e7eb; color: #4b5563; }
+    .gate-status-pass { background: var(--pass-bg); color: var(--pass-ink); }
+    .gate-status-fail { background: var(--fail-bg); color: var(--fail-ink); }
+    .gate-status-blocked { background: var(--blocked-bg); color: var(--blocked-ink); }
+    .gate-status-in_progress { background: var(--progress-bg); color: var(--progress-ink); }
+    .gate-status-pending { background: var(--pending-bg); color: var(--pending-ink); }
+    .gate-status-waived { background: var(--waived-bg); color: var(--waived-ink); }
     .gate-title {
       flex: 0 0 200px;
       font-weight: 600;
@@ -175,7 +263,7 @@
       padding: 6px 8px;
       text-decoration: none;
       color: var(--ink);
-      background: #fbfbf8;
+      background: var(--panel-soft);
       font: inherit;
       cursor: pointer;
     }
@@ -189,7 +277,7 @@
       border: 1px solid var(--line);
       border-radius: 6px;
       padding: 8px 9px;
-      background: #fbfbf8;
+      background: var(--panel-soft);
       min-width: 0;
     }
     .summary-pill strong {
@@ -205,7 +293,7 @@
     .action-queue {
       border-bottom: 1px solid var(--line);
       padding: 12px;
-      background: #fbfbf8;
+      background: var(--panel-soft);
     }
     .action-queue h2 {
       margin: 0 0 4px;
@@ -225,7 +313,7 @@
       margin-top: 10px;
       border: 1px solid var(--line);
       border-radius: 6px;
-      background: #fff;
+      background: var(--panel);
     }
     .action-fold > summary {
       list-style: none;
@@ -248,7 +336,7 @@
       margin-right: 2px;
     }
     .action-fold[open] > summary::before { transform: rotate(90deg); }
-    .action-fold > summary:hover { background: #f1f3f0; }
+    .action-fold > summary:hover { background: var(--active-bg); }
     .action-fold-title { flex: 1; }
     .action-fold-counts {
       color: var(--muted);
@@ -276,7 +364,7 @@
     .action-card {
       text-align: left;
       border-color: var(--line);
-      background: #fff;
+      background: var(--button-bg);
       min-height: 0;
       padding: 7px 8px;
       width: 100%;
@@ -300,8 +388,8 @@
       border: 1px solid var(--line);
       border-radius: 6px;
       padding: 8px;
-      background: #111;
-      color: #fff;
+      background: var(--preview-bg);
+      color: var(--preview-ink);
       overflow-x: auto;
       font-size: 12px;
     }
@@ -309,7 +397,7 @@
       margin-top: 14px;
       border: 1px solid var(--line);
       border-radius: 8px;
-      background: #fbfbf8;
+      background: var(--panel-soft);
       overflow: hidden;
     }
     .file-preview .preview-head {
@@ -336,7 +424,7 @@
       max-height: 260px;
       margin: 10px auto;
       object-fit: contain;
-      background: #fff;
+      background: var(--panel);
     }
     .freshness-pill {
       display: inline-block;
@@ -344,12 +432,12 @@
       border-radius: 999px;
       font-size: 11px;
       margin-left: 8px;
-      background: #e8efe9;
+      background: var(--active-bg);
       color: var(--accent);
       border: 1px solid var(--line);
       vertical-align: middle;
     }
-    .freshness-pill.stale { background: #fdecec; color: #a83232; }
+    .freshness-pill.stale { background: var(--stale-bg); color: var(--stale-ink); }
     .results {
       display: grid;
       gap: 8px;
@@ -361,7 +449,7 @@
       padding: 7px 8px;
       border: 1px solid var(--line);
       border-radius: 6px;
-      background: #fbfbf8;
+      background: var(--panel-soft);
       font-size: 13px;
     }
     .result-key { color: var(--muted); }
@@ -377,7 +465,7 @@
       object-fit: contain;
       border: 1px solid var(--line);
       border-radius: 6px;
-      background: #fff;
+      background: var(--panel);
     }
     .image-caption {
       margin-top: 4px;
@@ -392,7 +480,7 @@
       border: 1px solid var(--line);
       border-radius: 6px;
       padding: 8px;
-      background: #fbfbf8;
+      background: var(--panel-soft);
     }
     .link-card a {
       font-weight: 700;
@@ -416,7 +504,7 @@
     .flow-canvas {
       width: 100%;
       height: 620px;
-      background: #fbfbf8;
+      background: var(--panel-soft);
       border: 1px solid var(--line);
       border-radius: 6px;
     }
@@ -433,7 +521,7 @@
       display: inline-flex;
       gap: 4px;
       align-items: center;
-      background: #fbfbf8;
+      background: var(--panel-soft);
       border: 1px solid var(--line);
       border-radius: 999px;
       padding: 3px 9px;
@@ -441,7 +529,7 @@
     }
     .flow-controls label input { margin: 0; }
     .flow-controls button {
-      background: #fbfbf8;
+      background: var(--panel-soft);
       border: 1px solid var(--line);
       border-radius: 999px;
       padding: 3px 10px;
@@ -478,7 +566,10 @@
 </head>
 <body>
   <header>
-    <h1>__TITLE__ <span class="beta-badge">Beta</span> <span id="freshness" class="freshness-pill" hidden></span></h1>
+    <div class="header-row">
+      <h1>__TITLE__ <span class="beta-badge">Beta</span> <span id="freshness" class="freshness-pill" hidden></span></h1>
+      <button type="button" class="theme-toggle" id="themeToggle" aria-pressed="false">Dark</button>
+    </div>
     <p>Click a workflow node to inspect current gates, evidence links, blocked behaviors, and next review checkpoints. This page is the live research workflow by default. Add the paper logic workflow only when the researcher explicitly starts manuscript planning. Auto-refreshes every 10 seconds by polling <code>workflow_map.live.json</code>; your selection and scroll position are preserved when the data changes.</p>
   </header>
   <main class="shell">
@@ -497,6 +588,33 @@
     let activeAction = null;
 
     const IMAGE_EXT_RE = /\.(png|jpe?g|gif|webp|svg|bmp|ico)(\?|#|$)/i;
+    const THEME_STORAGE_KEY = 'workflowMapTheme';
+
+    function theme() {
+      return document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light';
+    }
+
+    function updateThemeToggle() {
+      const button = document.getElementById('themeToggle');
+      if (!button) return;
+      const isDark = theme() === 'dark';
+      button.textContent = isDark ? 'Light' : 'Dark';
+      button.setAttribute('aria-pressed', String(isDark));
+      button.setAttribute('aria-label', isDark ? 'Switch to light mode' : 'Switch to dark mode');
+    }
+
+    function setTheme(nextTheme) {
+      const normalized = nextTheme === 'dark' ? 'dark' : 'light';
+      document.documentElement.dataset.theme = normalized;
+      try { localStorage.setItem(THEME_STORAGE_KEY, normalized); } catch (error) {}
+      updateThemeToggle();
+      const map = currentMap();
+      if (map && map.display_kind === 'flow') renderFlowDiagram(map);
+    }
+
+    function cssVar(name) {
+      return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    }
 
     function isRunLocal() {
       const map = currentMap();
@@ -694,7 +812,7 @@
           `).join('')}</div>
         </div>` : '';
       const responsibleLinks = (node.responsible || []).map(item =>
-        `<a class="docs-link" href="${escapeHtml(pathHref(item.path))}" style="display:inline-block;border:1px solid var(--line);border-radius:6px;padding:5px 8px;text-decoration:none;color:var(--ink);background:#fbfbf8;font-size:13px;margin:2px 4px 2px 0">${escapeHtml(item.label)}</a>`
+        `<a class="docs-link" href="${escapeHtml(pathHref(item.path))}" style="display:inline-block;border:1px solid var(--line);border-radius:6px;padding:5px 8px;text-decoration:none;color:var(--ink);background:var(--panel-soft);font-size:13px;margin:2px 4px 2px 0">${escapeHtml(item.label)}</a>`
       ).join('');
       const checks = (node.checks || []).map(check => `<li>${escapeHtml(check)}</li>`).join('');
       return `
@@ -981,6 +1099,12 @@
 
       const existingCy = flowCyInstances[map.id];
       if (existingCy) { try { existingCy.destroy(); } catch (e) {} }
+      const flowEdge = cssVar('--flow-edge') || '#94a3b8';
+      const flowEdgeLabel = cssVar('--flow-edge-label') || '#64748b';
+      const flowNodeInk = cssVar('--flow-node-ink') || '#111111';
+      const flowTextBg = cssVar('--panel-soft') || '#fbfbf8';
+      const flowFocus = cssVar('--focus') || '#0b57d0';
+      const flowReview = cssVar('--fail-ink') || '#b91c1c';
 
       const cy = cytoscape({
         container: document.getElementById('cyCanvas'),
@@ -1000,22 +1124,22 @@
             'padding': '6px',
             'border-width': 1,
             'border-color': '#475569',
-            'color': '#111',
+            'color': flowNodeInk,
           }},
-          { selector: 'node[?requiresReview]', style: { 'border-width': 3, 'border-color': '#b91c1c' }},
-          { selector: 'node.selected',         style: { 'border-width': 4, 'border-color': '#0b57d0' }},
+          { selector: 'node[?requiresReview]', style: { 'border-width': 3, 'border-color': flowReview }},
+          { selector: 'node.selected',         style: { 'border-width': 4, 'border-color': flowFocus }},
           { selector: 'edge', style: {
             'curve-style': 'bezier',
             'target-arrow-shape': 'triangle',
             'arrow-scale': 0.9,
-            'line-color': '#94a3b8',
-            'target-arrow-color': '#94a3b8',
+            'line-color': flowEdge,
+            'target-arrow-color': flowEdge,
             'width': 1.5,
             'label': 'data(relation)',
             'font-size': 8,
-            'color': '#64748b',
+            'color': flowEdgeLabel,
             'text-rotation': 'autorotate',
-            'text-background-color': '#fbfbf8',
+            'text-background-color': flowTextBg,
             'text-background-opacity': 0.9,
             'text-background-padding': '1px',
           }},
@@ -1108,6 +1232,10 @@
       }
     }
 
+    document.getElementById('themeToggle').addEventListener('click', () => {
+      setTheme(theme() === 'dark' ? 'light' : 'dark');
+    });
+    updateThemeToggle();
     render();
     window.setInterval(pollForUpdate, 10000);
     window.setInterval(updateFreshnessPill, 60000);
