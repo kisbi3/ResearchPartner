@@ -869,6 +869,9 @@ def write_outputs(
         if not force and central_json.exists():
             try:
                 central_data = json.loads(central_json.read_text(encoding="utf-8"))
+                # Refresh the timestamp so the freshness pill reflects when the
+                # HTML was last regenerated, not when the data was last changed.
+                central_data["generated_at"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
             except (json.JSONDecodeError, OSError):
                 central_data = None
         else:
