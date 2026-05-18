@@ -97,18 +97,22 @@ _PHASE_MAP = {
 # JSON load / bootstrap
 # ---------------------------------------------------------------------------
 
-def _empty_live_map(run_root: Path) -> dict:
+def _empty_live_map(project_root: Path) -> dict:
+    # The map id `live_research_run` is preserved verbatim across the v3
+    # refactor so that workflow_map.html JS, generate_workflow_map.py, the
+    # demo seed, and saved JSON files continue to interoperate. Conceptually
+    # the "run" is now the project itself.
     return {
         "id": "live_research_run",
-        "title": f"Live Research Workflow: {run_root.name}",
+        "title": f"Live Research Workflow: {project_root.name}",
         "active_step": "",
-        "description": "Live workflow state for current research run.",
+        "description": "Live workflow state for the current research project.",
         "nodes": [],
     }
 
 
-def _load_or_bootstrap(run_root: Path) -> dict:
-    json_path = run_root / "workflow_map.live.json"
+def _load_or_bootstrap(project_root: Path) -> dict:
+    json_path = project_root / "workflow_map.live.json"
     if json_path.exists():
         try:
             data = json.loads(json_path.read_text(encoding="utf-8"))
@@ -116,32 +120,38 @@ def _load_or_bootstrap(run_root: Path) -> dict:
                 return data
         except (json.JSONDecodeError, KeyError):
             pass
-    # Try the generate_workflow_map logic so dashboard links are populated.
-    try:
-        import generate_workflow_map as gwm  # noqa: PLC0415
-
-        original_runs_root = gwm.RUNS_ROOT
-        gwm.RUNS_ROOT = run_root.parent
+    # Try the generate_workflow_map logic so dashboard links are populated —
+    # but only when this project has an actual live workflow diagram.
+    # Without that file generate_workflow_map would fall back to scanning a
+    # harness-global RUNS_ROOT, which is the wrong project for a fresh init.
+    live_diagram = project_root / "docs" / "process" / "live_workflow_diagram.md"
+    if live_diagram.exists():
         try:
-            live_map = gwm.live_workflow_map(base_dir=run_root)
-        finally:
-            gwm.RUNS_ROOT = original_runs_root
-        if live_map is None:
-            live_map = _empty_live_map(run_root)
-        else:
-            # Strip placeholder-only node lists so new updates start clean.
-            nodes = live_map.get("nodes", [])
-            if len(nodes) == 1 and nodes[0].get("id") == "no_active_run":
-                live_map["nodes"] = []
-        return {
-            "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-            "maps": [live_map],
-        }
-    except Exception:
-        pass
+            import generate_workflow_map as gwm  # noqa: PLC0415
+
+            # Phase-1 transitional: gwm still uses sibling/parent RUNS_ROOT
+            # globals. Override to point inside this project so its scan
+            # finds *this* run only.
+            original_runs_root = getattr(gwm, "RUNS_ROOT", None)
+            try:
+                gwm.RUNS_ROOT = project_root.parent
+                live_map = gwm.live_workflow_map(base_dir=project_root)
+            finally:
+                if original_runs_root is not None:
+                    gwm.RUNS_ROOT = original_runs_root
+            if live_map is not None:
+                nodes = live_map.get("nodes", [])
+                if len(nodes) == 1 and nodes[0].get("id") == "no_active_run":
+                    live_map["nodes"] = []
+                return {
+                    "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+                    "maps": [live_map],
+                }
+        except Exception:
+            pass
     return {
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-        "maps": [_empty_live_map(run_root)],
+        "maps": [_empty_live_map(project_root)],
     }
 
 
@@ -361,12 +371,17 @@ def find_broken_edges(run_root: Path) -> list[dict]:
 # Public API (also usable as a library from start_research_run.py)
 # ---------------------------------------------------------------------------
 
-def bootstrap_run_json(run_root: Path) -> Path:
-    """Generate an initial workflow_map.live.json for a new run directory."""
-    data = _load_or_bootstrap(run_root)
-    json_path = run_root / "workflow_map.live.json"
+def bootstrap_project_json(project_root: Path) -> Path:
+    """Generate an initial workflow_map.live.json at the project root."""
+    data = _load_or_bootstrap(project_root)
+    json_path = project_root / "workflow_map.live.json"
     json_path.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
     return json_path
+
+
+# Backward-compat alias retained for one release; the run-vs-project
+# distinction is gone since v3 — they now refer to the same directory.
+bootstrap_run_json = bootstrap_project_json
 
 
 def _resolve_anomaly(nodes: list[dict], anomaly_id: str) -> int:
@@ -467,8 +482,11 @@ def apply_updates(
 
 def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--run", required=True, metavar="RUN_DIR",
-                        help="Path to the research run root directory.")
+    parser.add_argument("--project", "--run", dest="project", metavar="PROJECT_DIR",
+                        default=None,
+                        help="Project root directory. Default: walk up from cwd "
+                             "looking for `.research-harness` marker. `--run` is "
+                             "kept as an alias for one release.")
     parser.add_argument("--active-step", metavar="TEXT",
                         help="Update the active-step banner shown in the HTML header.")
     parser.add_argument("--gate", metavar="NAME",
@@ -495,14 +513,25 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
 def main(argv: list[str] | None = None) -> int:
     args = _parse_args(argv)
-    run_root = Path(args.run).resolve()
+    # Lazy import so this script remains importable as a library when
+    # _project_root has not yet been written into the install.
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    import _project_root as project_root_mod  # noqa: PLC0415
 
-    if not run_root.exists():
-        print(f"ERROR: run directory not found: {run_root}", file=sys.stderr)
+    try:
+        project_root = project_root_mod.resolve_project(args.project)
+    except project_root_mod.ProjectRootNotFoundError as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 1
+    if not project_root.exists():
+        print(f"ERROR: project directory not found: {project_root}", file=sys.stderr)
         return 1
     if args.gate and not args.status:
         print("ERROR: --gate requires --status", file=sys.stderr)
         return 1
+    # `run_root` retained as local alias for the rest of this function body
+    # while the gradual rename is in progress.
+    run_root = project_root
 
     # Allow `--validate` to run on its own without requiring any update flags.
     has_update = any([args.active_step, args.gate, args.event])
