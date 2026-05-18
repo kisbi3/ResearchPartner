@@ -22,32 +22,68 @@
             "Do not reorganize old artifacts before inventory.",
             "Mark existing validation status honestly."
           ],
-          "edges": ["plan"]
+          "edges": ["orient_gate"]
         },
         {
-          "id": "plan",
-          "title": "2. Plan",
-          "phase": "planning",
+          "id": "orient_gate",
+          "title": "2. Orient Gate",
+          "phase": "setup",
           "x": 340,
           "y": 80,
-          "summary": "Define research question, model scope, assumptions, expected observables, and failure criteria.",
+          "summary": "Record task classification, responsible role, first professor question, and suggested next skill before research work begins.",
           "responsible": [
-            {"label": "Research plan review", "path": "skills/research-plan-review/SKILL.md"},
-            {"label": "Research plan", "path": "docs/research_plan.md"},
-            {"label": "Research state", "path": "docs/research_state.md"}
+            {"label": "Task intake", "path": "skills/task-intake/SKILL.md"},
+            {"label": "Orient note template", "path": "docs/run_templates/orient_note_template.md"},
+            {"label": "Orient gate checker", "path": "scripts/check_orient_recorded.py"}
           ],
           "checks": [
-            "Assumptions and units are explicit.",
-            "Baseline and review checkpoint are identified."
+            "The run has an orient note before Seed, Execute, or Evaluate work starts.",
+            "The first researcher-facing question is explicit."
+          ],
+          "edges": ["interview_gate"]
+        },
+        {
+          "id": "interview_gate",
+          "title": "3. Interview Gate",
+          "phase": "planning",
+          "x": 600,
+          "y": 80,
+          "summary": "Freeze the crystallized research question, surfaced assumptions, agreed direction, and next skill before seed design or execution.",
+          "responsible": [
+            {"label": "Professor interview", "path": "skills/professor-interview/SKILL.md"},
+            {"label": "Interview notes template", "path": "docs/run_templates/interview_notes_template.md"},
+            {"label": "Interview gate checker", "path": "scripts/check_interview_recorded.py"}
+          ],
+          "checks": [
+            "Research object, observable, and review checkpoint are not ambiguous.",
+            "Execution remains blocked until the interview note records the agreed direction."
+          ],
+          "edges": ["literature_gate"]
+        },
+        {
+          "id": "literature_gate",
+          "title": "4. Literature Gate",
+          "phase": "planning",
+          "x": 860,
+          "y": 80,
+          "summary": "Decide whether literature review is ready or explicitly waived, including prior methods and the smallest reproduction target when novelty or fidelity matters.",
+          "responsible": [
+            {"label": "Literature review planning", "path": "skills/literature-review-planning/SKILL.md"},
+            {"label": "Literature review plan template", "path": "docs/literature/literature_review_template.md"},
+            {"label": "Literature gate checker", "path": "scripts/check_literature_reviewed.py"}
+          ],
+          "checks": [
+            "Prior-work, metric, or reproduction choices are recorded before model specification relies on them.",
+            "A waiver lowers the claim ceiling and keeps unsupported novelty claims unverified."
           ],
           "edges": ["model"]
         },
         {
           "id": "model",
-          "title": "3. Specify Model",
+          "title": "5. Specify Model",
           "phase": "model",
-          "x": 600,
-          "y": 80,
+          "x": 860,
+          "y": 260,
           "summary": "Make physical system, degrees of freedom, equations, parameters, and validity regime explicit.",
           "responsible": [
             {"label": "Model specification", "path": "skills/model-specification/SKILL.md"},
@@ -62,10 +98,10 @@
         },
         {
           "id": "dimensions",
-          "title": "4. Check Dimensions",
+          "title": "6. Check Dimensions",
           "phase": "model",
-          "x": 860,
-          "y": 80,
+          "x": 600,
+          "y": 260,
           "summary": "Check units, dimensions, constants set to one, and nondimensionalization.",
           "responsible": [
             {"label": "Dimensional analysis", "path": "skills/dimensional-analysis/SKILL.md"},
@@ -79,9 +115,9 @@
         },
         {
           "id": "baseline",
-          "title": "5. Baseline Gate",
+          "title": "7. Baseline Gate",
           "phase": "validation",
-          "x": 860,
+          "x": 340,
           "y": 260,
           "summary": "Validate a toy model, known limit, reproduction target, conservation case, or dimensional sanity case.",
           "responsible": [
@@ -98,9 +134,9 @@
         },
         {
           "id": "execute",
-          "title": "6. Execute Small Iteration",
+          "title": "8. Execute Small Iteration",
           "phase": "execution",
-          "x": 600,
+          "x": 80,
           "y": 260,
           "summary": "Run or derive the smallest meaningful result before expanding scope.",
           "responsible": [
@@ -116,10 +152,10 @@
         },
         {
           "id": "anomaly",
-          "title": "7. Anomaly Branch",
+          "title": "9. Anomaly Branch",
           "phase": "debugging",
-          "x": 340,
-          "y": 260,
+          "x": 80,
+          "y": 440,
           "summary": "If behavior is surprising, classify and reproduce the anomaly before patching.",
           "responsible": [
             {"label": "Anomaly debugging", "path": "skills/anomaly-debugging/SKILL.md"},
@@ -134,10 +170,10 @@
         },
         {
           "id": "review",
-          "title": "8. Researcher Review",
+          "title": "10. Researcher Review",
           "phase": "review",
-          "x": 80,
-          "y": 260,
+          "x": 340,
+          "y": 440,
           "summary": "Package results for researcher judgment and record decisions.",
           "responsible": [
             {"label": "Researcher review loop", "path": "skills/researcher-review-loop/SKILL.md"},
@@ -152,9 +188,9 @@
         },
         {
           "id": "claim",
-          "title": "9. Claim Gate",
+          "title": "11. Claim Gate",
           "phase": "claim",
-          "x": 340,
+          "x": 600,
           "y": 440,
           "summary": "Before strengthening a claim, map evidence and choose safe wording.",
           "responsible": [
@@ -170,9 +206,9 @@
         },
         {
           "id": "retrospective",
-          "title": "10. Retrospective",
+          "title": "12. Retrospective",
           "phase": "memory",
-          "x": 600,
+          "x": 860,
           "y": 440,
           "summary": "Record what changed, evidence delta, reusable artifact, and next smallest iteration.",
           "responsible": [
@@ -185,14 +221,14 @@
             "Every iteration should leave a reusable artifact or explain why not.",
             "Update research state for the next session."
           ],
-          "edges": ["plan"]
+          "edges": ["interview_gate"]
         },
         {
           "id": "paper_question",
           "title": "Paper Path?",
           "phase": "paper",
           "x": 860,
-          "y": 440,
+          "y": 620,
           "summary": "If the result may become a paper, move into the paper logic map before drafting strong claims.",
           "responsible": [
             {"label": "Paper logic diagram", "path": "docs/paper_logic_diagram.md"},

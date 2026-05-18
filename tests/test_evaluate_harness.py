@@ -31,7 +31,7 @@ def test_multi_agent_orchestration_scenarios_are_evaluated():
 def test_harness_evaluator_includes_hook_scenarios():
     evaluator = load_evaluator()
 
-    assert len(evaluator.SCENARIOS) == 25
+    assert len(evaluator.SCENARIOS) == 26
 
 
 def test_orchestration_scenarios_require_run_templates():
@@ -105,8 +105,23 @@ def test_new_skill_scenarios_are_evaluated():
     names = [scenario.name for scenario in evaluator.SCENARIOS]
 
     assert "task_intake_orient_phase" in names
+    assert "interview_gate_enforcement" in names
     assert "seed_design_graduate_tasks" in names
     assert "cartographer_update_waiver_staleness" in names
+
+
+def test_interview_gate_enforcement_scenario_is_evaluated():
+    evaluator = load_evaluator()
+
+    scenarios = {scenario.name: scenario for scenario in evaluator.SCENARIOS}
+    scenario = scenarios["interview_gate_enforcement"]
+
+    assert "skills/professor-interview/SKILL.md" in scenario.skills
+    assert "docs/run_templates/interview_notes_template.md" in scenario.docs
+    assert "docs/run_templates/live_workflow_diagram_template.md" in scenario.docs
+    assert "Interview Gate Hook" in scenario.rule_terms
+    assert "check_interview_recorded.py" in scenario.rule_terms
+    assert "before Seed or Execute work begins" in scenario.rule_terms
 
 
 def test_literature_replanning_loop_scenario_is_evaluated():

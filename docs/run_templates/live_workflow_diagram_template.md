@@ -32,7 +32,8 @@ flowchart LR
 
 | Gate | Status | Note |
 |---|---|---|
-| Professor interview | pending |  |
+| Orient gate | pending |  |
+| Interview gate | pending |  |
 | Literature review and replanning | pending |  |
 | Test-design seed | pending |  |
 | Baseline or reproduction target | pending |  |

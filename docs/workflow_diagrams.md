@@ -24,7 +24,9 @@ flowchart LR
 flowchart TB
     O["Orient"] --> TH["Task Intake Hook"]
     I["Interview"] --> AH["Ambiguity Hook"]
-    S["Specify"] --> AU["Assumption/Units Hook"]
+    I --> IG["Interview Gate Hook"]
+    S["Specify"] --> LG["Literature Gate Hook"]
+    S --> AU["Assumption/Units Hook"]
     S --> UC["Unit Conversion Hook"]
     S --> AR["Approximation Regime Hook"]
     SD["Seed"] --> GD["Graduate Test-Design Hook"]
@@ -57,7 +59,14 @@ flowchart TB
 
 ```mermaid
 flowchart TD
-    P["Plan"] --> B{"Baseline identified?"}
+    O["Orient"] --> OG{"Orient note recorded?"}
+    OG -->|no| OGR["Record task classification and first professor question"]
+    OG -->|yes| I{"Interview gate passed?"}
+    I -->|no| IN["Record crystallized question, assumptions, agreed direction, and next skill"]
+    I -->|yes| L{"Literature gate ready or waived?"}
+    L -->|no| LP["Plan prior-work metrics and minimum reproduction target"]
+    L -->|yes| P["Plan"]
+    P --> B{"Baseline identified?"}
     B -->|no| BP["Revise plan"]
     B -->|yes| V{"Baseline passed or waived?"}
     V -->|no| BV["Run toy, known limit, reproduction, or conservation check"]
