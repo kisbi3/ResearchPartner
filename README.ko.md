@@ -264,6 +264,7 @@ python scripts\generate_workflow_map.py
 * 평가 스크립트가 하네스가 다루는 현실적인 연구 시나리오를 보고해야 합니다.
 * 링크 검증기가 끊어진 워크플로우 문서 링크를 보고하지 않아야 합니다.
 * 실행이 있으면 최신 실행에 `workflow_map.html` 및 `workflow_map.json`이 생성되어야 합니다 (중앙 `docs\workflow_map.html`은 `--central` 옵션 없으면 생성되지 않음).
+* 일반 워크플로우 다이어그램은 모델 명세 전에 Orient, Interview, Literature 게이트를 명시적으로 보여야 합니다.
 
 터미널에서 `python`을 찾을 수 없다면 `python` 대신 `py -3`을 시도해 보세요.
 

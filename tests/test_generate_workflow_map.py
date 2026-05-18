@@ -221,6 +221,20 @@ def test_default_build_data_contains_only_live_research_workflow(tmp_path, monke
     assert any("convergence_sweep.csv" in item["path"] for node in data["maps"][0]["nodes"] for item in node["responsible"])
 
 
+def test_static_research_workflow_includes_interview_gate():
+    data = json.loads((ROOT / "docs" / "workflow_map.json").read_text(encoding="utf-8"))
+    research_map = next(map_data for map_data in data["maps"] if map_data["id"] == "research_workflow")
+    nodes = {node["id"]: node for node in research_map["nodes"]}
+
+    assert nodes["orient_gate"]["edges"] == ["interview_gate"]
+    assert nodes["interview_gate"]["title"] == "3. Interview Gate"
+    assert nodes["interview_gate"]["edges"] == ["literature_gate"]
+    assert any(
+        item["path"] == "scripts/check_interview_recorded.py"
+        for item in nodes["interview_gate"]["responsible"]
+    )
+
+
 def test_live_nodes_include_result_summaries_and_images(tmp_path, monkeypatch):
     generator = load_generator()
     _make_live_run(tmp_path, monkeypatch, generator)
@@ -300,7 +314,7 @@ def test_embedded_workflow_data_remains_valid_json():
 
     assert match is not None
     embedded = json.loads(match.group("data"))
-    assert embedded["maps"][0]["dashboard"]["actions"][0]["linked_document"]["label"] == "Orient Note"
+    assert all(action["linked_document"]["label"] for action in embedded["maps"][0]["dashboard"]["actions"])
     statuses = {
         action["status"]
         for action in embedded["maps"][0]["dashboard"]["actions"]

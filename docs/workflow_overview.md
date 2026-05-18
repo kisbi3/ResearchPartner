@@ -50,9 +50,10 @@ This loop absorbs software-development discipline into scientific practice. Brai
 
 | Step | Purpose | Primary Gate | Responsible Files |
 |---|---|---|---|
-| Orient | Classify task and choose roles | Task Intake Hook identifies scope and first professor question | `skills/task-intake/SKILL.md`, `AGENTS.md`, `GEMINI.md`, `docs/workflow_overview.md` |
-| Interview | Clarify intent, assumptions, alternatives, and risk | Ambiguity Hook blocks execution when the research object is unclear | `skills/research-plan-review/SKILL.md`, `docs/research_plan.md` |
-| Specify | Define model, variables, units, regimes, observables, and failure criteria | Assumption/Units, Unit Conversion, and Approximation Regime Hooks are satisfied | `skills/model-specification/SKILL.md`, `skills/dimensional-analysis/SKILL.md`, `docs/assumptions.md` |
+| Orient | Classify task and choose roles | Orient Gate records task classification, responsible role, first professor question, researcher answer, and suggested next skill | `skills/task-intake/SKILL.md`, `docs/gates/orient_note.md`, `scripts/check_orient_recorded.py` |
+| Interview | Clarify intent, assumptions, alternatives, and risk | Interview Gate records the crystallized research question, key assumptions, agreed direction, and suggested next skill before Seed or Execute | `skills/professor-interview/SKILL.md`, `docs/gates/interview_notes.md`, `scripts/check_interview_recorded.py` |
+| Literature | Identify prior metrics, novelty risk, and the minimum reproduction target | Literature Gate is ready or explicitly waived before model-specification or seed-design relies on prior work | `skills/literature-review-planning/SKILL.md`, `docs/literature/literature_review_plan.md`, `scripts/check_literature_reviewed.py` |
+| Specify | Define model, variables, units, regimes, observables, and failure criteria | Assumption/Units, Unit Conversion, Approximation Regime, and Model Gate Hooks are satisfied | `skills/model-specification/SKILL.md`, `skills/dimensional-analysis/SKILL.md`, `docs/assumptions.md` |
 | Seed | Convert the idea into the smallest testable research iteration | Graduate Test-Design Hook produces tasks with files, commands, outputs, and pass/fail criteria | `skills/seed-design/SKILL.md`, `skills/research-plan-review/SKILL.md`, `docs/research_plan.md` |
 | Validate | Establish baseline, stability, reproducibility, and waiver status | Baseline Gate, Numerical Stability, Code-before-Test, and Waiver Hooks are satisfied | `skills/baseline-validation/SKILL.md`, `skills/numerical-validation/SKILL.md`, `docs/baseline_registry.md` |
 | Execute | Run bounded implementation, analysis, simulation, or plotting tasks | Parameter Change, Data Lineage, Randomness/Reproducibility, Figure Provenance, and Environment Capture Hooks record provenance | `skills/numerical-validation/SKILL.md`, `docs/validation_log.md` |
@@ -64,11 +65,12 @@ This loop absorbs software-development discipline into scientific practice. Brai
 
 The hooks are grouped by the risk they control:
 
-- Intake and scope: Task Intake Hook, Ambiguity Hook, Scope Creep Hook.
+- Intake and scope: Task Intake Hook, Orient Gate Hook, Interview Gate Hook, Ambiguity Hook, Scope Creep Hook.
+- Literature and reproduction: Literature Gate Hook, Literature Claim Hook, Literature Replanning Hook.
 - Physical specification: Assumption/Units Hook, Unit Conversion Hook, Approximation Regime Hook.
 - Validation and execution: Baseline Gate Hook, Graduate Test-Design Hook, Code-before-Test Hook, Numerical Stability Hook, Waiver Hook.
 - Provenance and reproducibility: Parameter Change Hook, Randomness/Reproducibility Hook, Data Lineage Hook, Figure Provenance Hook, Environment Capture Hook.
-- Evidence and claims: Claim Strength Hook, Literature Claim Hook, Manuscript Drift Hook, Artifact Freshness Hook, Reviewer Simulation Hook.
+- Evidence and claims: Claim Strength Hook, Manuscript Drift Hook, Artifact Freshness Hook, Reviewer Simulation Hook.
 - Failure and memory: Anomaly Hook, Negative Result Hook, Cartographer Hook, Retrospective Hook.
 
 ## Live Linked Research Graph
