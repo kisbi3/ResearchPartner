@@ -16,7 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "docs" / "workflow_map.json"
 OUTPUT = ROOT / "docs" / "workflow_map.html"
 TEMPLATE = ROOT / "docs" / "workflow_map.template.html"
-# Runs live inside the harness/project root by default — see start_research_run.py
+# Runs live inside the harness/project root by default — see init_research_project.py
 # for the rationale (downstream installs would otherwise create runs at disk root).
 RUNS_ROOT = ROOT / "ResearchPartner-runs"
 _LEGACY_RUNS_ROOT = ROOT.parent / "ResearchPartner-runs"

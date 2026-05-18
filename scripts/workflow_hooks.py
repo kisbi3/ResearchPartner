@@ -52,30 +52,17 @@ CACHE_EXTS = (".npy", ".npz", ".pkl", ".pickle", ".joblib")
 def signal_for(file_path_str: str):
     """Return (event, gate, gate_status, project_root) if path matches a signal artifact.
 
-    v3: project root is identified by the `.research-harness` marker, found
-    by walking up from the written file. The legacy walk for the segment
-    "ResearchPartner-runs" is kept as a fallback for one release so any
-    pre-v3 run that still lives at that location continues to fire events.
+    Project root is identified by the `.research-harness` marker, found by
+    walking up from the written file.
     """
     if not file_path_str:
         return None
     p = Path(file_path_str).resolve()
 
-    # v3 marker-based detection
     try:
         project_root = project_root_mod.find_project_root(start=p, require=True)
     except project_root_mod.ProjectRootNotFoundError:
-        project_root = None
-
-    # Legacy fallback: walk for the segment "ResearchPartner-runs"
-    if project_root is None:
-        parts = list(p.parts)
-        for i, part in enumerate(parts):
-            if part.lower() == "researchpartner-runs" and i + 1 < len(parts):
-                project_root = Path(*parts[: i + 2])
-                break
-        if project_root is None:
-            return None
+        return None
 
     try:
         rel = p.relative_to(project_root).as_posix()
@@ -250,7 +237,7 @@ def run_pre(tool_input: dict) -> None:
     if diagram_path is None:
         print(
             "WORKFLOW WARNING: No live_workflow_diagram.md found in any ResearchPartner-runs "
-            "directory. If this is a research task, run scripts/start_research_run.py first.",
+            "directory. If this is a research task, run scripts/init_research_project.py first.",
             file=sys.stderr,
         )
         return

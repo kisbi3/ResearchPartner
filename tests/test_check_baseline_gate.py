@@ -115,7 +115,7 @@ def test_waiver_missing_live_workflow_fails(tmp_path):
 
 
 def test_run_level_default_registry_fails(tmp_path):
-    """The run-level baseline_registry.md created by start_research_run.py has
+    """The run-level baseline_registry.md created by init_research_project.py has
     no table and should fail until the researcher adds at least one entry."""
     checker = load_checker()
     body = "# Baseline Registry\n\n- Run-specific baseline target:\n"

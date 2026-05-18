@@ -7,7 +7,7 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "scripts" / "scaffold_paper_review.py"
-RUN_SCRIPT = ROOT / "scripts" / "start_research_run.py"
+INIT_SCRIPT = ROOT / "scripts" / "init_research_project.py"
 
 
 def load_module(name: str, path: Path):
@@ -20,14 +20,8 @@ def load_module(name: str, path: Path):
 
 
 def create_run(tmp_path: Path) -> Path:
-    scaffolder = load_module("start_research_run", RUN_SCRIPT)
-    return scaffolder.create_run(
-        name="Paper Review Pilot",
-        date_text="2026-05-14",
-        runs_root=tmp_path,
-    )
-
-
+    init = load_module("init_research_project", INIT_SCRIPT)
+    return init.scaffold_project(tmp_path / "project")
 def test_scaffold_paper_review_creates_review_and_updates_index(tmp_path):
     run_path = create_run(tmp_path)
     scaffold = load_module("scaffold_paper_review", SCRIPT)

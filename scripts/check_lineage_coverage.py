@@ -81,7 +81,7 @@ def check(run_root: Path) -> list[dict]:
             "node_id": "(run)",
             "lineage_kind": "(none)",
             "rule": "workflow_map.live.json missing or unreadable",
-            "fix": f"Run scripts/start_research_run.py --name {run_root.name} first.",
+            "fix": f"Run scripts/init_research_project.py --project {run_root} first.",
         }]
 
     maps = data.get("maps") or []

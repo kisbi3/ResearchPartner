@@ -7,7 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 DRAFT_SCRIPT = ROOT / "scripts" / "draft_paper_review.py"
 EXTRACT_SCRIPT = ROOT / "scripts" / "extract_paper_text.py"
 SCAFFOLD_SCRIPT = ROOT / "scripts" / "scaffold_paper_review.py"
-RUN_SCRIPT = ROOT / "scripts" / "start_research_run.py"
+INIT_SCRIPT = ROOT / "scripts" / "init_research_project.py"
 
 
 def load_module(name: str, path: Path):
@@ -20,14 +20,10 @@ def load_module(name: str, path: Path):
 
 
 def create_review_with_extracted_text(tmp_path: Path):
-    run_scaffolder = load_module("start_research_run", RUN_SCRIPT)
+    init = load_module("init_research_project", INIT_SCRIPT)
     review_scaffolder = load_module("scaffold_paper_review", SCAFFOLD_SCRIPT)
     extractor = load_module("extract_paper_text", EXTRACT_SCRIPT)
-    run_path = run_scaffolder.create_run(
-        name="Draft Review Pilot",
-        date_text="2026-05-14",
-        runs_root=tmp_path,
-    )
+    run_path = init.scaffold_project(tmp_path / "project")
     pdf_path = run_path / "literature" / "pdfs" / "example.pdf"
     pdf_path.write_bytes(b"%PDF-1.4\n")
     review_path = review_scaffolder.create_paper_review(

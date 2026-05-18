@@ -91,7 +91,7 @@ SCENARIOS = [
             "docs/researcher_review_log.md",
         ),
         rule_terms=(
-            "scripts/start_research_run.py",
+            "scripts/init_research_project.py",
             "Cartographer (hook-driven, not spawned)",
             "does not give project opinions",
             "listens to the Lead Agent",
@@ -106,7 +106,7 @@ SCENARIOS = [
         name="live_workflow_map_scaffold_integration",
         skills=("skills/cartographer-update/SKILL.md",),
         docs=(
-            "scripts/start_research_run.py",
+            "scripts/init_research_project.py",
             "scripts/generate_workflow_map.py",
             "tests/test_generate_workflow_map.py",
             "docs/workflow_overview.md",

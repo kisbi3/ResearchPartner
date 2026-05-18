@@ -17,7 +17,7 @@ def make_source_tree(root: Path) -> None:
         (root / file_name).write_text(f"{file_name}\n", encoding="utf-8")
     (root / "skills/example/SKILL.md").write_text("skill\n", encoding="utf-8")
     (root / "docs/run_templates/template.md").write_text("template\n", encoding="utf-8")
-    (root / "scripts/start_research_run.py").write_text("print('run')\n", encoding="utf-8")
+    (root / "scripts/init_research_project.py").write_text("print('run')\n", encoding="utf-8")
     (root / "outputs/generated.txt").write_text("do not copy\n", encoding="utf-8")
 
 
@@ -42,7 +42,7 @@ def test_install_from_source_copies_harness_files_only(tmp_path):
     assert (target / "AGENTS.md").read_text(encoding="utf-8") == "AGENTS.md\n"
     assert (target / "skills/example/SKILL.md").exists()
     assert (target / "docs/run_templates/template.md").exists()
-    assert (target / "scripts/start_research_run.py").exists()
+    assert (target / "scripts/init_research_project.py").exists()
     assert (target / "research_code.py").read_text(encoding="utf-8") == "print('keep')\n"
     assert not (target / "outputs/generated.txt").exists()
 

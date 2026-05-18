@@ -120,25 +120,16 @@ def _load_or_bootstrap(project_root: Path) -> dict:
                 return data
         except (json.JSONDecodeError, KeyError):
             pass
-    # Try the generate_workflow_map logic so dashboard links are populated —
-    # but only when this project has an actual live workflow diagram.
-    # Without that file generate_workflow_map would fall back to scanning a
-    # harness-global RUNS_ROOT, which is the wrong project for a fresh init.
+    # Populate dashboard links via generate_workflow_map only when this
+    # project actually has a live workflow diagram. Otherwise return an
+    # empty live map so first-time `init_research_project.py` does not
+    # pull in unrelated state.
     live_diagram = project_root / "docs" / "process" / "live_workflow_diagram.md"
     if live_diagram.exists():
         try:
             import generate_workflow_map as gwm  # noqa: PLC0415
 
-            # Phase-1 transitional: gwm still uses sibling/parent RUNS_ROOT
-            # globals. Override to point inside this project so its scan
-            # finds *this* run only.
-            original_runs_root = getattr(gwm, "RUNS_ROOT", None)
-            try:
-                gwm.RUNS_ROOT = project_root.parent
-                live_map = gwm.live_workflow_map(base_dir=project_root)
-            finally:
-                if original_runs_root is not None:
-                    gwm.RUNS_ROOT = original_runs_root
+            live_map = gwm.live_workflow_map(base_dir=project_root)
             if live_map is not None:
                 nodes = live_map.get("nodes", [])
                 if len(nodes) == 1 and nodes[0].get("id") == "no_active_run":
@@ -368,7 +359,7 @@ def find_broken_edges(run_root: Path) -> list[dict]:
 
 
 # ---------------------------------------------------------------------------
-# Public API (also usable as a library from start_research_run.py)
+# Public API (also usable as a library from init_research_project.py)
 # ---------------------------------------------------------------------------
 
 def bootstrap_project_json(project_root: Path) -> Path:
@@ -377,11 +368,6 @@ def bootstrap_project_json(project_root: Path) -> Path:
     json_path = project_root / "workflow_map.live.json"
     json_path.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
     return json_path
-
-
-# Backward-compat alias retained for one release; the run-vs-project
-# distinction is gone since v3 — they now refer to the same directory.
-bootstrap_run_json = bootstrap_project_json
 
 
 def _resolve_anomaly(nodes: list[dict], anomaly_id: str) -> int:

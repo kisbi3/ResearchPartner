@@ -5,7 +5,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 PROCESS_SCRIPT = ROOT / "scripts" / "process_paper_for_review.py"
-RUN_SCRIPT = ROOT / "scripts" / "start_research_run.py"
+INIT_SCRIPT = ROOT / "scripts" / "init_research_project.py"
 
 
 def load_module(name: str, path: Path):
@@ -18,14 +18,8 @@ def load_module(name: str, path: Path):
 
 
 def create_run(tmp_path: Path) -> Path:
-    scaffolder = load_module("start_research_run", RUN_SCRIPT)
-    return scaffolder.create_run(
-        name="Process Paper Pilot",
-        date_text="2026-05-14",
-        runs_root=tmp_path,
-    )
-
-
+    init = load_module("init_research_project", INIT_SCRIPT)
+    return init.scaffold_project(tmp_path / "project")
 def test_process_paper_creates_review_text_artifact_and_draft(tmp_path):
     processor = load_module("process_paper_for_review", PROCESS_SCRIPT)
     run_path = create_run(tmp_path)
