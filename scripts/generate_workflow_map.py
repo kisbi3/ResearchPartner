@@ -93,27 +93,27 @@ DASHBOARD_DOCUMENT_GROUPS = [
 ACTION_GUIDANCE = {
     "Orient Note": {
         "why": "Confirm the run has a recorded task classification and first researcher-facing question.",
-        "suggested_command": "python scripts/check_orient_recorded.py --run <run-dir>",
+        "suggested_command": "python scripts/check_orient_recorded.py --project <project-dir>",
     },
     "Interview Notes": {
         "why": "Confirm the research question, assumptions, agreed direction, and next skill are recorded.",
-        "suggested_command": "python scripts/check_interview_recorded.py --run <run-dir>",
+        "suggested_command": "python scripts/check_interview_recorded.py --project <project-dir>",
     },
     "Literature Review Plan": {
         "why": "Confirm literature status before model specification or seed design relies on novelty or reproduction claims.",
-        "suggested_command": "python scripts/check_literature_reviewed.py --run <run-dir>",
+        "suggested_command": "python scripts/check_literature_reviewed.py --project <project-dir>",
     },
     "Model Spec": {
         "why": "Approve the model definition before seed design or execution depends on it.",
-        "suggested_command": "python scripts/check_model_specified.py --run <run-dir>",
+        "suggested_command": "python scripts/check_model_specified.py --project <project-dir>",
     },
     "Baseline Strategy": {
         "why": "Approve whether this run reproduces a parent model or verifies a new analytical checkpoint.",
-        "suggested_command": "python scripts/check_baseline_strategy.py --run <run-dir>",
+        "suggested_command": "python scripts/check_baseline_strategy.py --project <project-dir>",
     },
     "Baseline Registry": {
         "why": "Check that interpretation is backed by a toy model, known limit, reproduction, or explicit waiver.",
-        "suggested_command": "python scripts/check_baseline_gate.py --run <run-dir>",
+        "suggested_command": "python scripts/check_baseline_gate.py --project <project-dir>",
     },
     "Validation Log": {
         "why": "Review the current evidence chain before treating results as interpretation-ready.",
@@ -193,7 +193,23 @@ def relative_href(path: str) -> str:
     return source.relative_to(OUTPUT.parent).as_posix() if source.is_relative_to(OUTPUT.parent) else Path("..", path).as_posix()
 
 
-def latest_live_workflow_path() -> Path | None:
+def latest_live_workflow_path(project_root: Path | None = None) -> Path | None:
+    """Locate the live workflow diagram.
+
+    v3: the project root IS the research root. When `project_root` is given,
+    look at `<project_root>/docs/process/live_workflow_diagram.md` directly.
+    Falls back to the legacy RUNS_ROOT scan for the v2 wrapping-directory
+    layout (still useful for existing test fixtures).
+    """
+    if project_root is not None:
+        candidate = project_root / "docs" / "process" / "live_workflow_diagram.md"
+        if candidate.exists():
+            return candidate
+        candidate = project_root / "docs" / "live_workflow_diagram.md"
+        if candidate.exists():
+            return candidate
+        # fall through to RUNS_ROOT scan in case the project_root passed in is
+        # actually the harness checkout (legacy invocation)
     if not RUNS_ROOT.exists():
         return None
     candidates = sorted(
