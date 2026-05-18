@@ -160,8 +160,7 @@ def test_latest_live_workflow_path_prefers_newest_current_or_legacy_layout(tmp_p
     assert generator.latest_live_workflow_path() == current_path
 
 
-def test_write_outputs_refreshes_latest_run_local_dashboard(tmp_path, monkeypatch):
-    generator = load_generator()
+def _setup_run_for_write_outputs(tmp_path, monkeypatch, generator):
     runs_root = tmp_path / "ResearchPartner-runs"
     run_root = runs_root / "2026-05-17-current-layout"
     process_docs = run_root / "docs" / "process"
@@ -174,10 +173,20 @@ def test_write_outputs_refreshes_latest_run_local_dashboard(tmp_path, monkeypatc
     monkeypatch.setattr(generator, "RUNS_ROOT", runs_root)
     monkeypatch.setattr(generator, "SOURCE", source)
     monkeypatch.setattr(generator, "OUTPUT", output)
+    return run_root, output
+
+
+def test_write_outputs_refreshes_latest_run_local_dashboard(tmp_path, monkeypatch):
+    """Default (central=False): only the run-local dashboard is written."""
+    generator = load_generator()
+    run_root, output = _setup_run_for_write_outputs(tmp_path, monkeypatch, generator)
 
     written = generator.write_outputs()
 
-    assert output in written
+    # Central dashboard is OFF by default — must NOT be in written.
+    assert output not in written
+    assert not output.exists()
+    # Run-local dashboard IS the single source of truth.
     assert run_root / "workflow_map.html" in written
     assert run_root / "workflow_map.live.json" in written
     assert (run_root / "workflow_map.html").exists()
@@ -185,6 +194,18 @@ def test_write_outputs_refreshes_latest_run_local_dashboard(tmp_path, monkeypatc
     run_data = json.loads((run_root / "workflow_map.live.json").read_text(encoding="utf-8"))
     assert run_data["maps"][0]["id"] == "live_research_run"
     assert "Current Run Dashboard" in (run_root / "workflow_map.html").read_text(encoding="utf-8")
+
+
+def test_write_outputs_with_central_flag_also_writes_central(tmp_path, monkeypatch):
+    """Explicit central=True: both the central and run-local dashboards land."""
+    generator = load_generator()
+    run_root, output = _setup_run_for_write_outputs(tmp_path, monkeypatch, generator)
+
+    written = generator.write_outputs(central=True)
+
+    assert output in written
+    assert output.exists()
+    assert run_root / "workflow_map.html" in written
 
 
 def test_default_build_data_contains_only_live_research_workflow(tmp_path, monkeypatch):

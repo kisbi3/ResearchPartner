@@ -47,7 +47,12 @@ sys.path.insert(0, str(_SCRIPTS_DIR))
 import _layout as layout  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_RUNS_ROOT = ROOT.parent / "ResearchPartner-runs"
+# Runs live INSIDE the harness/project root so a project install never spills
+# files into its parent directory (e.g. C:\ when the harness was installed at
+# C:\MyPhysicsProject\). Old sibling location is detected and reported as a
+# migration warning by `_warn_if_legacy_runs_dir_present()` below.
+DEFAULT_RUNS_ROOT = ROOT / "ResearchPartner-runs"
+LEGACY_RUNS_ROOT = ROOT.parent / "ResearchPartner-runs"
 
 # ── Template sources ──────────────────────────────────────────────────────────
 LIVE_TEMPLATE = ROOT / "docs" / "run_templates" / "live_workflow_diagram_template.md"
@@ -106,6 +111,35 @@ logs/
 errors/
 literature/pdfs/
 """
+
+
+def _warn_if_legacy_runs_dir_present(target_runs_root: Path) -> None:
+    """Print a one-time migration warning if runs were created at the old path.
+
+    Old (pre-fix) default: ROOT.parent / "ResearchPartner-runs" — escaped the
+    project root and could create a directory at disk root on a fresh install.
+    New default lives inside ROOT. If the user still has runs at the legacy
+    location, surface a clear move command rather than silently dual-using.
+    """
+    if target_runs_root.resolve() == LEGACY_RUNS_ROOT.resolve():
+        return  # User explicitly opted into the legacy path; no warning.
+    if not LEGACY_RUNS_ROOT.exists():
+        return
+    legacy_runs = [p for p in LEGACY_RUNS_ROOT.iterdir() if p.is_dir() and p.name != "_index"]
+    if not legacy_runs:
+        return
+    print(
+        f"WARNING: Found {len(legacy_runs)} run(s) at the legacy location "
+        f"{LEGACY_RUNS_ROOT}.\n"
+        f"The new default is {target_runs_root} (inside the project).\n"
+        f"Move them with:\n"
+        f"  Move-Item \"{LEGACY_RUNS_ROOT}\" \"{target_runs_root}\"   "
+        f"# PowerShell\n"
+        f"  mv \"{LEGACY_RUNS_ROOT}\" \"{target_runs_root}\"          "
+        f"# bash/git-bash\n"
+        f"Or pass --runs-root \"{LEGACY_RUNS_ROOT}\" to keep using the legacy path.",
+        file=sys.stderr,
+    )
 
 
 def slugify_name(name: str) -> str:
@@ -223,6 +257,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
+    _warn_if_legacy_runs_dir_present(Path(args.runs_root))
     run_path = create_run(
         name=args.name,
         date_text=args.date_text,
