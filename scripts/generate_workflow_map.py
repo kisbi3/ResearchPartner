@@ -871,7 +871,10 @@ def write_outputs(
                 central_data = json.loads(central_json.read_text(encoding="utf-8"))
                 # Refresh the timestamp so the freshness pill reflects when the
                 # HTML was last regenerated, not when the data was last changed.
+                # Write it back so the polling sidecar stays in sync with the HTML.
                 central_data["generated_at"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
+                central_json.write_text(json.dumps(central_data, indent=2), encoding="utf-8")
+                written.append(central_json)
             except (json.JSONDecodeError, OSError):
                 central_data = None
         else:
