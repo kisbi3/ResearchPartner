@@ -626,8 +626,10 @@ def result_fields_for_gate(
     return builder(run_root, base_dir)
 
 
-def live_workflow_map(base_dir: Path | None = None) -> dict | None:
-    live_path = latest_live_workflow_path()
+def live_workflow_map(
+    base_dir: Path | None = None, project_root: Path | None = None
+) -> dict | None:
+    live_path = latest_live_workflow_path(project_root=project_root)
     if live_path is None:
         return None
 
@@ -801,9 +803,13 @@ def placeholder_live_workflow_map() -> dict:
     }
 
 
-def build_data(include_paper_logic: bool = False, base_dir: Path | None = None) -> dict:
+def build_data(
+    include_paper_logic: bool = False,
+    base_dir: Path | None = None,
+    project_root: Path | None = None,
+) -> dict:
     source_data = json.loads(SOURCE.read_text(encoding="utf-8"))
-    live_map = live_workflow_map(base_dir)
+    live_map = live_workflow_map(base_dir, project_root=project_root)
     maps = [live_map or placeholder_live_workflow_map()]
     if include_paper_logic:
         paper_logic = next(
@@ -841,6 +847,7 @@ def write_outputs(
     include_paper_logic: bool = False,
     force: bool = False,
     central: bool = False,
+    project_root: Path | None = None,
 ) -> list[Path]:
     """Generate the run-local workflow_map.html (and optionally the central one).
 
@@ -848,20 +855,33 @@ def write_outputs(
     produce a docs/workflow_map.html in its own docs/ tree unless the user asks
     for it explicitly via `--central`. The run-local map inside the current
     run directory remains the single source of truth the researcher opens.
+
+    `project_root` pins the search to a specific project directory instead of
+    scanning RUNS_ROOT. Pass this when calling from init_research_project.py.
     """
     written = []
     if central:
-        central_data = build_data(include_paper_logic=include_paper_logic, base_dir=OUTPUT.parent)
+        central_json = OUTPUT.parent / "workflow_map.live.json"
+        # Prefer the existing sidecar over a fresh RUNS_ROOT scan so that a
+        # manually reset placeholder is not silently overwritten just because a
+        # completed run's live_workflow_diagram.md is still on disk.
+        # Only scan when the sidecar is absent or --force is set.
+        if not force and central_json.exists():
+            try:
+                central_data = json.loads(central_json.read_text(encoding="utf-8"))
+            except (json.JSONDecodeError, OSError):
+                central_data = None
+        else:
+            central_data = None
+        if central_data is None:
+            central_data = build_data(include_paper_logic=include_paper_logic, base_dir=OUTPUT.parent)
+            central_json.write_text(json.dumps(central_data, indent=2), encoding="utf-8")
+            written.append(central_json)
         OUTPUT.parent.mkdir(parents=True, exist_ok=True)
         OUTPUT.write_text(build_html(central_data), encoding="utf-8")
-        # Sidecar lives at workflow_map.live.json so it does not collide with the
-        # static design source at docs/workflow_map.json. The HTML polls this file
-        # to detect updates; the contents include a `generated_at` timestamp.
-        central_json = OUTPUT.parent / "workflow_map.live.json"
-        central_json.write_text(json.dumps(central_data, indent=2), encoding="utf-8")
-        written.extend([OUTPUT, central_json])
+        written.append(OUTPUT)
 
-    live_path = latest_live_workflow_path()
+    live_path = latest_live_workflow_path(project_root=project_root)
     if live_path is not None:
         run_root = live_workflow_run_root(live_path)
         run_html = run_root / "workflow_map.html"
@@ -872,7 +892,7 @@ def write_outputs(
             run_html.write_text(build_html(existing_data), encoding="utf-8")
             written.append(run_html)
         else:
-            run_data = build_data(include_paper_logic=False, base_dir=run_root)
+            run_data = build_data(include_paper_logic=False, base_dir=run_root, project_root=run_root)
             run_html.write_text(build_html(run_data), encoding="utf-8")
             run_json.write_text(json.dumps(run_data, indent=2), encoding="utf-8")
             written.extend([run_html, run_json])

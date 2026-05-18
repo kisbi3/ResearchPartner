@@ -129,7 +129,7 @@ def _load_or_bootstrap(project_root: Path) -> dict:
         try:
             import generate_workflow_map as gwm  # noqa: PLC0415
 
-            live_map = gwm.live_workflow_map(base_dir=project_root)
+            live_map = gwm.live_workflow_map(base_dir=project_root, project_root=project_root)
             if live_map is not None:
                 nodes = live_map.get("nodes", [])
                 if len(nodes) == 1 and nodes[0].get("id") == "no_active_run":
