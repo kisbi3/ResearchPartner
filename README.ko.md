@@ -141,7 +141,7 @@ Orient -> Interview -> Specify -> Seed -> Validate -> Execute -> Evaluate -> Rev
 | 논문 리뷰 확인 | `python scripts\check_paper_review_quality.py <review-path>` | 약한 논문 노트가 참신성이나 재현 주장의 근거가 되기 전에 차단 |
 | 계약 동기화 검증 | `python scripts\check_contract_sync.py` | `AGENTS.md`와 `GEMINI.md`가 바이트 단위로 동일하도록 강제하여 두 런타임이 같은 계약을 따르게 보장 |
 | Orient 게이트 검증 | `python scripts\check_orient_recorded.py --run <run-dir>` | `docs/orient_note.md`에 task-intake 산출물(분류, 역할, 첫 질문, 연구자 답변)이 기록되지 않으면 Seed, Execute, Evaluate 작업 차단 |
-| Interview 게이트 검증 | `python scripts\check_interview_recorded.py --run <run-dir>` | `docs/interview_notes.md`에 professor-interview 산출물(결정화된 연구 질문, 가정, 합의된 방향)이 기록되지 않으면 Seed, Execute 작업 차단 |
+| Interview 게이트 검증 | `python scripts\check_interview_recorded.py --run <run-dir>` | `docs/gates/interview_notes.md`에 professor-interview 산출물(결정화된 연구 질문, 가정, 합의된 방향)이 기록되지 않으면 Seed, Execute 작업 차단 |
 | Literature 게이트 검증 | `python scripts\check_literature_reviewed.py --run <run-dir>` | `docs/literature_review_plan.md`에 `## Literature Gate Status: ready/waived`가 없거나 `docs/literature_skip_waiver.md`가 없으면 model-specification 또는 seed-design 차단 (스킵 시 claim ceiling → `interpretation`) |
 | Model 게이트 검증 | `python scripts\check_model_specified.py --run <run-dir>` | `docs/model_spec.md`에 물리 시스템과 지배 방정식이 없거나 `docs/model_skip_waiver.md`가 없으면 seed-design 또는 execute 차단 (스킵 시 claim ceiling → `observation`) |
 | Baseline Strategy 게이트 검증 | `python scripts\check_baseline_strategy.py --run <run-dir>` | `docs/baseline_strategy.md`에 교수-대학원생 대화 결정(`variation` 또는 `new model`)과 정량적 검증 타겟이 없으면 seed-design 차단. 스킵 불가. |

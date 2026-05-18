@@ -408,6 +408,23 @@ SCENARIOS = [
         ),
     ),
     Scenario(
+        name="interview_gate_enforcement",
+        skills=("skills/professor-interview/SKILL.md",),
+        docs=(
+            "docs/run_templates/interview_notes_template.md",
+            "docs/run_templates/live_workflow_diagram_template.md",
+            "docs/workflow_overview.md",
+            "docs/workflow_diagrams.md",
+        ),
+        rule_terms=(
+            "Interview Gate Hook",
+            "check_interview_recorded.py",
+            "docs/gates/interview_notes.md",
+            "before Seed or Execute work begins",
+            "crystallized research question",
+        ),
+    ),
+    Scenario(
         name="seed_design_graduate_tasks",
         skills=(
             "skills/seed-design/SKILL.md",
