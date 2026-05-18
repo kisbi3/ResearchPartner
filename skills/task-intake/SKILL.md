@@ -69,13 +69,14 @@ If the task scope is unclear, classify what is known, mark uncertain categories 
 
 ## Orient Note
 
-If a run directory exists (`ResearchPartner-runs/YYYY-MM-DD-<slug>/`), write
-the output below into `docs/orient_note.md` inside that run directory.
-This file is the artifact checked by `scripts/check_orient_recorded.py` before
-Seed, Execute, or Evaluate work may begin.
+If the project is already initialized (a `.research-harness` marker exists at
+the project root), write the output below into `docs/orient_note.md` at the
+project root. This file is the artifact checked by
+`scripts/check_orient_recorded.py` before Seed, Execute, or Evaluate work
+may begin.
 
-If no run directory exists yet, remind the researcher to create one with
-`python scripts/start_research_run.py --name "<topic>"` so the orient note
+If the project is not yet initialized, remind the researcher to run
+`python scripts/init_research_project.py` so the orient note
 can be recorded before execution starts.
 
 ## Output Format

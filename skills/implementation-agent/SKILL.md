@@ -40,7 +40,7 @@ summary at the end. The cleaner your first pass, the fewer re-spawns.
 - All executable scripts go in `src/`.
 - All figures go in `outputs/figures/`.
 - All data outputs go in `outputs/data/`.
-- Never write to the run root or `docs/`.
+- Never write to the project root or `docs/`.
 
 ### Reproducibility requirements
 Every script must:
@@ -63,7 +63,7 @@ Every script must:
   from run_with_checkpoint import CheckpointManager
   from _layout import cache_dir
 
-  ckpt = CheckpointManager(cache_dir(RUN_DIR), Path(__file__).stem)
+  ckpt = CheckpointManager(cache_dir(PROJECT_DIR), Path(__file__).stem)
   state = ckpt.load()
   start = state["step"] if state else 0
   results = state["results"] if state else []
@@ -75,7 +75,7 @@ Every script must:
 
 ### Code reuse
 Before writing any utility function, check:
-1. Does an identical or equivalent function exist in another `src/` script in this run?
+1. Does an identical or equivalent function exist in another `src/` script in this project?
 2. Does `scripts/_layout.py` already provide the path you need?
 3. Does `scripts/run_with_capture.py` already handle the run/capture pattern you need?
 

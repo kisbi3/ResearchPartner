@@ -48,7 +48,7 @@ def test_orchestration_scenarios_require_run_templates():
         in scenarios["completion_conference_reporting"].docs
     )
     assert (
-        "scripts/start_research_run.py"
+        "scripts/init_research_project.py"
         in scenarios["live_workflow_diagram_agent"].rule_terms
     )
 

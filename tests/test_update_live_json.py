@@ -23,13 +23,13 @@ def _make_run(tmp_path):
 
 
 # ---------------------------------------------------------------------------
-# bootstrap_run_json
+# bootstrap_project_json
 # ---------------------------------------------------------------------------
 
 def test_bootstrap_creates_json(tmp_path):
     ulj = load_module()
     run = _make_run(tmp_path)
-    json_path = ulj.bootstrap_run_json(run)
+    json_path = ulj.bootstrap_project_json(run)
     assert json_path.exists()
     data = json.loads(json_path.read_text())
     assert "maps" in data
@@ -39,9 +39,9 @@ def test_bootstrap_creates_json(tmp_path):
 def test_bootstrap_idempotent(tmp_path):
     ulj = load_module()
     run = _make_run(tmp_path)
-    ulj.bootstrap_run_json(run)
+    ulj.bootstrap_project_json(run)
     first_ts = json.loads((run / "workflow_map.live.json").read_text())["generated_at"]
-    ulj.bootstrap_run_json(run)
+    ulj.bootstrap_project_json(run)
     # Second call rewrites with a fresh timestamp; data structure is still valid.
     data = json.loads((run / "workflow_map.live.json").read_text())
     assert data["maps"][0]["id"] == "live_research_run"

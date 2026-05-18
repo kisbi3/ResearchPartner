@@ -20,8 +20,8 @@ generous window. The goal is to catch obvious forgery (5 spawn log rows on a
 day when the Agent tool was never called), not millisecond-perfect matching.
 
 Usage:
-    python scripts/check_spawn_log_integrity.py --run <run-dir>
-    python scripts/check_spawn_log_integrity.py --run <run-dir> --window-min 120
+    python scripts/check_spawn_log_integrity.py --project <project-dir>
+    python scripts/check_spawn_log_integrity.py --project <project-dir> --window-min 120
 """
 
 from __future__ import annotations
@@ -30,6 +30,9 @@ import argparse
 import re
 import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import _project_root as project_root_mod  # noqa: E402
 
 
 def parse_spawn_log(path: Path) -> list[dict]:
@@ -86,15 +89,26 @@ def implementation_starts_by_date(events: list[dict]) -> dict[str, int]:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--run", type=Path, required=True, help="Run directory.")
+    parser.add_argument(
+        "--project", "--run",
+        dest="project",
+        type=Path,
+        default=None,
+        help="Project root directory. Default: walk up from cwd looking for "
+             "the `.research-harness` marker. `--run` kept as alias for one release.",
+    )
     parser.add_argument(
         "--window-min", type=int, default=60,
         help="(Reserved for future use — currently we match by date only.)",
     )
     args = parser.parse_args(argv)
-    run_dir = args.run.resolve()
-    spawn_log = run_dir / "docs" / "gates" / "agent_spawn_log.md"
-    diagram = run_dir / "docs" / "live_workflow_diagram.md"
+    try:
+        project = project_root_mod.resolve_project(args.project, require=True)
+    except project_root_mod.ProjectRootNotFoundError as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 2
+    spawn_log = project / "docs" / "gates" / "agent_spawn_log.md"
+    diagram = project / "docs" / "live_workflow_diagram.md"
 
     rows = parse_spawn_log(spawn_log)
     events = parse_diagram_events(diagram)

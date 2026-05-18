@@ -30,9 +30,9 @@ Stage Checkpoint Hook uses.
 
 Usage
 -----
-    python scripts/check_lineage_coverage.py --run <run-dir>
-    python scripts/check_lineage_coverage.py --run <run-dir> --strict
-    python scripts/check_lineage_coverage.py --run <run-dir> --json
+    python scripts/check_lineage_coverage.py --project <project-dir>
+    python scripts/check_lineage_coverage.py --project <project-dir> --strict
+    python scripts/check_lineage_coverage.py --project <project-dir> --json
 """
 
 from __future__ import annotations
@@ -41,6 +41,9 @@ import argparse
 import json
 import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import _project_root as project_root_mod  # noqa: E402
 
 
 def _load_live(run_root: Path) -> dict | None:
@@ -78,7 +81,7 @@ def check(run_root: Path) -> list[dict]:
             "node_id": "(run)",
             "lineage_kind": "(none)",
             "rule": "workflow_map.live.json missing or unreadable",
-            "fix": f"Run scripts/start_research_run.py --name {run_root.name} first.",
+            "fix": f"Run scripts/init_research_project.py --project {run_root} first.",
         }]
 
     maps = data.get("maps") or []
@@ -164,20 +167,28 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
     )
-    parser.add_argument("--run", required=True, metavar="RUN_DIR",
-                        help="Path to the research run root directory.")
+    parser.add_argument(
+        "--project", "--run",
+        dest="project",
+        type=Path,
+        default=None,
+        metavar="PROJECT_DIR",
+        help="Project root directory. Default: walk up from cwd looking for "
+             "the `.research-harness` marker. `--run` kept as alias for one release.",
+    )
     parser.add_argument("--strict", action="store_true",
                         help="Exit 2 on any violation (default: exit 0 with warnings).")
     parser.add_argument("--json", action="store_true",
                         help="Emit violations as JSON instead of human-readable text.")
     args = parser.parse_args(argv)
 
-    run_root = Path(args.run).resolve()
-    if not run_root.exists():
-        print(f"ERROR: run directory not found: {run_root}", file=sys.stderr)
+    try:
+        project_root = project_root_mod.resolve_project(args.project, require=True)
+    except project_root_mod.ProjectRootNotFoundError as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
         return 1
 
-    violations = check(run_root)
+    violations = check(project_root)
 
     if args.json:
         print(json.dumps({"violations": violations}, indent=2, ensure_ascii=False))

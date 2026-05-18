@@ -22,6 +22,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import update_workflow_diagram as uwd  # noqa: E402
 import update_live_json as ulj  # noqa: E402
+import _project_root as project_root_mod  # noqa: E402
 
 
 AGENT_NAME = "lead-agent"
@@ -49,46 +50,44 @@ CACHE_EXTS = (".npy", ".npz", ".pkl", ".pickle", ".joblib")
 
 
 def signal_for(file_path_str: str):
-    """Return (event, gate, gate_status, run_dir) if path matches a signal artifact."""
+    """Return (event, gate, gate_status, project_root) if path matches a signal artifact.
+
+    Project root is identified by the `.research-harness` marker, found by
+    walking up from the written file.
+    """
     if not file_path_str:
         return None
     p = Path(file_path_str).resolve()
-    parts = list(p.parts)
-    for i, part in enumerate(parts):
-        if part.lower() == "researchpartner-runs" and i + 1 < len(parts):
-            run_dir = Path(*parts[: i + 2])
-            try:
-                rel = p.relative_to(run_dir).as_posix()
-            except ValueError:
-                return None
-            # docs/checkpoints/stage_N_checkpoint.md is a stage-advance signal
-            if rel.startswith("docs/checkpoints/stage_") and rel.endswith("_checkpoint.md"):
-                return ("Stage checkpoint written", "Completion conference", "pass", run_dir)
-            # docs/meetings/YYYY-MM-DD-*.md is a meeting record signal
-            if rel.startswith("docs/meetings/") and rel.endswith(".md"):
-                return (f"Meeting recorded ({Path(rel).stem})", None, None, run_dir)
-            # outputs/figures/*.png|pdf|svg|jpg → "Figure generated"
-            if rel.startswith("outputs/figures/") and rel.lower().endswith(FIGURE_EXTS):
-                return (f"Figure generated ({Path(rel).name})", "Visualization", "in_progress", run_dir)
-            # errors/*.err → "Error file created" (negative signal — does NOT advance any gate)
-            if rel.startswith("errors/") and rel.endswith(".err"):
-                return (f"Error file created ({Path(rel).name})", None, None, run_dir)
-            # cache/*.npy|npz|pkl|pickle|joblib → "Cache artifact written"
-            if rel.startswith("cache/") and rel.lower().endswith(CACHE_EXTS):
-                return (f"Cache artifact written ({Path(rel).name})", None, None, run_dir)
-            # docs/model_versions/<id>.md → new model_version lineage node
-            if rel.startswith("docs/model_versions/") and rel.endswith(".md"):
-                return (f"Model version recorded ({Path(rel).stem})", None, None, run_dir)
-            # literature/reviews/<paper_id>.md → paper lineage node
-            if rel.startswith("literature/reviews/") and rel.endswith(".md"):
-                return (f"Paper review recorded ({Path(rel).stem})", None, None, run_dir)
-            # docs/claims/<claim_id>.md → claim lineage node
-            if rel.startswith("docs/claims/") and rel.endswith(".md"):
-                return (f"Claim recorded ({Path(rel).stem})", None, None, run_dir)
-            if rel in SIGNAL_ARTIFACTS:
-                ev, gate, gs = SIGNAL_ARTIFACTS[rel]
-                return (ev, gate, gs, run_dir)
-            return None
+
+    try:
+        project_root = project_root_mod.find_project_root(start=p, require=True)
+    except project_root_mod.ProjectRootNotFoundError:
+        return None
+
+    try:
+        rel = p.relative_to(project_root).as_posix()
+    except ValueError:
+        return None
+
+    if rel.startswith("docs/checkpoints/stage_") and rel.endswith("_checkpoint.md"):
+        return ("Stage checkpoint written", "Completion conference", "pass", project_root)
+    if rel.startswith("docs/meetings/") and rel.endswith(".md"):
+        return (f"Meeting recorded ({Path(rel).stem})", None, None, project_root)
+    if rel.startswith("outputs/figures/") and rel.lower().endswith(FIGURE_EXTS):
+        return (f"Figure generated ({Path(rel).name})", "Visualization", "in_progress", project_root)
+    if rel.startswith("errors/") and rel.endswith(".err"):
+        return (f"Error file created ({Path(rel).name})", None, None, project_root)
+    if rel.startswith("cache/") and rel.lower().endswith(CACHE_EXTS):
+        return (f"Cache artifact written ({Path(rel).name})", None, None, project_root)
+    if rel.startswith("docs/model_versions/") and rel.endswith(".md"):
+        return (f"Model version recorded ({Path(rel).stem})", None, None, project_root)
+    if rel.startswith("literature/reviews/") and rel.endswith(".md"):
+        return (f"Paper review recorded ({Path(rel).stem})", None, None, project_root)
+    if rel.startswith("docs/claims/") and rel.endswith(".md"):
+        return (f"Claim recorded ({Path(rel).stem})", None, None, project_root)
+    if rel in SIGNAL_ARTIFACTS:
+        ev, gate, gs = SIGNAL_ARTIFACTS[rel]
+        return (ev, gate, gs, project_root)
     return None
 
 
@@ -238,7 +237,7 @@ def run_pre(tool_input: dict) -> None:
     if diagram_path is None:
         print(
             "WORKFLOW WARNING: No live_workflow_diagram.md found in any ResearchPartner-runs "
-            "directory. If this is a research task, run scripts/start_research_run.py first.",
+            "directory. If this is a research task, run scripts/init_research_project.py first.",
             file=sys.stderr,
         )
         return

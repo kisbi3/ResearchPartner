@@ -14,7 +14,7 @@ with the date, stage number, an auto-detected listing of files under
 fields after the Stage Completion Meeting.
 
 Usage:
-    python scripts/write_stage_checkpoint.py --run <run-dir> --stage 2 \
+    python scripts/write_stage_checkpoint.py --project <project-dir> --stage 2 \
         [--title "Synthetic-data experiments"] [--force]
 """
 
@@ -29,6 +29,7 @@ from pathlib import Path
 RESPAWN_WARN_THRESHOLD = 3  # >=3 spawns for the same file is a quality flag
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+import _project_root as project_root_mod  # noqa: E402
 
 
 def detect_lineage_coverage(run_dir: Path) -> dict:
@@ -307,7 +308,14 @@ def write_checkpoint(*, run_dir: Path, stage: int, title: str, force: bool, skip
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--run", type=Path, required=True, help="Run directory.")
+    parser.add_argument(
+        "--project", "--run",
+        dest="project",
+        type=Path,
+        default=None,
+        help="Project root directory. Default: walk up from cwd looking for "
+             "the `.research-harness` marker. `--run` kept as alias for one release.",
+    )
     parser.add_argument("--stage", type=int, required=True, help="Stage number (e.g. 2).")
     parser.add_argument("--title", type=str, default="", help="Optional short stage title.")
     parser.add_argument("--force", action="store_true", help="Overwrite existing checkpoint.")
@@ -322,8 +330,13 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
     try:
+        project = project_root_mod.resolve_project(args.project, require=True)
+    except project_root_mod.ProjectRootNotFoundError as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 1
+    try:
         path = write_checkpoint(
-            run_dir=args.run.resolve(),
+            run_dir=project,
             stage=args.stage,
             title=args.title,
             force=args.force,

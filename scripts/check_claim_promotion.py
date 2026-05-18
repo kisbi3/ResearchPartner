@@ -40,6 +40,9 @@ import argparse
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import _project_root as project_root_mod  # noqa: E402
+
 THRESHOLDS = {
     "observation": 0,
     "interpretation": 1,
@@ -80,7 +83,14 @@ def distinct_check_count(checks: list[str]) -> int:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--run", type=Path, required=True, help="Run directory.")
+    parser.add_argument(
+        "--project", "--run",
+        dest="project",
+        type=Path,
+        default=None,
+        help="Project root directory. Default: walk up from cwd looking for "
+             "the `.research-harness` marker. `--run` kept as alias for one release.",
+    )
     parser.add_argument(
         "--target",
         type=str,
@@ -90,14 +100,15 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
 
-    run_dir = args.run.resolve()
-    if not run_dir.is_dir():
-        print(f"error: run directory not found: {run_dir}", file=sys.stderr)
+    try:
+        project = project_root_mod.resolve_project(args.project, require=True)
+    except project_root_mod.ProjectRootNotFoundError as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
         return 2
 
     target = args.target.lower()
     required = THRESHOLDS[target]
-    log = run_dir / "docs" / "gates" / "validation_log.md"
+    log = project / "docs" / "gates" / "validation_log.md"
     checks = parse_pass_entries(log)
     pass_count = len(checks)
 

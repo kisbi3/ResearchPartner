@@ -11,7 +11,7 @@ Use this skill between professor-interview and model-specification.
 
 Before starting:
 
-1. Confirm `docs/interview_notes.md` exists and the Interview Gate passes (`python scripts/check_interview_recorded.py --run <run-dir>`). If not, complete the professor-interview skill first.
+1. Confirm `docs/interview_notes.md` exists and the Interview Gate passes (`python scripts/check_interview_recorded.py --project <project-dir>`). If not, complete the professor-interview skill first.
 
 ## Skipping This Step
 
@@ -21,7 +21,7 @@ If the literature review is genuinely not needed for this iteration (e.g. reprod
 Skipping literature review: reproducing Fourier (1822) heat equation — prior work is fully known and no novelty is claimed.
 ```
 
-The Literature Gate (`python scripts/check_literature_reviewed.py --run <run-dir>`) passes on either a completed review or a waiver file with content. A skip lowers the claim ceiling to at most `interpretation` for this run. The goal is not to let an LLM invent a literature review; the goal is to make the researcher's paper access and judgment part of the workflow before simulations, figures, or manuscript claims begin.
+The Literature Gate (`python scripts/check_literature_reviewed.py --project <project-dir>`) passes on either a completed review or a waiver file with content. A skip lowers the claim ceiling to at most `interpretation` for this iteration. The goal is not to let an LLM invent a literature review; the goal is to make the researcher's paper access and judgment part of the workflow before simulations, figures, or manuscript claims begin.
 
 ## Goal
 
@@ -34,7 +34,7 @@ Repeat this loop until the Lead Agent marks the plan ready or the researcher exp
 1. **Question framing**: state the research question, physical system, observable, and candidate claim.
 2. **Paper request**: ask the researcher to collect specific PDFs that the LLM cannot access directly, using institutional access when needed.
 3. **Paper intake**: record each PDF path, citation metadata, access status, relevance, and whether it has been read.
-4. **Direct review**: create one detailed review note per important paper in `literature/reviews/`. The note must be a section-by-section paper review, not a short abstract summary. It should reconstruct the paper's context, concepts, method, equations, assumptions, units, figures/tables, limitations, and reusable research value. Each review note must fill in the **`Context Summary`** block (between the `<!-- context-summary:start -->` and `<!-- context-summary:end -->` HTML markers) — this block is the compact form the Lead Agent loads during replanning instead of full reviews. Run `python scripts/compile_literature_summary.py --run <run-dir>` after adding or updating a review to regenerate `literature/summary.md`; prefer loading `summary.md` for routine replanning and load a full review only when a specific paper needs deeper inspection.
+4. **Direct review**: create one detailed review note per important paper in `literature/reviews/`. The note must be a section-by-section paper review, not a short abstract summary. It should reconstruct the paper's context, concepts, method, equations, assumptions, units, figures/tables, limitations, and reusable research value. Each review note must fill in the **`Context Summary`** block (between the `<!-- context-summary:start -->` and `<!-- context-summary:end -->` HTML markers) — this block is the compact form the Lead Agent loads during replanning instead of full reviews. Run `python scripts/compile_literature_summary.py --project <project-dir>` after adding or updating a review to regenerate `literature/summary.md`; prefer loading `summary.md` for routine replanning and load a full review only when a specific paper needs deeper inspection.
 5. **Novelty map**: compare the planned contribution against reviewed papers and mark novelty as supported, weak, contradicted, or unverified.
 6. **Reproduction target selection**: choose the smallest paper result, figure, equation, dataset, or benchmark that should be reproduced before new work.
 7. **Replanning memo**: revise the research plan, validation gates, baselines, observables, and claim ceiling based on the literature.
@@ -62,12 +62,12 @@ If PDFs are missing after web search, mark the literature evidence as `missing` 
 
 ## Required Artifacts
 
-Maintain a single run-local literature directory:
+Maintain a single project-local literature directory:
 
 - `literature/pdfs/`: researcher-provided PDFs
 - `literature/reviews/`: detailed paper review notes
 - `literature/extracted_text/`: extracted PDF text used as a reading aid
-- `literature/index.md`: run-local paper review index
+- `literature/index.md`: project-local paper review index
 - `docs/paper_request_queue.md`: papers requested from the researcher
 - `docs/literature_review_plan.md`: current paper set, review status, and reading priorities
 - `docs/replanning_memo.md`: novelty map, reproduction target, revised plan, and claim ceiling
@@ -80,9 +80,9 @@ Use `scripts/extract_paper_text.py` to create an extracted-text artifact and lin
 
 Use `scripts/draft_paper_review.py` only to insert a `Machine-Assisted Draft From Extracted Text` section with provisional candidates. This does not establish novelty or validate claims; the Lead Agent must require human/PDF verification before any candidate text affects the replanning memo.
 
-Use `scripts/process_paper_for_review.py` when the PDF is already in the run directory and the researcher wants the standard scaffold, extracted-text artifact, and provisional draft in one step.
+Use `scripts/process_paper_for_review.py` when the PDF is already inside the project and the researcher wants the standard scaffold, extracted-text artifact, and provisional draft in one step.
 
-Maintain clickable links across the literature graph. The paper index should link to PDFs and review notes, each review note should link to the paper index and replanning memo, and extracted text artifacts should link back to the source PDF and review note. Keep run-relative code paths alongside Markdown links so future agents can inspect artifacts without guessing locations.
+Maintain clickable links across the literature graph. The paper index should link to PDFs and review notes, each review note should link to the paper index and replanning memo, and extracted text artifacts should link back to the source PDF and review note. Keep project-relative code paths alongside Markdown links so future agents can inspect artifacts without guessing locations.
 
 Run `scripts/check_paper_review_quality.py` on important review notes before using them to update `docs/replanning_memo.md`. If the check fails, either complete the review or record an explicit waiver and keep novelty/reproduction claims provisional.
 
@@ -150,7 +150,7 @@ State what changed in assumptions, observables, baselines, validation, and claim
 
 ### Literature Gate Status
 
-Set this to one of: `ready` (review complete and plan revised) or `waived` (with explicit reason). Write this section into `docs/literature_review_plan.md` in the run directory. The Literature Gate (`python scripts/check_literature_reviewed.py --run <run-dir>`) checks this section before model-specification or seed-design work begins.
+Set this to one of: `ready` (review complete and plan revised) or `waived` (with explicit reason). Write this section into `docs/literature_review_plan.md` at the project root. The Literature Gate (`python scripts/check_literature_reviewed.py --project <project-dir>`) checks this section before model-specification or seed-design work begins.
 
 ## Cartographer Update
 

@@ -24,6 +24,7 @@ from pathlib import Path
 _SCRIPTS_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(_SCRIPTS_DIR))
 from _layout import interview_notes as _interview_notes  # noqa: E402
+import _project_root as project_root_mod  # noqa: E402
 
 REQUIRED_SECTIONS = [
     "## Crystallized Research Question",
@@ -49,8 +50,8 @@ def _section_has_content(text: str, heading: str) -> bool:
     return False
 
 
-def check_run(run_dir: Path) -> tuple[int, list[str]]:
-    interview = _interview_notes(run_dir)
+def check_project(project_root: Path) -> tuple[int, list[str]]:
+    interview = _interview_notes(project_root)
     if not interview.exists():
         return 1, [
             f"Missing interview notes: {interview}\n"
@@ -75,18 +76,30 @@ def check_run(run_dir: Path) -> tuple[int, list[str]]:
     return 0, ["Interview gate passed: crystallized research question and agreed direction are recorded."]
 
 
+# Backward-compat alias retained for one release.
+check_run = check_project
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
-        description="Verify the Interview gate for a research run directory."
+        description="Verify the Interview gate for a research project directory."
     )
     parser.add_argument(
-        "--run",
-        required=True,
+        "--project", "--run",
+        dest="project",
         type=Path,
-        help="Path to the run directory (must contain docs/gates/interview_notes.md).",
+        default=None,
+        help="Project root directory (must contain docs/gates/interview_notes.md). "
+             "Default: walk up from cwd looking for the `.research-harness` marker. "
+             "`--run` kept as alias for one release.",
     )
     args = parser.parse_args(argv if argv is not None else [])
-    code, messages = check_run(args.run)
+    try:
+        project = project_root_mod.resolve_project(args.project, require=True)
+    except project_root_mod.ProjectRootNotFoundError as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 1
+    code, messages = check_project(project)
     for message in messages:
         print(message)
     return code

@@ -9,6 +9,9 @@ from pathlib import Path
 import re
 import sys
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import _project_root as project_root_mod  # noqa: E402
+
 
 def slugify_title(title: str) -> str:
     """Return a lowercase hyphenated ASCII-ish slug for a paper title."""
@@ -347,7 +350,14 @@ def create_paper_review(
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--run", required=True, type=Path, help="Research run directory.")
+    parser.add_argument(
+        "--project", "--run",
+        dest="project",
+        type=Path,
+        default=None,
+        help="Project root directory. Default: walk up from cwd looking for "
+             "the `.research-harness` marker. `--run` kept as alias for one release.",
+    )
     parser.add_argument("--paper-id", required=True, help="Stable paper ID such as P1.")
     parser.add_argument("--title", required=True, help="Paper title.")
     parser.add_argument("--authors", default="", help="Author string.")
@@ -359,8 +369,13 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
+    try:
+        project = project_root_mod.resolve_project(args.project, require=True)
+    except project_root_mod.ProjectRootNotFoundError as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 1
     review_path = create_paper_review(
-        run_path=args.run,
+        run_path=project,
         paper_id=args.paper_id,
         title=args.title,
         authors=args.authors,

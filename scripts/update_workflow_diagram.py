@@ -275,7 +275,7 @@ def main(argv: list[str] | None = None) -> int:
     if diagram_path is None or not diagram_path.exists():
         print(
             "ERROR: live_workflow_diagram.md not found. "
-            "Run scripts/start_research_run.py first to create a research run.",
+            "Run scripts/init_research_project.py first to scaffold the project.",
             file=sys.stderr,
         )
         return 1
