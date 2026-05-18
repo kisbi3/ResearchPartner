@@ -403,28 +403,11 @@ def _resolve_anomaly(nodes: list[dict], anomaly_id: str) -> int:
     return updated
 
 
-def _maybe_rebuild_cross_run_lineage(run_root: Path, new_node: dict) -> None:
-    """Re-run build_lineage_graph.py when a packet introduces cross-run lineage.
-
-    Best-effort. We only fire when the incoming node carries a `parent_run`
-    field, since that's the only signal that affects Cross-Run Lineage tab
-    edges. A run that never sets parent_run never pays this cost.
-    """
-    if not new_node.get("parent_run"):
-        return
-    script = ROOT / "scripts" / "build_lineage_graph.py"
-    if not script.exists():
-        return
-    try:
-        subprocess.run(
-            [sys.executable, str(script), "--runs-root", str(run_root.parent)],
-            capture_output=True,
-            text=True,
-            timeout=30,
-            check=False,
-        )
-    except Exception as exc:  # noqa: BLE001
-        print(f"WARNING: cross-run lineage rebuild failed: {exc}", file=sys.stderr)
+# Cross-run lineage was removed in v3 along with the ResearchPartner-runs
+# wrapping directory; project root IS the research root, so there are no
+# sibling runs to aggregate. The `parent_run` packet field is intentionally
+# left in the schema but is now informational only (it does not trigger a
+# rebuild).
 
 
 def apply_updates(

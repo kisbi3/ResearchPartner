@@ -558,7 +558,6 @@
       anomaly:       '#fecaca',
       waiver:        '#e5e7eb',
       gate:          '#bbf7d0',
-      run_root:      '#cbd5e1',
     };
     const LINEAGE_KIND_SHAPES = {
       paper:         'round-rectangle',
@@ -570,13 +569,14 @@
       anomaly:       'star',
       waiver:        'octagon',
       gate:          'round-tag',
-      run_root:      'round-octagon',
     };
-    const LINEAGE_FILTER_KEYS = ['paper', 'decision', 'model_version', 'result', 'figure', 'claim', 'anomaly', 'waiver', 'gate', 'run_root'];
+    // v3 removed `run_root` (was used to group sibling runs in the cross-run
+    // tab); the project root IS the research root so the grouping isn't needed.
+    const LINEAGE_FILTER_KEYS = ['paper', 'decision', 'model_version', 'result', 'figure', 'claim', 'anomaly', 'waiver', 'gate'];
     const CEILING_FILTER_KEYS = ['unsupported', 'observation', 'interpretation', 'mechanism', 'generalization'];
     const lineageFilterState = {};   // mapId -> { kind, runIds, ceiling, reviewOnly }
     let lineageCyInstances = {};     // mapId -> cy
-    let crossLineageCache = null;    // last-fetched cross-run map; survives polling
+    // crossLineageCache was removed in v3 — single-project Lineage only.
 
     function lineageFilterFor(mapId, allRunIds) {
       if (!lineageFilterState[mapId]) {
@@ -642,15 +642,7 @@
           link.from, link.to, link.relation,
           {strength: node.evidence_strength, linkStatus: link.status || 'fresh'},
         ));
-        // Group run-local nodes under the synthetic _run_root for cross-run view.
-        if (node.run_root && node.run_root !== node.id && knownIds.has(node.run_root)) {
-          addEdge(node.run_root, node.id, 'contains');
-        }
       });
-      (map.inter_run_edges || []).forEach(link => addEdge(
-        link.from, link.to, link.relation,
-        {strength: 'none', linkStatus: link.status || 'fresh'},
-      ));
       return elements;
     }
 
@@ -921,29 +913,14 @@
       if (liveMap && !hasDerived) {
         const clone = JSON.parse(JSON.stringify(liveMap));
         clone.id = 'current_run_lineage';
-        clone.title = 'Current Run Lineage';
+        clone.title = 'Project Lineage';
         clone.display_kind = 'lineage';
         clone.dashboard = null;
         DATA.maps.push(clone);
       }
-      // Try cross-run aggregate. Best-effort; failure is silent.
-      if (!DATA.maps.some(m => m.id === 'cross_run_lineage')) {
-        const crossPath = (liveMap && liveMap.dashboard && liveMap.dashboard.run_root)
-          ? (liveMap.dashboard.run_root.replace(/[^/]+$/, '') + '_index/lineage_graph.json')
-          : '../../ResearchPartner-runs/_index/lineage_graph.json';
-        fetch(crossPath, { cache: 'no-store' })
-          .then(r => r.ok ? r.json() : null)
-          .then(payload => {
-            if (!payload || !payload.maps || !payload.maps.length) return;
-            const cross = payload.maps[0];
-            cross.id = 'cross_run_lineage';
-            cross.display_kind = 'lineage';
-            crossLineageCache = cross;
-            DATA.maps.push(cross);
-            render();
-          })
-          .catch(() => { /* aggregator output not present yet */ });
-      }
+      // v3 removed Cross-Run Lineage: the project root IS the research root,
+      // so there are no sibling runs to aggregate. The single-project Lineage
+      // tab above is the only lineage view.
     }
 
     function renderDiagram() {
@@ -1241,11 +1218,8 @@
           return;
         }
         DATA = fresh;
-        // Re-derive single-run lineage clone + re-attach any cross-run map that
-        // was previously fetched, otherwise polling would erase the Lineage tabs.
-        if (crossLineageCache && !DATA.maps.some(m => m.id === 'cross_run_lineage')) {
-          DATA.maps.push(crossLineageCache);
-        }
+        // Re-derive single-project lineage clone so polling does not erase
+        // the Lineage tab.
         ensureLineageMaps();
         // Preserve selection where possible; otherwise fall back to first.
         const map = DATA.maps.find(m => m.id === activeMap) || DATA.maps[0];
