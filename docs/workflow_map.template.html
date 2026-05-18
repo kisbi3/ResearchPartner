@@ -412,7 +412,69 @@
       .shell { grid-template-columns: 1fr; }
       .action-groups, .summary-grid { grid-template-columns: 1fr; }
     }
+    /* Flow tab (Cytoscape + dagre). */
+    .flow-canvas {
+      width: 100%;
+      height: 620px;
+      background: #fbfbf8;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+    }
+    .flow-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 10px;
+      padding: 8px 4px 12px;
+      font-size: 12px;
+      color: var(--muted);
+      align-items: center;
+    }
+    .flow-controls label {
+      display: inline-flex;
+      gap: 4px;
+      align-items: center;
+      background: #fbfbf8;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 3px 9px;
+      cursor: pointer;
+    }
+    .flow-controls label input { margin: 0; }
+    .flow-controls button {
+      background: #fbfbf8;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 3px 10px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    .flow-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      font-size: 11px;
+      color: var(--muted);
+      padding: 4px 6px 10px;
+    }
+    .flow-legend .swatch {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      margin-right: 4px;
+      vertical-align: middle;
+      border: 1px solid rgba(0,0,0,0.2);
+    }
+    .flow-empty {
+      padding: 48px 24px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 14px;
+    }
   </style>
+  <script src="vendor/cytoscape.min.js"></script>
+  <script src="vendor/dagre.min.js"></script>
+  <script src="vendor/cytoscape-dagre.min.js"></script>
 </head>
 <body>
   <header>
@@ -490,7 +552,7 @@
       tabs.classList.remove('single-map');
       DATA.maps.forEach(map => {
         const button = document.createElement('button');
-        button.textContent = map.title;
+        button.textContent = map.display_kind === 'flow' ? 'Flow View' : 'List View';
         button.className = map.id === activeMap ? 'active' : '';
         button.addEventListener('click', () => {
           activeMap = map.id;
@@ -801,10 +863,210 @@
       pill.classList.toggle('stale', ageMin > 30);
     }
 
+    // ── Flow tab (Cytoscape + dagre) ──────────────────────────────────────────
+
+    const FLOW_KIND_COLORS = {
+      paper:         '#d8b4fe',
+      decision:      '#fde68a',
+      model_version: '#a7f3d0',
+      result:        '#bae6fd',
+      figure:        '#fbcfe8',
+      claim:         '#fda4af',
+      anomaly:       '#fecaca',
+      waiver:        '#e5e7eb',
+      gate:          '#bbf7d0',
+    };
+    const FLOW_KIND_SHAPES = {
+      paper:         'round-rectangle',
+      decision:      'diamond',
+      model_version: 'rectangle',
+      result:        'barrel',
+      figure:        'tag',
+      claim:         'pentagon',
+      anomaly:       'star',
+      waiver:        'octagon',
+      gate:          'round-tag',
+    };
+    const FLOW_KIND_KEYS = Object.keys(FLOW_KIND_COLORS);
+    const flowFilterState = {};
+    let flowCyInstances = {};
+
+    function flowFilterFor(mapId) {
+      if (!flowFilterState[mapId]) {
+        flowFilterState[mapId] = { kind: new Set(FLOW_KIND_KEYS) };
+      }
+      return flowFilterState[mapId];
+    }
+
+    function buildFlowElements(map) {
+      const nodes = map.nodes || [];
+      const knownIds = new Set(nodes.map(n => n.id));
+      const elements = [];
+      nodes.forEach(node => {
+        const kind = node.lineage_kind || 'decision';
+        elements.push({ data: {
+          id: node.id,
+          label: node.title || node.id,
+          kind,
+          requiresReview: Boolean(node.requires_researcher_review),
+        }});
+      });
+      const edgeSeen = new Set();
+      const addEdge = (src, dst, relation) => {
+        if (!src || !dst || !knownIds.has(src) || !knownIds.has(dst)) return;
+        const key = src + '|' + dst + '|' + (relation || '');
+        if (edgeSeen.has(key)) return;
+        edgeSeen.add(key);
+        elements.push({ data: {
+          id: 'e_' + edgeSeen.size, source: src, target: dst,
+          relation: relation || 'depends_on',
+        }});
+      };
+      nodes.forEach(node => {
+        (node.edges || []).forEach(t => addEdge(node.id, t, 'flow'));
+        (node.graph_links || []).forEach(link => addEdge(link.from, link.to, link.relation));
+      });
+      return elements;
+    }
+
+    function applyFlowFilter(cy, filter) {
+      cy.batch(() => {
+        cy.nodes().forEach(n => {
+          n.style('display', filter.kind.has(n.data('kind')) ? 'element' : 'none');
+        });
+        cy.edges().forEach(e => {
+          const visible = e.source().style('display') !== 'none' &&
+                          e.target().style('display') !== 'none';
+          e.style('display', visible ? 'element' : 'none');
+        });
+      });
+    }
+
+    function renderFlowDiagram(map) {
+      const wrap = document.getElementById('diagram');
+      const nodes = map.nodes || [];
+      const hasRealNodes = nodes.some(n => n.lineage_kind);
+
+      if (!hasRealNodes) {
+        wrap.innerHTML = `<div class="flow-empty">
+          <p>No research artefacts yet.</p>
+          <p style="font-size:12px;margin-top:8px;">Papers, model versions, results, and claims will appear here as the project progresses.<br>Use <code>update_live_json.py</code> to emit lineage nodes.</p>
+        </div>`;
+        return;
+      }
+
+      const filter = flowFilterFor(map.id);
+      const kindControls = FLOW_KIND_KEYS.map(k => `
+        <label><input type="checkbox" data-kind="${k}" ${filter.kind.has(k) ? 'checked' : ''}>
+          <span class="swatch" style="background:${FLOW_KIND_COLORS[k]}"></span>${k.replace('_', ' ')}</label>
+      `).join('');
+      const legend = FLOW_KIND_KEYS.map(k =>
+        `<span><span class="swatch" style="background:${FLOW_KIND_COLORS[k]}"></span>${k.replace('_', ' ')}</span>`
+      ).join('');
+
+      wrap.innerHTML = `
+        <div class="flow-controls">
+          <strong style="color:var(--ink);font-size:12px;">Show:</strong>${kindControls}
+          <button type="button" id="flowRefit">Fit to view</button>
+        </div>
+        <div class="flow-canvas" id="cyCanvas"></div>
+        <div class="flow-legend">${legend}</div>
+      `;
+
+      if (typeof cytoscape === 'undefined') {
+        document.getElementById('cyCanvas').innerHTML =
+          '<p style="padding:16px;color:var(--muted);">Cytoscape failed to load. Check docs/vendor/cytoscape.min.js.</p>';
+        return;
+      }
+
+      const existingCy = flowCyInstances[map.id];
+      if (existingCy) { try { existingCy.destroy(); } catch (e) {} }
+
+      const cy = cytoscape({
+        container: document.getElementById('cyCanvas'),
+        elements: buildFlowElements(map),
+        style: [
+          { selector: 'node', style: {
+            'background-color': ele => FLOW_KIND_COLORS[ele.data('kind')] || '#e5e7eb',
+            'shape': ele => FLOW_KIND_SHAPES[ele.data('kind')] || 'rectangle',
+            'label': 'data(label)',
+            'font-size': 10,
+            'text-wrap': 'wrap',
+            'text-max-width': '140px',
+            'text-valign': 'center',
+            'text-halign': 'center',
+            'width': 110,
+            'height': 36,
+            'padding': '6px',
+            'border-width': 1,
+            'border-color': '#475569',
+            'color': '#111',
+          }},
+          { selector: 'node[?requiresReview]', style: { 'border-width': 3, 'border-color': '#b91c1c' }},
+          { selector: 'node.selected',         style: { 'border-width': 4, 'border-color': '#0b57d0' }},
+          { selector: 'edge', style: {
+            'curve-style': 'bezier',
+            'target-arrow-shape': 'triangle',
+            'arrow-scale': 0.9,
+            'line-color': '#94a3b8',
+            'target-arrow-color': '#94a3b8',
+            'width': 1.5,
+            'label': 'data(relation)',
+            'font-size': 8,
+            'color': '#64748b',
+            'text-rotation': 'autorotate',
+            'text-background-color': '#fbfbf8',
+            'text-background-opacity': 0.9,
+            'text-background-padding': '1px',
+          }},
+          { selector: 'edge[relation = "evolved_from"]', style: { 'line-color': '#0f766e', 'target-arrow-color': '#0f766e', 'width': 2.5 }},
+          { selector: 'edge[relation = "reproduces"]',   style: { 'line-color': '#7c2d12', 'target-arrow-color': '#7c2d12', 'line-style': 'dashed' }},
+          { selector: 'edge[relation = "supports"]',     style: { 'line-color': '#16a34a', 'target-arrow-color': '#16a34a' }},
+          { selector: 'edge[relation = "contradicts"]',  style: { 'line-color': '#dc2626', 'target-arrow-color': '#dc2626' }},
+        ],
+        layout: { name: 'dagre', rankDir: 'TB', nodeSep: 28, rankSep: 60, edgeSep: 12, fit: true, padding: 30 },
+      });
+      flowCyInstances[map.id] = cy;
+      applyFlowFilter(cy, filter);
+
+      cy.on('tap', 'node', evt => {
+        cy.nodes().removeClass('selected');
+        evt.target.addClass('selected');
+        activeNode = evt.target.id();
+        renderDetails();
+      });
+      wrap.querySelectorAll('input[data-kind]').forEach(input => {
+        input.addEventListener('change', () => {
+          if (input.checked) filter.kind.add(input.dataset.kind);
+          else filter.kind.delete(input.dataset.kind);
+          applyFlowFilter(cy, filter);
+        });
+      });
+      const refitBtn = document.getElementById('flowRefit');
+      if (refitBtn) refitBtn.addEventListener('click', () => cy.fit(null, 40));
+    }
+
+    function ensureFlowTab() {
+      const liveMap = DATA.maps.find(m => m.id === 'live_research_run');
+      if (!liveMap || DATA.maps.some(m => m.id === 'flow_view')) return;
+      const clone = JSON.parse(JSON.stringify(liveMap));
+      clone.id = 'flow_view';
+      clone.title = 'Flow';
+      clone.display_kind = 'flow';
+      clone.dashboard = null;
+      DATA.maps.push(clone);
+    }
+
     function render() {
+      ensureFlowTab();
       renderTabs();
-      renderActionQueue();
-      renderGateList();
+      const map = currentMap();
+      if ((map.display_kind || '') === 'flow') {
+        renderFlowDiagram(map);
+      } else {
+        renderActionQueue();
+        renderGateList();
+      }
       renderDetails();
       renderFooter();
       updateFreshnessPill();

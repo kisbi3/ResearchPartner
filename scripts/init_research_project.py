@@ -189,12 +189,18 @@ def scaffold_project(project: Path | str = ".") -> Path:
     # ── Write project-root marker ────────────────────────────────────────────
     project_root_mod.create_marker(project)
 
-    # ── Bootstrap live workflow JSON so workflow_map.html opens immediately ──
+    # ── Bootstrap live workflow JSON + HTML so workflow_map.html opens immediately ──
     try:
         import update_live_json as ulj  # noqa: PLC0415
         ulj.bootstrap_project_json(project)
     except Exception:
         pass  # Non-fatal: agents can call update_live_json.py manually.
+
+    try:
+        import generate_workflow_map as gwm  # noqa: PLC0415
+        gwm.write_outputs(project_root=project)
+    except Exception:
+        pass  # Non-fatal: researcher can run generate_workflow_map.py manually.
 
     return project
 

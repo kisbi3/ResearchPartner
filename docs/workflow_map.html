@@ -42,11 +42,27 @@
       border-radius: 8px;
       overflow: hidden;
     }
+    .beta-badge {
+      display: inline-block;
+      font-size: 0.55em;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      vertical-align: middle;
+      padding: 2px 7px;
+      border-radius: 4px;
+      background: #fef3c7;
+      color: #92400e;
+      border: 1px solid #fcd34d;
+      margin-left: 4px;
+    }
     .tabs {
       display: flex;
       gap: 8px;
       padding: 12px;
       border-bottom: 1px solid var(--line);
+    }
+    .tabs:empty, .tabs.single-map {
+      display: none;
     }
     button {
       border: 1px solid var(--line);
@@ -66,15 +82,79 @@
       color: white;
       border-color: var(--accent);
     }
-    .diagram-wrap { padding: 12px; overflow: auto; }
-    svg { width: 100%; min-width: 920px; height: 620px; }
-    .edge { stroke: #8c958f; stroke-width: 2; fill: none; marker-end: url(#arrow); }
-    .node rect { fill: #fff; stroke: #b9c3bd; stroke-width: 2; rx: 8; }
-    .node.active rect { stroke: var(--accent); stroke-width: 4; }
-    .node text { pointer-events: none; fill: var(--ink); }
-    .node .phase { fill: var(--muted); font-size: 12px; text-transform: uppercase; }
-    .node .title { font-size: 15px; font-weight: 700; }
-    .node:hover rect { stroke: var(--focus); }
+    #diagram { overflow-y: auto; }
+    .active-step-bar {
+      padding: 8px 14px;
+      background: #f0f9ff;
+      border-bottom: 1px solid var(--line);
+      font-size: 12px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .active-step-bar strong { color: var(--ink); }
+    .gate-list { }
+    .gate-item { border-bottom: 1px solid var(--line); }
+    .gate-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 14px;
+      cursor: pointer;
+      border-left: 3px solid transparent;
+    }
+    .gate-row:hover { background: var(--bg); }
+    .gate-row.active { background: #f0fdf4; border-left-color: var(--accent); }
+    .gate-chevron { flex: 0 0 auto; font-size: 10px; color: var(--muted); margin-left: auto; }
+    .gate-detail {
+      padding: 14px 16px;
+      background: #f8faf8;
+      border-top: 1px solid var(--line);
+    }
+    .gate-detail-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+    .gate-detail-summary { margin: 0 0 12px; font-size: 13px; color: var(--muted); }
+    .gate-status-badge {
+      flex: 0 0 auto;
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+      min-width: 80px;
+      justify-content: center;
+    }
+    .gate-status-pass { background: #d1fae5; color: #065f46; }
+    .gate-status-fail { background: #fee2e2; color: #991b1b; }
+    .gate-status-blocked { background: #fef3c7; color: #92400e; }
+    .gate-status-in_progress { background: #dbeafe; color: #1e40af; }
+    .gate-status-pending { background: #f3f4f6; color: #6b7280; }
+    .gate-status-waived { background: #e5e7eb; color: #4b5563; }
+    .gate-title {
+      flex: 0 0 200px;
+      font-weight: 600;
+      font-size: 14px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .gate-note {
+      flex: 1;
+      color: var(--muted);
+      font-size: 13px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
     aside { padding: 16px; }
     aside h2 { margin: 0 0 8px; font-size: 20px; }
     .meta { color: var(--muted); font-size: 13px; margin-bottom: 14px; }
@@ -331,17 +411,16 @@
     @media (max-width: 900px) {
       .shell { grid-template-columns: 1fr; }
       .action-groups, .summary-grid { grid-template-columns: 1fr; }
-      svg { min-width: 760px; }
     }
-    /* Lineage tab (Cytoscape + dagre). */
-    .lineage-canvas {
+    /* Flow tab (Cytoscape + dagre). */
+    .flow-canvas {
       width: 100%;
       height: 620px;
       background: #fbfbf8;
       border: 1px solid var(--line);
       border-radius: 6px;
     }
-    .lineage-controls {
+    .flow-controls {
       display: flex;
       flex-wrap: wrap;
       gap: 6px 10px;
@@ -350,7 +429,7 @@
       color: var(--muted);
       align-items: center;
     }
-    .lineage-controls label {
+    .flow-controls label {
       display: inline-flex;
       gap: 4px;
       align-items: center;
@@ -360,8 +439,16 @@
       padding: 3px 9px;
       cursor: pointer;
     }
-    .lineage-controls label input { margin: 0; }
-    .lineage-legend {
+    .flow-controls label input { margin: 0; }
+    .flow-controls button {
+      background: #fbfbf8;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 3px 10px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    .flow-legend {
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
@@ -369,7 +456,7 @@
       color: var(--muted);
       padding: 4px 6px 10px;
     }
-    .lineage-legend .swatch {
+    .flow-legend .swatch {
       display: inline-block;
       width: 10px;
       height: 10px;
@@ -378,6 +465,12 @@
       vertical-align: middle;
       border: 1px solid rgba(0,0,0,0.2);
     }
+    .flow-empty {
+      padding: 48px 24px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 14px;
+    }
   </style>
   <script src="vendor/cytoscape.min.js"></script>
   <script src="vendor/dagre.min.js"></script>
@@ -385,7 +478,7 @@
 </head>
 <body>
   <header>
-    <h1>Research Partner Live Workflow <span id="freshness" class="freshness-pill" hidden></span></h1>
+    <h1>Research Partner Live Workflow <span class="beta-badge">Beta</span> <span id="freshness" class="freshness-pill" hidden></span></h1>
     <p>Click a workflow node to inspect current gates, evidence links, blocked behaviors, and next review checkpoints. This page is the live research workflow by default. Add the paper logic workflow only when the researcher explicitly starts manuscript planning. Auto-refreshes every 10 seconds by polling <code>workflow_map.live.json</code>; your selection and scroll position are preserved when the data changes.</p>
   </header>
   <main class="shell">
@@ -398,10 +491,10 @@
   </main>
   <footer id="footer"></footer>
   <script>
-    let DATA = {"generated_at": "2026-05-17T08:47:39+00:00", "maps": [{"id": "live_research_run", "title": "Live Research Workflow: 2026-05-16-hvg-dhvg-financial-markets", "description": "Current run state generated from the latest live workflow artifact. This is process-tracking only and must not strengthen scientific claims.", "dashboard": {"title": "Current Run Dashboard", "run_root": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets", "document_groups": [{"id": "needs_input", "title": "Needs Input", "description": "Documents where the researcher may need to answer, provide material, or clarify scope.", "documents": [{"label": "Orient Note", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/gates/orient_note.md", "status": "Needs researcher decision"}, {"label": "Interview Notes", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/gates/interview_notes.md", "status": "Needs researcher decision"}, {"label": "Paper Request Queue", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/literature/paper_request_queue.md", "status": "Needs researcher decision"}, {"label": "Literature Review Plan", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/literature/literature_review_plan.md", "status": "Needs researcher decision"}, {"label": "Meeting Notes", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/meetings", "status": "Needs researcher decision"}]}, {"id": "needs_approval", "title": "Needs Approval", "description": "Documents that should be approved before the harness treats the run direction as settled.", "documents": [{"label": "Research Plan", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/plan/research_plan.md", "status": "Needs researcher decision"}, {"label": "Model Spec", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/plan/model_spec.md", "status": "Needs researcher decision"}, {"label": "Baseline Strategy", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/plan/baseline_strategy.md", "status": "Needs researcher decision"}, {"label": "Replanning Memo", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/literature/replanning_memo.md", "status": "Needs researcher decision"}, {"label": "Paper Logic Diagram", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/plan/paper_logic_diagram.md", "status": "Missing document"}]}, {"id": "recommended_review", "title": "Recommended Review", "description": "Documents worth checking to understand current status, evidence, decisions, and remaining risk.", "documents": [{"label": "Live Workflow Diagram", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/process/live_workflow_diagram.md", "status": "Ready to review"}, {"label": "Research State", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/process/research_state.md", "status": "Missing document"}, {"label": "Researcher Review Log", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/process/researcher_review_log.md", "status": "Ready to review"}, {"label": "Decision Log", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/process/decision_log.md", "status": "Missing document"}, {"label": "Baseline Registry", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/gates/baseline_registry.md", "status": "Ready to review"}, {"label": "Validation Log", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/gates/validation_log.md", "status": "Ready to review"}, {"label": "Research Retrospective", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/process/research_retrospective.md", "status": "Ready to review"}]}], "summary": {"needs_input": {"ready_to_review": 0, "missing_document": 0, "needs_researcher_decision": 5, "total": 5}, "needs_approval": {"ready_to_review": 0, "missing_document": 1, "needs_researcher_decision": 4, "total": 5}, "recommended_review": {"ready_to_review": 5, "missing_document": 2, "needs_researcher_decision": 0, "total": 7}}, "actions": [{"id": "needs_input_orient_note", "title": "Review Orient Note", "category": "Needs Input", "status": "Needs researcher decision", "priority": "needs_input", "why": "Confirm the run has a recorded task classification and first researcher-facing question.", "suggested_command": "python scripts/check_orient_recorded.py --run <run-dir>", "linked_document": {"label": "Orient Note", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/gates/orient_note.md", "status": "Needs researcher decision"}}, {"id": "needs_input_interview_notes", "title": "Review Interview Notes", "category": "Needs Input", "status": "Needs researcher decision", "priority": "needs_input", "why": "Confirm the research question, assumptions, agreed direction, and next skill are recorded.", "suggested_command": "python scripts/check_interview_recorded.py --run <run-dir>", "linked_document": {"label": "Interview Notes", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/gates/interview_notes.md", "status": "Needs researcher decision"}}, {"id": "needs_input_paper_request_queue", "title": "Review Paper Request Queue", "category": "Needs Input", "status": "Needs researcher decision", "priority": "needs_input", "why": "Open the linked document and decide whether this run can continue.", "suggested_command": "Record the review outcome in docs/process/researcher_review_log.md", "linked_document": {"label": "Paper Request Queue", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/literature/paper_request_queue.md", "status": "Needs researcher decision"}}, {"id": "needs_input_literature_review_plan", "title": "Review Literature Review Plan", "category": "Needs Input", "status": "Needs researcher decision", "priority": "needs_input", "why": "Confirm literature status before model specification or seed design relies on novelty or reproduction claims.", "suggested_command": "python scripts/check_literature_reviewed.py --run <run-dir>", "linked_document": {"label": "Literature Review Plan", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/literature/literature_review_plan.md", "status": "Needs researcher decision"}}, {"id": "needs_input_meeting_notes", "title": "Review Meeting Notes", "category": "Needs Input", "status": "Needs researcher decision", "priority": "needs_input", "why": "Open the linked document and decide whether this run can continue.", "suggested_command": "Record the review outcome in docs/process/researcher_review_log.md", "linked_document": {"label": "Meeting Notes", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/meetings", "status": "Needs researcher decision"}}, {"id": "needs_approval_research_plan", "title": "Review Research Plan", "category": "Needs Approval", "status": "Needs researcher decision", "priority": "needs_approval", "why": "Open the linked document and decide whether this run can continue.", "suggested_command": "Record the review outcome in docs/process/researcher_review_log.md", "linked_document": {"label": "Research Plan", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/plan/research_plan.md", "status": "Needs researcher decision"}}, {"id": "needs_approval_model_spec", "title": "Review Model Spec", "category": "Needs Approval", "status": "Needs researcher decision", "priority": "needs_approval", "why": "Approve the model definition before seed design or execution depends on it.", "suggested_command": "python scripts/check_model_specified.py --run <run-dir>", "linked_document": {"label": "Model Spec", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/plan/model_spec.md", "status": "Needs researcher decision"}}, {"id": "needs_approval_baseline_strategy", "title": "Review Baseline Strategy", "category": "Needs Approval", "status": "Needs researcher decision", "priority": "needs_approval", "why": "Approve whether this run reproduces a parent model or verifies a new analytical checkpoint.", "suggested_command": "python scripts/check_baseline_strategy.py --run <run-dir>", "linked_document": {"label": "Baseline Strategy", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/plan/baseline_strategy.md", "status": "Needs researcher decision"}}, {"id": "needs_approval_replanning_memo", "title": "Review Replanning Memo", "category": "Needs Approval", "status": "Needs researcher decision", "priority": "needs_approval", "why": "Open the linked document and decide whether this run can continue.", "suggested_command": "Record the review outcome in docs/process/researcher_review_log.md", "linked_document": {"label": "Replanning Memo", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/literature/replanning_memo.md", "status": "Needs researcher decision"}}, {"id": "needs_approval_paper_logic_diagram", "title": "Review Paper Logic Diagram", "category": "Needs Approval", "status": "Missing document", "priority": "needs_approval", "why": "Open the linked document and decide whether this run can continue.", "suggested_command": "Record the review outcome in docs/process/researcher_review_log.md", "linked_document": {"label": "Paper Logic Diagram", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/plan/paper_logic_diagram.md", "status": "Missing document"}}, {"id": "recommended_review_live_workflow_diagram", "title": "Review Live Workflow Diagram", "category": "Recommended Review", "status": "Ready to review", "priority": "recommended_review", "why": "Review active workflow state, blocked behavior, stale artifacts, and next researcher checkpoint.", "suggested_command": "python scripts/generate_workflow_map.py", "linked_document": {"label": "Live Workflow Diagram", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/process/live_workflow_diagram.md", "status": "Ready to review"}}, {"id": "recommended_review_research_state", "title": "Review Research State", "category": "Recommended Review", "status": "Missing document", "priority": "recommended_review", "why": "Open the linked document and decide whether this run can continue.", "suggested_command": "Record the review outcome in docs/process/researcher_review_log.md", "linked_document": {"label": "Research State", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/process/research_state.md", "status": "Missing document"}}, {"id": "recommended_review_researcher_review_log", "title": "Review Researcher Review Log", "category": "Recommended Review", "status": "Ready to review", "priority": "recommended_review", "why": "Open the linked document and decide whether this run can continue.", "suggested_command": "Record the review outcome in docs/process/researcher_review_log.md", "linked_document": {"label": "Researcher Review Log", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/process/researcher_review_log.md", "status": "Ready to review"}}, {"id": "recommended_review_decision_log", "title": "Review Decision Log", "category": "Recommended Review", "status": "Missing document", "priority": "recommended_review", "why": "Open the linked document and decide whether this run can continue.", "suggested_command": "Record the review outcome in docs/process/researcher_review_log.md", "linked_document": {"label": "Decision Log", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/process/decision_log.md", "status": "Missing document"}}, {"id": "recommended_review_baseline_registry", "title": "Review Baseline Registry", "category": "Recommended Review", "status": "Ready to review", "priority": "recommended_review", "why": "Check that interpretation is backed by a toy model, known limit, reproduction, or explicit waiver.", "suggested_command": "python scripts/check_baseline_gate.py --run <run-dir>", "linked_document": {"label": "Baseline Registry", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/gates/baseline_registry.md", "status": "Ready to review"}}, {"id": "recommended_review_validation_log", "title": "Review Validation Log", "category": "Recommended Review", "status": "Ready to review", "priority": "recommended_review", "why": "Review the current evidence chain before treating results as interpretation-ready.", "suggested_command": "python scripts/check_figure_provenance.py --root <run-dir>", "linked_document": {"label": "Validation Log", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/gates/validation_log.md", "status": "Ready to review"}}, {"id": "recommended_review_research_retrospective", "title": "Review Research Retrospective", "category": "Recommended Review", "status": "Ready to review", "priority": "recommended_review", "why": "Open the linked document and decide whether this run can continue.", "suggested_command": "Record the review outcome in docs/process/researcher_review_log.md", "linked_document": {"label": "Research Retrospective", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/process/research_retrospective.md", "status": "Ready to review"}}]}, "nodes": [{"id": "professor_interview", "title": "Professor interview", "phase": "pending", "x": 80, "y": 90, "summary": "PENDING: ", "result_summary": {}, "images": [], "node_type": "validation_gate", "link_status": "pending_review", "evidence_strength": "none", "claim_ceiling": "unsupported", "review_owner": "lead-agent", "requires_researcher_review": false, "code_links": [], "result_links": [], "interpretation_links": [{"label": "docs/research_plan.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/research_plan.md"}, {"label": "docs/literature_review_plan.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/literature_review_plan.md"}, {"label": "docs/paper_request_queue.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/paper_request_queue.md"}, {"label": "docs/replanning_memo.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/replanning_memo.md"}, {"label": "literature/index.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/index.md"}, {"label": "literature/reviews/", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/reviews"}, {"label": "literature/extracted_text/", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/extracted_text"}, {"label": "docs/baseline_registry.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/baseline_registry.md"}, {"label": "docs/validation_log.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/validation_log.md"}, {"label": "docs/researcher_review_log.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/researcher_review_log.md"}, {"label": "docs/research_retrospective.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/research_retrospective.md"}], "graph_links": [], "responsible": [{"label": "docs/research_plan.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/research_plan.md"}, {"label": "docs/literature_review_plan.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/literature_review_plan.md"}, {"label": "docs/paper_request_queue.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/paper_request_queue.md"}, {"label": "docs/replanning_memo.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/replanning_memo.md"}, {"label": "literature/index.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/index.md"}, {"label": "literature/reviews/", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/reviews"}, {"label": "literature/extracted_text/", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/extracted_text"}, {"label": "docs/baseline_registry.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/baseline_registry.md"}, {"label": "docs/validation_log.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/validation_log.md"}, {"label": "docs/researcher_review_log.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/researcher_review_log.md"}, {"label": "docs/research_retrospective.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/research_retrospective.md"}, {"label": "Live workflow diagram", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/process/live_workflow_diagram.md"}], "checks": ["This is a process-tracking artifact, not scientific evidence.", "The live workflow must not strengthen scientific claims.", "Next checkpoint: - Researcher decision needed:\n- Question to ask:\n- Smallest useful next action:"], "edges": ["literature_review_and_replanning"]}, {"id": "literature_review_and_replanning", "title": "Literature review and replanning", "phase": "pending", "x": 330, "y": 90, "summary": "PENDING: ", "result_summary": {}, "images": [], "node_type": "validation_gate", "link_status": "pending_review", "evidence_strength": "none", "claim_ceiling": "unsupported", "review_owner": "lead-agent", "requires_researcher_review": false, "code_links": [], "result_links": [], "interpretation_links": [{"label": "docs/research_plan.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/research_plan.md"}, {"label": "docs/literature_review_plan.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/literature_review_plan.md"}, {"label": "docs/paper_request_queue.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/paper_request_queue.md"}, {"label": "docs/replanning_memo.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/replanning_memo.md"}, {"label": "literature/index.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/index.md"}, {"label": "literature/reviews/", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/reviews"}, {"label": "literature/extracted_text/", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/extracted_text"}, {"label": "docs/baseline_registry.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/baseline_registry.md"}, {"label": "docs/validation_log.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/validation_log.md"}, {"label": "docs/researcher_review_log.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/researcher_review_log.md"}, {"label": "docs/research_retrospective.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/research_retrospective.md"}], "graph_links": [], "responsible": [{"label": "docs/research_plan.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/research_plan.md"}, {"label": "docs/literature_review_plan.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/literature_review_plan.md"}, {"label": "docs/paper_request_queue.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/paper_request_queue.md"}, {"label": "docs/replanning_memo.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/replanning_memo.md"}, {"label": "literature/index.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/index.md"}, {"label": "literature/reviews/", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/reviews"}, {"label": "literature/extracted_text/", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/extracted_text"}, {"label": "docs/baseline_registry.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/baseline_registry.md"}, {"label": "docs/validation_log.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/validation_log.md"}, {"label": "docs/researcher_review_log.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/researcher_review_log.md"}, {"label": "docs/research_retrospective.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/research_retrospective.md"}, {"label": "Live workflow diagram", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/process/live_workflow_diagram.md"}], "checks": ["This is a process-tracking artifact, not scientific evidence.", "The live workflow must not strengthen scientific claims.", "Next checkpoint: - Researcher decision needed:\n- Question to ask:\n- Smallest useful next action:"], "edges": ["test_design_seed"]}, {"id": "test_design_seed", "title": "Test-design seed", "phase": "pending", "x": 580, "y": 90, "summary": "PENDING: ", "result_summary": {}, "images": [], "node_type": "validation_gate", "link_status": "pending_review", "evidence_strength": "none", "claim_ceiling": "unsupported", "review_owner": "lead-agent", "requires_researcher_review": false, "code_links": [], "result_links": [], "interpretation_links": [{"label": "docs/research_plan.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/research_plan.md"}, {"label": "docs/literature_review_plan.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/literature_review_plan.md"}, {"label": "docs/paper_request_queue.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/paper_request_queue.md"}, {"label": "docs/replanning_memo.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/replanning_memo.md"}, {"label": "literature/index.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/index.md"}, {"label": "literature/reviews/", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/reviews"}, {"label": "literature/extracted_text/", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/extracted_text"}, {"label": "docs/baseline_registry.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/baseline_registry.md"}, {"label": "docs/validation_log.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/validation_log.md"}, {"label": "docs/researcher_review_log.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/researcher_review_log.md"}, {"label": "docs/research_retrospective.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/research_retrospective.md"}], "graph_links": [], "responsible": [{"label": "docs/research_plan.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/research_plan.md"}, {"label": "docs/literature_review_plan.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/literature_review_plan.md"}, {"label": "docs/paper_request_queue.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/paper_request_queue.md"}, {"label": "docs/replanning_memo.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/replanning_memo.md"}, {"label": "literature/index.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/index.md"}, {"label": "literature/reviews/", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/reviews"}, {"label": "literature/extracted_text/", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/extracted_text"}, {"label": "docs/baseline_registry.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/baseline_registry.md"}, {"label": "docs/validation_log.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/validation_log.md"}, {"label": "docs/researcher_review_log.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/researcher_review_log.md"}, {"label": "docs/research_retrospective.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/research_retrospective.md"}, {"label": "Live workflow diagram", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/process/live_workflow_diagram.md"}], "checks": ["This is a process-tracking artifact, not scientific evidence.", "The live workflow must not strengthen scientific claims.", "Next checkpoint: - Researcher decision needed:\n- Question to ask:\n- Smallest useful next action:"], "edges": ["baseline_or_reproduction_target"]}, {"id": "baseline_or_reproduction_target", "title": "Baseline or reproduction target", "phase": "pending", "x": 830, "y": 90, "summary": "PENDING: ", "result_summary": {}, "images": [], "node_type": "validation_gate", "link_status": "pending_review", "evidence_strength": "none", "claim_ceiling": "unsupported", "review_owner": "lead-agent", "requires_researcher_review": false, "code_links": [], "result_links": [], "interpretation_links": [{"label": "docs/research_plan.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/research_plan.md"}, {"label": "docs/literature_review_plan.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/literature_review_plan.md"}, {"label": "docs/paper_request_queue.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/paper_request_queue.md"}, {"label": "docs/replanning_memo.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/replanning_memo.md"}, {"label": "literature/index.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/index.md"}, {"label": "literature/reviews/", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/reviews"}, {"label": "literature/extracted_text/", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/extracted_text"}, {"label": "docs/baseline_registry.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/baseline_registry.md"}, {"label": "docs/validation_log.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/validation_log.md"}, {"label": "docs/researcher_review_log.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/researcher_review_log.md"}, {"label": "docs/research_retrospective.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/research_retrospective.md"}], "graph_links": [], "responsible": [{"label": "docs/research_plan.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/research_plan.md"}, {"label": "docs/literature_review_plan.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/literature_review_plan.md"}, {"label": "docs/paper_request_queue.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/paper_request_queue.md"}, {"label": "docs/replanning_memo.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/replanning_memo.md"}, {"label": "literature/index.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/index.md"}, {"label": "literature/reviews/", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/reviews"}, {"label": "literature/extracted_text/", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/extracted_text"}, {"label": "docs/baseline_registry.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/baseline_registry.md"}, {"label": "docs/validation_log.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/validation_log.md"}, {"label": "docs/researcher_review_log.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/researcher_review_log.md"}, {"label": "docs/research_retrospective.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/research_retrospective.md"}, {"label": "Live workflow diagram", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/process/live_workflow_diagram.md"}], "checks": ["This is a process-tracking artifact, not scientific evidence.", "The live workflow must not strengthen scientific claims.", "Next checkpoint: - Researcher decision needed:\n- Question to ask:\n- Smallest useful next action:"], "edges": ["execution"]}, {"id": "execution", "title": "Execution", "phase": "pending", "x": 80, "y": 260, "summary": "PENDING: ", "result_summary": {}, "images": [], "node_type": "validation_gate", "link_status": "pending_review", "evidence_strength": "none", "claim_ceiling": "unsupported", "review_owner": "lead-agent", "requires_researcher_review": false, "code_links": [], "result_links": [], "interpretation_links": [{"label": "docs/research_plan.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/research_plan.md"}, {"label": "docs/literature_review_plan.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/literature_review_plan.md"}, {"label": "docs/paper_request_queue.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/paper_request_queue.md"}, {"label": "docs/replanning_memo.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/replanning_memo.md"}, {"label": "literature/index.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/index.md"}, {"label": "literature/reviews/", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/reviews"}, {"label": "literature/extracted_text/", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/extracted_text"}, {"label": "docs/baseline_registry.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/baseline_registry.md"}, {"label": "docs/validation_log.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/validation_log.md"}, {"label": "docs/researcher_review_log.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/researcher_review_log.md"}, {"label": "docs/research_retrospective.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/research_retrospective.md"}], "graph_links": [], "responsible": [{"label": "docs/research_plan.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/research_plan.md"}, {"label": "docs/literature_review_plan.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/literature_review_plan.md"}, {"label": "docs/paper_request_queue.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/paper_request_queue.md"}, {"label": "docs/replanning_memo.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/replanning_memo.md"}, {"label": "literature/index.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/index.md"}, {"label": "literature/reviews/", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/reviews"}, {"label": "literature/extracted_text/", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/extracted_text"}, {"label": "docs/baseline_registry.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/baseline_registry.md"}, {"label": "docs/validation_log.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/validation_log.md"}, {"label": "docs/researcher_review_log.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/researcher_review_log.md"}, {"label": "docs/research_retrospective.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/research_retrospective.md"}, {"label": "Live workflow diagram", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/process/live_workflow_diagram.md"}], "checks": ["This is a process-tracking artifact, not scientific evidence.", "The live workflow must not strengthen scientific claims.", "Next checkpoint: - Researcher decision needed:\n- Question to ask:\n- Smallest useful next action:"], "edges": ["visualization"]}, {"id": "visualization", "title": "Visualization", "phase": "pending", "x": 330, "y": 260, "summary": "PENDING: ", "result_summary": {}, "images": [], "node_type": "validation_gate", "link_status": "pending_review", "evidence_strength": "none", "claim_ceiling": "unsupported", "review_owner": "lead-agent", "requires_researcher_review": false, "code_links": [], "result_links": [], "interpretation_links": [{"label": "docs/research_plan.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/research_plan.md"}, {"label": "docs/literature_review_plan.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/literature_review_plan.md"}, {"label": "docs/paper_request_queue.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/paper_request_queue.md"}, {"label": "docs/replanning_memo.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/replanning_memo.md"}, {"label": "literature/index.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/index.md"}, {"label": "literature/reviews/", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/reviews"}, {"label": "literature/extracted_text/", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/extracted_text"}, {"label": "docs/baseline_registry.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/baseline_registry.md"}, {"label": "docs/validation_log.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/validation_log.md"}, {"label": "docs/researcher_review_log.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/researcher_review_log.md"}, {"label": "docs/research_retrospective.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/research_retrospective.md"}], "graph_links": [], "responsible": [{"label": "docs/research_plan.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/research_plan.md"}, {"label": "docs/literature_review_plan.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/literature_review_plan.md"}, {"label": "docs/paper_request_queue.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/paper_request_queue.md"}, {"label": "docs/replanning_memo.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/replanning_memo.md"}, {"label": "literature/index.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/index.md"}, {"label": "literature/reviews/", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/reviews"}, {"label": "literature/extracted_text/", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/extracted_text"}, {"label": "docs/baseline_registry.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/baseline_registry.md"}, {"label": "docs/validation_log.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/validation_log.md"}, {"label": "docs/researcher_review_log.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/researcher_review_log.md"}, {"label": "docs/research_retrospective.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/research_retrospective.md"}, {"label": "Live workflow diagram", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/process/live_workflow_diagram.md"}], "checks": ["This is a process-tracking artifact, not scientific evidence.", "The live workflow must not strengthen scientific claims.", "Next checkpoint: - Researcher decision needed:\n- Question to ask:\n- Smallest useful next action:"], "edges": ["professor_evaluation"]}, {"id": "professor_evaluation", "title": "Professor evaluation", "phase": "pending", "x": 580, "y": 260, "summary": "PENDING: ", "result_summary": {}, "images": [], "node_type": "validation_gate", "link_status": "pending_review", "evidence_strength": "none", "claim_ceiling": "unsupported", "review_owner": "lead-agent", "requires_researcher_review": false, "code_links": [], "result_links": [], "interpretation_links": [{"label": "docs/research_plan.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/research_plan.md"}, {"label": "docs/literature_review_plan.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/literature_review_plan.md"}, {"label": "docs/paper_request_queue.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/paper_request_queue.md"}, {"label": "docs/replanning_memo.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/replanning_memo.md"}, {"label": "literature/index.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/index.md"}, {"label": "literature/reviews/", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/reviews"}, {"label": "literature/extracted_text/", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/extracted_text"}, {"label": "docs/baseline_registry.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/baseline_registry.md"}, {"label": "docs/validation_log.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/validation_log.md"}, {"label": "docs/researcher_review_log.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/researcher_review_log.md"}, {"label": "docs/research_retrospective.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/research_retrospective.md"}], "graph_links": [], "responsible": [{"label": "docs/research_plan.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/research_plan.md"}, {"label": "docs/literature_review_plan.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/literature_review_plan.md"}, {"label": "docs/paper_request_queue.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/paper_request_queue.md"}, {"label": "docs/replanning_memo.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/replanning_memo.md"}, {"label": "literature/index.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/index.md"}, {"label": "literature/reviews/", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/reviews"}, {"label": "literature/extracted_text/", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/extracted_text"}, {"label": "docs/baseline_registry.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/baseline_registry.md"}, {"label": "docs/validation_log.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/validation_log.md"}, {"label": "docs/researcher_review_log.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/researcher_review_log.md"}, {"label": "docs/research_retrospective.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/research_retrospective.md"}, {"label": "Live workflow diagram", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/process/live_workflow_diagram.md"}], "checks": ["This is a process-tracking artifact, not scientific evidence.", "The live workflow must not strengthen scientific claims.", "Next checkpoint: - Researcher decision needed:\n- Question to ask:\n- Smallest useful next action:"], "edges": ["completion_conference"]}, {"id": "completion_conference", "title": "Completion conference", "phase": "pending", "x": 830, "y": 260, "summary": "PENDING: ", "result_summary": {}, "images": [], "node_type": "validation_gate", "link_status": "pending_review", "evidence_strength": "none", "claim_ceiling": "unsupported", "review_owner": "lead-agent", "requires_researcher_review": false, "code_links": [], "result_links": [], "interpretation_links": [{"label": "docs/research_plan.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/research_plan.md"}, {"label": "docs/literature_review_plan.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/literature_review_plan.md"}, {"label": "docs/paper_request_queue.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/paper_request_queue.md"}, {"label": "docs/replanning_memo.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/replanning_memo.md"}, {"label": "literature/index.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/index.md"}, {"label": "literature/reviews/", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/reviews"}, {"label": "literature/extracted_text/", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/extracted_text"}, {"label": "docs/baseline_registry.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/baseline_registry.md"}, {"label": "docs/validation_log.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/validation_log.md"}, {"label": "docs/researcher_review_log.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/researcher_review_log.md"}, {"label": "docs/research_retrospective.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/research_retrospective.md"}], "graph_links": [], "responsible": [{"label": "docs/research_plan.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/research_plan.md"}, {"label": "docs/literature_review_plan.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/literature_review_plan.md"}, {"label": "docs/paper_request_queue.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/paper_request_queue.md"}, {"label": "docs/replanning_memo.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/replanning_memo.md"}, {"label": "literature/index.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/index.md"}, {"label": "literature/reviews/", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/reviews"}, {"label": "literature/extracted_text/", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/extracted_text"}, {"label": "docs/baseline_registry.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/baseline_registry.md"}, {"label": "docs/validation_log.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/validation_log.md"}, {"label": "docs/researcher_review_log.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/researcher_review_log.md"}, {"label": "docs/research_retrospective.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/research_retrospective.md"}, {"label": "Live workflow diagram", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/process/live_workflow_diagram.md"}], "checks": ["This is a process-tracking artifact, not scientific evidence.", "The live workflow must not strengthen scientific claims.", "Next checkpoint: - Researcher decision needed:\n- Question to ask:\n- Smallest useful next action:"], "edges": ["user_report"]}, {"id": "user_report", "title": "User report", "phase": "pending", "x": 80, "y": 430, "summary": "PENDING: ", "result_summary": {}, "images": [], "node_type": "validation_gate", "link_status": "pending_review", "evidence_strength": "none", "claim_ceiling": "unsupported", "review_owner": "lead-agent", "requires_researcher_review": false, "code_links": [], "result_links": [], "interpretation_links": [{"label": "docs/research_plan.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/research_plan.md"}, {"label": "docs/literature_review_plan.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/literature_review_plan.md"}, {"label": "docs/paper_request_queue.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/paper_request_queue.md"}, {"label": "docs/replanning_memo.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/replanning_memo.md"}, {"label": "literature/index.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/index.md"}, {"label": "literature/reviews/", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/reviews"}, {"label": "literature/extracted_text/", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/extracted_text"}, {"label": "docs/baseline_registry.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/baseline_registry.md"}, {"label": "docs/validation_log.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/validation_log.md"}, {"label": "docs/researcher_review_log.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/researcher_review_log.md"}, {"label": "docs/research_retrospective.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/research_retrospective.md"}], "graph_links": [], "responsible": [{"label": "docs/research_plan.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/research_plan.md"}, {"label": "docs/literature_review_plan.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/literature_review_plan.md"}, {"label": "docs/paper_request_queue.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/paper_request_queue.md"}, {"label": "docs/replanning_memo.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/replanning_memo.md"}, {"label": "literature/index.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/index.md"}, {"label": "literature/reviews/", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/reviews"}, {"label": "literature/extracted_text/", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/literature/extracted_text"}, {"label": "docs/baseline_registry.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/baseline_registry.md"}, {"label": "docs/validation_log.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/validation_log.md"}, {"label": "docs/researcher_review_log.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/researcher_review_log.md"}, {"label": "docs/research_retrospective.md", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/research_retrospective.md"}, {"label": "Live workflow diagram", "path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/process/live_workflow_diagram.md"}], "checks": ["This is a process-tracking artifact, not scientific evidence.", "The live workflow must not strengthen scientific claims.", "Next checkpoint: - Researcher decision needed:\n- Question to ask:\n- Smallest useful next action:"], "edges": ["example-figure-node"]}, {"id": "example-figure-node", "title": "Example Figure Node", "phase": "pending_review", "node_type": "figure", "link_status": "pending_review", "evidence_strength": "none", "claim_ceiling": "observation", "review_owner": "professor", "requires_researcher_review": true, "x": 80, "y": 430, "summary": "Replace this with the observed workflow update.", "result_summary": {"node_type": "figure", "link_status": "pending_review", "evidence_strength": "none", "claim_ceiling": "observation", "review_owner": "professor"}, "images": [{"path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/outputs/example.png", "kind": "figure", "relation": "generated_by", "status": "pending_review", "preview": "thumbnail", "label": "figure"}], "responsible": [{"path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/scripts/example.py", "line": 1, "role": "replace with exact code role", "relation": "generates_figure", "status": "pending_review", "label": "replace with exact code role"}, {"path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/outputs/example.png", "kind": "figure", "relation": "generated_by", "status": "pending_review", "preview": "thumbnail", "label": "figure"}, {"path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/validation_log.md", "anchor": "example", "relation": "documents_uncertainty", "status": "pending_review", "label": "documents_uncertainty"}], "code_links": [{"path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/scripts/example.py", "line": 1, "role": "replace with exact code role", "relation": "generates_figure", "status": "pending_review", "label": "replace with exact code role"}], "result_links": [{"path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/outputs/example.png", "kind": "figure", "relation": "generated_by", "status": "pending_review", "preview": "thumbnail", "label": "figure"}], "interpretation_links": [{"path": "../../ResearchPartner-runs/2026-05-16-hvg-dhvg-financial-markets/docs/validation_log.md", "anchor": "example", "relation": "documents_uncertainty", "status": "pending_review", "label": "documents_uncertainty"}], "graph_links": [{"from": "example-run-node", "to": "example-figure-node", "relation": "generated_by", "status": "pending_review"}], "checks": ["Cartographer records link state only; it does not judge scientific meaning.", "Open issues, stale links, waivers, and missing evidence must stay visible."], "edges": []}]}]};
+    let DATA = {"generated_at": "2026-05-18T00:00:00+00:00", "maps": [{"id": "live_research_run", "title": "Live Research Workflow: no active run", "description": "No live workflow artifact was found. Start or update a run under ResearchPartner-runs/*/docs/process/live_workflow_diagram.md.", "nodes": [{"id": "no_active_run", "title": "No Active Run", "phase": "pending", "x": 80, "y": 90, "summary": "No live workflow artifact has been generated yet.", "result_summary": {}, "images": [], "node_type": "workflow_state", "link_status": "missing", "evidence_strength": "none", "claim_ceiling": "unsupported", "review_owner": "lead-agent", "requires_researcher_review": true, "code_links": [], "result_links": [], "interpretation_links": [], "graph_links": [], "responsible": [{"label": "Workflow overview", "path": "docs/workflow_overview.md"}], "checks": ["Create a run-specific live workflow artifact before treating the map as current.", "This process-tracking view must not strengthen scientific claims."], "edges": []}]}]};
     let activeMap = DATA.maps[0].id;
     let activeNode = DATA.maps[0].nodes[0].id;
-    let activeAction = firstActionId(currentMap());
+    let activeAction = null;
 
     const IMAGE_EXT_RE = /\.(png|jpe?g|gif|webp|svg|bmp|ico)(\?|#|$)/i;
 
@@ -452,9 +545,14 @@
     function renderTabs() {
       const tabs = document.getElementById('tabs');
       tabs.innerHTML = '';
+      if (DATA.maps.length <= 1) {
+        tabs.classList.add('single-map');
+        return;
+      }
+      tabs.classList.remove('single-map');
       DATA.maps.forEach(map => {
         const button = document.createElement('button');
-        button.textContent = map.title;
+        button.textContent = map.display_kind === 'flow' ? 'Flow View' : 'List View';
         button.className = map.id === activeMap ? 'active' : '';
         button.addEventListener('click', () => {
           activeMap = map.id;
@@ -547,492 +645,114 @@
       });
     }
 
-    // Lineage tab state — filters are per-canvas, persisted across re-renders.
-    const LINEAGE_KIND_COLORS = {
-      paper:         '#d8b4fe',
-      decision:      '#fde68a',
-      model_version: '#a7f3d0',
-      result:        '#bae6fd',
-      figure:        '#fbcfe8',
-      claim:         '#fda4af',
-      anomaly:       '#fecaca',
-      waiver:        '#e5e7eb',
-      gate:          '#bbf7d0',
-    };
-    const LINEAGE_KIND_SHAPES = {
-      paper:         'round-rectangle',
-      decision:      'diamond',
-      model_version: 'rectangle',
-      result:        'barrel',
-      figure:        'tag',
-      claim:         'pentagon',
-      anomaly:       'star',
-      waiver:        'octagon',
-      gate:          'round-tag',
-    };
-    // v3 removed `run_root` (was used to group sibling runs in the cross-run
-    // tab); the project root IS the research root so the grouping isn't needed.
-    const LINEAGE_FILTER_KEYS = ['paper', 'decision', 'model_version', 'result', 'figure', 'claim', 'anomaly', 'waiver', 'gate'];
-    const CEILING_FILTER_KEYS = ['unsupported', 'observation', 'interpretation', 'mechanism', 'generalization'];
-    const lineageFilterState = {};   // mapId -> { kind, runIds, ceiling, reviewOnly }
-    let lineageCyInstances = {};     // mapId -> cy
-    // crossLineageCache was removed in v3 — single-project Lineage only.
-
-    function lineageFilterFor(mapId, allRunIds) {
-      if (!lineageFilterState[mapId]) {
-        lineageFilterState[mapId] = {
-          kind: new Set(LINEAGE_FILTER_KEYS),
-          runIds: new Set(allRunIds || []),
-          ceiling: new Set(CEILING_FILTER_KEYS),
-          reviewOnly: false,
-        };
-      } else {
-        // New runs that appear after first render should be visible by default.
-        (allRunIds || []).forEach(id => lineageFilterState[mapId].runIds.add(id));
-      }
-      return lineageFilterState[mapId];
+    function statusBadge(gateStatus) {
+      const icons = { pass: '✓', passed: '✓', fail: '✗', blocked: '⛔', in_progress: '🔄', pending: '○', partial: '◑', waived: '⚠' };
+      const classes = { pass: 'pass', passed: 'pass', fail: 'fail', blocked: 'blocked', partial: 'blocked', in_progress: 'in_progress', pending: 'pending', waived: 'waived' };
+      const icon = icons[gateStatus] || '?';
+      const label = gateStatus === 'passed' ? 'pass' : (gateStatus || 'unknown');
+      const cls = classes[gateStatus] || 'pending';
+      return `<span class="gate-status-badge gate-status-${escapeHtml(cls)}">${escapeHtml(icon + ' ' + label)}</span>`;
     }
 
-    function buildLineageElements(map) {
-      const nodes = map.nodes || [];
-      const knownIds = new Set(nodes.map(n => n.id));
-      const elements = [];
-      const nodeById = {};
-      nodes.forEach(node => {
-        const kind = node.lineage_kind || 'decision';
-        const ceiling = node.claim_ceiling || 'unsupported';
-        nodeById[node.id] = node;
-        elements.push({
-          data: {
-            id: node.id,
-            label: node.title || node.id,
-            kind: kind,
-            runId: node.run_id || '',
-            phase: node.phase || '',
-            ceiling: ceiling,
-            requiresReview: Boolean(node.requires_researcher_review),
-            hasWaiver: kind === 'waiver',
-            hasAnomaly: kind === 'anomaly',
-          },
-        });
-      });
-      const edgeSeen = new Set();
-      const addEdge = (src, dst, relation, extra) => {
-        if (!src || !dst || !knownIds.has(src) || !knownIds.has(dst)) return;
-        const key = src + '|' + dst + '|' + (relation || '');
-        if (edgeSeen.has(key)) return;
-        edgeSeen.add(key);
-        // Edge styling pulls evidence_strength from the source node (the node
-        // making the claim) and link_status from the graph_links entry itself.
-        const srcNode = nodeById[src] || {};
-        elements.push({
-          data: {
-            id: 'e_' + edgeSeen.size,
-            source: src,
-            target: dst,
-            relation: relation || 'depends_on',
-            strength: (extra && extra.strength) || srcNode.evidence_strength || 'none',
-            linkStatus: (extra && extra.linkStatus) || 'fresh',
-          },
-        });
-      };
-      nodes.forEach(node => {
-        (node.edges || []).forEach(t => addEdge(node.id, t, 'flow'));
-        (node.graph_links || []).forEach(link => addEdge(
-          link.from, link.to, link.relation,
-          {strength: node.evidence_strength, linkStatus: link.status || 'fresh'},
-        ));
-      });
-      return elements;
-    }
-
-    function destroyLineageCy(mapId) {
-      const cy = lineageCyInstances[mapId];
-      if (cy) {
-        try { cy.destroy(); } catch (e) { /* ignore */ }
-        delete lineageCyInstances[mapId];
-      }
-    }
-
-    function applyLineageFilter(cy, filter) {
-      cy.batch(() => {
-        cy.nodes().forEach(n => {
-          const kindOk = filter.kind.has(n.data('kind'));
-          const runOk = !n.data('runId') || filter.runIds.has(n.data('runId'));
-          const ceilingOk = filter.ceiling.has(n.data('ceiling') || 'unsupported');
-          const reviewOk = !filter.reviewOnly || n.data('requiresReview');
-          n.style('display', (kindOk && runOk && ceilingOk && reviewOk) ? 'element' : 'none');
-        });
-        cy.edges().forEach(e => {
-          const visible = e.source().style('display') !== 'none' &&
-                          e.target().style('display') !== 'none';
-          e.style('display', visible ? 'element' : 'none');
-        });
-      });
-    }
-
-    function renderLineageDiagram(map) {
-      const wrap = document.getElementById('diagram');
-      const allRunIds = Array.from(new Set((map.nodes || [])
-        .map(n => n.run_id).filter(Boolean)));
-      const filter = lineageFilterFor(map.id, allRunIds);
-
-      const kindControls = LINEAGE_FILTER_KEYS.map(k => `
-        <label><input type="checkbox" data-kind="${k}" ${filter.kind.has(k) ? 'checked' : ''}>
-          <span class="swatch" style="background:${LINEAGE_KIND_COLORS[k]}"></span>${k.replace('_', ' ')}</label>
+    function renderNodeDetail(node) {
+      const metadata = [
+        ['Node Type', node.node_type || 'unclassified'],
+        ['Link Status', node.link_status || 'unknown'],
+        ['Evidence Strength', node.evidence_strength || 'none'],
+        ['Claim Ceiling', node.claim_ceiling || 'unsupported'],
+        ['Review Owner', node.review_owner || 'unassigned'],
+        ['Researcher Review', node.requires_researcher_review ? 'required' : 'not required'],
+      ].map(([key, value]) => `
+        <div class="result-row">
+          <span class="result-key">${escapeHtml(key)}</span>
+          <span class="result-value">${escapeHtml(value)}</span>
+        </div>
       `).join('');
-      const ceilingControls = CEILING_FILTER_KEYS.map(c => `
-        <label><input type="checkbox" data-ceiling="${c}" ${filter.ceiling.has(c) ? 'checked' : ''}>${c}</label>
+      const resultEntries = Object.entries(node.result_summary || {});
+      const resultMarkup = resultEntries.length
+        ? resultEntries.map(([key, value]) => `
+          <div class="result-row">
+            <span class="result-key">${escapeHtml(key)}</span>
+            <span class="result-value">${escapeHtml(value)}</span>
+          </div>
+        `).join('')
+        : '<p class="meta">No result summary recorded.</p>';
+      const imageMarkup = (node.images || []).map(image => `
+        <figure>
+          <img class="evidence-image" src="${escapeHtml(pathHref(image.path))}" alt="${escapeHtml(image.label)} evidence preview">
+          <figcaption class="image-caption">${escapeHtml(image.label)} · evidence preview, not a standalone claim</figcaption>
+        </figure>
       `).join('');
-      const runControls = allRunIds.length > 1 ? allRunIds.map(r => `
-        <label><input type="checkbox" data-run="${escapeHtml(r)}" ${filter.runIds.has(r) ? 'checked' : ''}>${escapeHtml(r)}</label>
-      `).join('') : '';
-      const isEmpty = (map.nodes || []).length === 0;
-
-      const legend = LINEAGE_FILTER_KEYS.map(k =>
-        `<span><span class="swatch" style="background:${LINEAGE_KIND_COLORS[k]}"></span>${k.replace('_', ' ')}</span>`
+      const linkSection = (items, label) => (items || []).length ? `
+        <div class="section">
+          <h3>${escapeHtml(label)}</h3>
+          <div class="link-grid">${items.map(item => `
+            <div class="link-card">
+              <a href="${escapeHtml(linkHref(item))}">${escapeHtml(item.role || item.kind || item.relation || item.path)}</a>
+              <div class="link-meta">${escapeHtml([item.path, item.line ? 'line ' + item.line : '', item.relation || '', item.status || '', item.preview ? 'preview: ' + item.preview : ''].filter(Boolean).join(' · '))}</div>
+            </div>
+          `).join('')}</div>
+        </div>` : '';
+      const responsibleLinks = (node.responsible || []).map(item =>
+        `<a class="docs-link" href="${escapeHtml(pathHref(item.path))}" style="display:inline-block;border:1px solid var(--line);border-radius:6px;padding:5px 8px;text-decoration:none;color:var(--ink);background:#fbfbf8;font-size:13px;margin:2px 4px 2px 0">${escapeHtml(item.label)}</a>`
       ).join('');
-
-      const emptyHint = isEmpty
-        ? `<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
-              max-width:520px;text-align:center;color:var(--muted);font-size:13px;">
-             <p style="margin:0 0 8px 0;"><strong>No research artefacts yet.</strong></p>
-             <p style="margin:0 0 8px 0;">Lineage nodes appear here as your work
-              produces them — paper reviews (literature/reviews/&lt;id&gt;.md),
-              model versions (docs/model_versions/&lt;v&gt;.md), claims
-              (docs/claims/&lt;id&gt;.md), figures (outputs/figures/*), and
-              recorded results.</p>
-             <p style="margin:0;">Click <em>Load demo lineage</em> above to see
-              what a populated view looks like.</p>
-           </div>`
-        : '';
-
-      wrap.innerHTML = `
-        <div class="lineage-controls">
-          <strong style="color:var(--ink);font-size:12px;">Kinds:</strong>${kindControls}
-          <strong style="color:var(--ink);font-size:12px;margin-left:8px;">Claim ceiling:</strong>${ceilingControls}
-          <label><input type="checkbox" id="lineageReviewOnly" ${filter.reviewOnly ? 'checked' : ''}>review-pending only</label>
-          ${runControls ? `<strong style="color:var(--ink);font-size:12px;margin-left:8px;">Runs:</strong>${runControls}` : ''}
-          <button type="button" id="lineageRefit">Fit to view</button>
-          ${isEmpty ? '<button type="button" id="lineageLoadDemo" style="background:#fde68a;">Load demo lineage</button>' : ''}
+      const checks = (node.checks || []).map(check => `<li>${escapeHtml(check)}</li>`).join('');
+      return `
+        ${node.summary ? `<p class="gate-detail-summary">${escapeHtml(node.summary)}</p>` : ''}
+        <div class="gate-detail-grid">
+          <div class="section">
+            <h3>Link State</h3>
+            <div class="results">${metadata}</div>
+          </div>
+          ${resultEntries.length ? `<div class="section"><h3>Result Summary</h3><div class="results">${resultMarkup}</div></div>` : ''}
+          ${imageMarkup ? `<div class="section"><h3>Evidence Images</h3><div class="image-grid">${imageMarkup}</div></div>` : ''}
         </div>
-        <div class="lineage-canvas" id="cyCanvas" style="position:relative;">${emptyHint}</div>
-        <div class="lineage-legend">${legend}
-          <span style="margin-left:auto;font-size:10px;color:var(--muted);">
-            Edge color = relation · width = evidence_strength · dashed/orange = stale · red = broken
-          </span>
-        </div>
+        ${linkSection(node.code_links, 'Code Links')}
+        ${linkSection(node.result_links, 'Result Links')}
+        ${linkSection(node.interpretation_links, 'Interpretation Links')}
+        ${responsibleLinks ? `<div class="section"><h3>Responsible Files</h3>${responsibleLinks}</div>` : ''}
+        ${checks ? `<div class="section"><h3>Checks</h3><ul>${checks}</ul></div>` : ''}
       `;
-
-      if (typeof cytoscape === 'undefined') {
-        document.getElementById('cyCanvas').innerHTML =
-          '<p style="padding:16px;color:var(--muted);">Cytoscape failed to load. Check docs/vendor/cytoscape.min.js.</p>';
-        return;
-      }
-
-      destroyLineageCy(map.id);
-      const cy = cytoscape({
-        container: document.getElementById('cyCanvas'),
-        elements: buildLineageElements(map),
-        style: [
-          {
-            selector: 'node',
-            style: {
-              'background-color': ele => LINEAGE_KIND_COLORS[ele.data('kind')] || '#e5e7eb',
-              'shape': ele => LINEAGE_KIND_SHAPES[ele.data('kind')] || 'rectangle',
-              'label': 'data(label)',
-              'font-size': 10,
-              'text-wrap': 'wrap',
-              'text-max-width': '140px',
-              'text-valign': 'center',
-              'text-halign': 'center',
-              'width': 110,
-              'height': 36,
-              'padding': '6px',
-              'border-width': 1,
-              'border-color': '#475569',
-              'color': '#111',
-            },
-          },
-          {
-            selector: 'node[?requiresReview]',
-            style: { 'border-width': 3, 'border-color': '#b91c1c' },
-          },
-          {
-            selector: 'node.selected',
-            style: { 'border-width': 4, 'border-color': '#0b57d0' },
-          },
-          {
-            selector: 'edge',
-            style: {
-              'curve-style': 'bezier',
-              'target-arrow-shape': 'triangle',
-              'arrow-scale': 0.9,
-              'line-color': '#94a3b8',
-              'target-arrow-color': '#94a3b8',
-              'width': 1.5,
-              'label': 'data(relation)',
-              'font-size': 8,
-              'color': '#64748b',
-              'text-rotation': 'autorotate',
-              'text-background-color': '#fbfbf8',
-              'text-background-opacity': 0.9,
-              'text-background-padding': '1px',
-            },
-          },
-          {
-            selector: 'edge[relation = "evolved_from"]',
-            style: { 'line-color': '#0f766e', 'target-arrow-color': '#0f766e', 'width': 2.5 },
-          },
-          {
-            selector: 'edge[relation = "reproduces"]',
-            style: { 'line-color': '#7c2d12', 'target-arrow-color': '#7c2d12', 'line-style': 'dashed' },
-          },
-          {
-            selector: 'edge[relation = "supports"]',
-            style: { 'line-color': '#16a34a', 'target-arrow-color': '#16a34a' },
-          },
-          {
-            selector: 'edge[relation = "contradicts"]',
-            style: { 'line-color': '#dc2626', 'target-arrow-color': '#dc2626' },
-          },
-          {
-            selector: 'edge[relation = "contains"]',
-            style: { 'line-color': '#cbd5e1', 'target-arrow-color': '#cbd5e1', 'line-style': 'dotted' },
-          },
-          // Evidence strength → edge width. A `supports` from a strong-evidence
-          // node should look heavier than from a weak-evidence node.
-          { selector: 'edge[strength = "strong"]',         style: { 'width': 3.0 } },
-          { selector: 'edge[strength = "moderate"]',       style: { 'width': 2.0 } },
-          { selector: 'edge[strength = "weak"]',           style: { 'width': 1.0, 'line-style': 'dashed' } },
-          { selector: 'edge[strength = "contradictory"]',  style: { 'line-color': '#dc2626', 'target-arrow-color': '#dc2626' } },
-          // Link status — overrides relation color for failure modes.
-          { selector: 'edge[linkStatus = "stale"]',
-            style: { 'line-color': '#ea580c', 'target-arrow-color': '#ea580c', 'line-style': 'dashed' } },
-          { selector: 'edge[linkStatus = "broken"]',
-            style: { 'line-color': '#b91c1c', 'target-arrow-color': '#b91c1c', 'line-style': 'dotted', 'width': 2.5 } },
-          { selector: 'edge[linkStatus = "missing"]',
-            style: { 'line-color': '#9ca3af', 'target-arrow-color': '#9ca3af', 'line-style': 'dotted', 'opacity': 0.5 } },
-          { selector: 'edge[linkStatus = "superseded"]',
-            style: { 'line-color': '#9ca3af', 'target-arrow-color': '#9ca3af', 'opacity': 0.35 } },
-        ],
-        layout: {
-          // TB (top-to-bottom) reads like a research flow: question/papers up top,
-          // model versions in the middle, results/claims at the bottom. Users can
-          // re-rank by changing graph_link relations; dagre groups by DAG depth.
-          name: 'dagre',
-          rankDir: 'TB',
-          nodeSep: 28,
-          rankSep: 60,
-          edgeSep: 12,
-          fit: true,
-          padding: 30,
-        },
-      });
-      lineageCyInstances[map.id] = cy;
-      applyLineageFilter(cy, filter);
-      cy.on('tap', 'node', evt => {
-        cy.nodes().removeClass('selected');
-        evt.target.addClass('selected');
-        activeNode = evt.target.id();
-        renderDetails();
-      });
-
-      wrap.querySelectorAll('input[data-kind]').forEach(input => {
-        input.addEventListener('change', () => {
-          if (input.checked) filter.kind.add(input.dataset.kind);
-          else filter.kind.delete(input.dataset.kind);
-          applyLineageFilter(cy, filter);
-        });
-      });
-      wrap.querySelectorAll('input[data-run]').forEach(input => {
-        input.addEventListener('change', () => {
-          if (input.checked) filter.runIds.add(input.dataset.run);
-          else filter.runIds.delete(input.dataset.run);
-          applyLineageFilter(cy, filter);
-        });
-      });
-      wrap.querySelectorAll('input[data-ceiling]').forEach(input => {
-        input.addEventListener('change', () => {
-          if (input.checked) filter.ceiling.add(input.dataset.ceiling);
-          else filter.ceiling.delete(input.dataset.ceiling);
-          applyLineageFilter(cy, filter);
-        });
-      });
-      const reviewOnlyEl = document.getElementById('lineageReviewOnly');
-      if (reviewOnlyEl) reviewOnlyEl.addEventListener('change', () => {
-        filter.reviewOnly = reviewOnlyEl.checked;
-        applyLineageFilter(cy, filter);
-      });
-      const refitBtn = document.getElementById('lineageRefit');
-      if (refitBtn) refitBtn.addEventListener('click', () => cy.fit(null, 40));
-      const demoBtn = document.getElementById('lineageLoadDemo');
-      if (demoBtn) demoBtn.addEventListener('click', () => loadDemoLineage(map.id));
     }
 
-    // Load a synthetic lineage straight into the current Lineage tab so
-    // first-time users can see what a populated graph looks like without
-    // having to run the seed_lineage_demo script themselves.
-    function loadDemoLineage(targetMapId) {
-      const demo = buildDemoLineageMap(targetMapId);
-      const idx = DATA.maps.findIndex(m => m.id === targetMapId);
-      if (idx >= 0) DATA.maps[idx] = demo;
-      else DATA.maps.push(demo);
-      render();
-    }
-
-    function buildDemoLineageMap(targetMapId) {
-      const nodes = [
-        {id: 'paper_lacasa2008',  title: 'Lacasa 2008 (HVG)',  lineage_kind: 'paper',         node_type: 'paper',      paper_id: 'lacasa2008'},
-        {id: 'paper_luque2011',   title: 'Luque 2011',          lineage_kind: 'paper',         node_type: 'paper',      paper_id: 'luque2011'},
-        {id: 'decision_baseline', title: 'Adopt HVG variation', lineage_kind: 'decision',      node_type: 'decision'},
-        {id: 'model_v1',          title: 'Model v1 — HVG baseline', lineage_kind: 'model_version', node_type: 'model', model_version: 'v1', first_model_version: true},
-        {id: 'model_v2',          title: 'Model v2 — DHVG extension', lineage_kind: 'model_version', node_type: 'model', model_version: 'v2'},
-        {id: 'result_baseline',   title: 'Baseline reproduction (chi2 p=0.42)', lineage_kind: 'result', node_type: 'validation', evidence_strength: 'strong'},
-        {id: 'result_main',       title: 'Main DHVG sweep',     lineage_kind: 'result',        node_type: 'run',        evidence_strength: 'moderate'},
-        {id: 'figure_fig3',       title: 'Figure 3 (degree dist)', lineage_kind: 'figure',     node_type: 'figure',     thumbnail_path: 'outputs/figures/fig3.png'},
-        {id: 'anomaly_drift',     title: 'Anomaly: edge drift', lineage_kind: 'anomaly',       node_type: 'anomaly',    phase: 'blocked'},
-        {id: 'claim_universality', title: 'Universality of HVG scaling', lineage_kind: 'claim', node_type: 'claim',     requires_researcher_review: true, claim_ceiling: 'mechanism'},
-      ];
-      const links = [
-        ['decision_baseline', 'paper_lacasa2008', 'cites_paper'],
-        ['decision_baseline', 'paper_luque2011',  'cites_paper'],
-        ['model_v1',          'decision_baseline','depends_on'],
-        ['model_v2',          'model_v1',         'evolved_from'],
-        ['result_baseline',   'paper_lacasa2008', 'reproduces'],
-        ['result_baseline',   'model_v1',         'generated_by'],
-        ['result_main',       'model_v2',         'generated_by'],
-        ['figure_fig3',       'result_main',      'generated_by'],
-        ['anomaly_drift',     'result_main',      'limits'],
-        ['claim_universality','result_main',      'supports'],
-        ['claim_universality','paper_luque2011',  'cites_paper'],
-      ];
-      links.forEach(([from, to, relation]) => {
-        const src = nodes.find(n => n.id === from);
-        src.graph_links = (src.graph_links || []).concat([{from, to, relation, status: 'fresh'}]);
-      });
-      return {
-        id: targetMapId,
-        title: 'Current Run Lineage (demo)',
-        display_kind: 'lineage',
-        description: 'Synthetic demo loaded in-browser. Refresh the page to clear.',
-        nodes: nodes,
-      };
-    }
-
-    // Node types that the live workflow diagram template seeds at scaffold
-    // time — these are loop-phase placeholders, NOT real research artefacts.
-    // The Lineage tab filters them out so a freshly-initialised project
-    // shows an empty graph until actual papers/models/results/claims land.
-    const SCAFFOLDING_NODE_TYPES = new Set(['phase', 'loop_phase', 'placeholder', 'update']);
-
-    function _isScaffoldingNode(node) {
-      // A node is lineage-worthy when it carries an explicit lineage-bearing
-      // signal: a paper_id, model_version, thumbnail_path, requires_researcher_review,
-      // or outgoing graph_links, or a node_type that maps to a real artefact
-      // (paper, model, validation, run, figure, table, anomaly, claim, waiver).
-      if (node.paper_id || node.model_version || node.thumbnail_path) return false;
-      if (Array.isArray(node.graph_links) && node.graph_links.length > 0) return false;
-      const realKinds = new Set([
-        'paper', 'model', 'baseline', 'validation', 'run', 'dataset',
-        'figure', 'table', 'anomaly', 'waiver', 'claim',
-      ]);
-      const nt = (node.node_type || '').toLowerCase();
-      if (realKinds.has(nt)) return false;
-      // Everything else (template-seeded phase nodes, generic "update", etc.)
-      // is scaffolding for the Lineage view.
-      return SCAFFOLDING_NODE_TYPES.has(nt) || !node.lineage_kind ||
-             // The flow-tab dashboard nodes auto-receive lineage_kind="decision"
-             // via update_live_json._infer_lineage_kind but have no real
-             // lineage signal — filter them too.
-             (node.lineage_kind === 'decision' && !node.graph_links?.length);
-    }
-
-    function ensureLineageMaps() {
-      // Derive a single-project lineage view from the live workflow map.
-      const liveMap = DATA.maps.find(m => m.id === 'live_research_run');
-      const hasDerived = DATA.maps.some(m => m.id === 'current_run_lineage');
-      if (liveMap && !hasDerived) {
-        const clone = JSON.parse(JSON.stringify(liveMap));
-        clone.id = 'current_run_lineage';
-        clone.title = 'Project Lineage';
-        clone.display_kind = 'lineage';
-        clone.dashboard = null;
-        // Strip phase / scaffolding nodes so an empty project shows an
-        // empty Lineage tab. Real research artefacts (papers, models,
-        // results, claims) survive the filter because they always carry
-        // either an explicit lineage signal or a real node_type.
-        clone.nodes = (clone.nodes || []).filter(n => !_isScaffoldingNode(n));
-        DATA.maps.push(clone);
-      }
-      // v3 removed Cross-Run Lineage: the project root IS the research root,
-      // so there are no sibling runs to aggregate. The single-project Lineage
-      // tab above is the only lineage view.
-    }
-
-    function renderDiagram() {
+    function renderGateList() {
       const map = currentMap();
-      if ((map.display_kind || '').toLowerCase() === 'lineage') {
-        renderLineageDiagram(map);
-        return;
-      }
-      const nodesById = Object.fromEntries(map.nodes.map(node => [node.id, node]));
-      const edgeMarkup = map.nodes.flatMap(node =>
-        (node.edges || []).map(targetId => {
-          const target = nodesById[targetId];
-          if (!target) return '';
-          const sx = node.x + 180;
-          const sy = node.y + 45;
-          const tx = target.x;
-          const ty = target.y + 45;
-          // Same row: straight line. Otherwise route orthogonally through the
-          // inter-row gutter so the edge never crosses node bodies.
-          if (sy === ty) {
-            return `<path class="edge" d="M ${sx} ${sy} L ${tx} ${ty}" />`;
-          }
-          const stub = 16;
-          const gutterY = ty > sy
-            ? ((node.y + 92) + target.y) / 2
-            : ((target.y + 92) + node.y) / 2;
-          return `<path class="edge" d="M ${sx} ${sy} L ${sx + stub} ${sy} L ${sx + stub} ${gutterY} L ${tx - stub} ${gutterY} L ${tx - stub} ${ty} L ${tx} ${ty}" />`;
-        })
-      ).join('');
-
-      const summaryCap = 50;
-      const nodeMarkup = map.nodes.map(node => `
-        <g class="node ${node.id === activeNode ? 'active' : ''}" tabindex="0" role="button" aria-label="${escapeHtml(node.title)}" data-node="${escapeHtml(node.id)}" transform="translate(${node.x}, ${node.y})">
-          <rect width="190" height="92"></rect>
-          <text class="phase" x="14" y="24">${escapeHtml(node.phase)}</text>
-          <text class="title" x="14" y="48">${escapeHtml(node.title)}</text>
-          <text x="14" y="72" font-size="12">${escapeHtml(node.summary.slice(0, summaryCap))}${node.summary.length > summaryCap ? '...' : ''}</text>
-        </g>
-      `).join('');
-
+      const activeStep = map.active_step || '';
+      const rows = map.nodes.map(node => {
+        const status = node.gate_status || node.phase || 'pending';
+        const note = node.gate_note != null ? node.gate_note : (node.summary || '');
+        const isActive = node.id === activeNode;
+        return `
+          <div class="gate-item">
+            <div class="gate-row${isActive ? ' active' : ''}"
+                 tabindex="0" role="button"
+                 aria-expanded="${isActive}"
+                 aria-label="${escapeHtml(node.title)}"
+                 data-node="${escapeHtml(node.id)}">
+              ${statusBadge(status)}
+              <span class="gate-title">${escapeHtml(node.title)}</span>
+              <span class="gate-note">${escapeHtml(note)}</span>
+              <span class="gate-chevron">${isActive ? '▼' : '▶'}</span>
+            </div>
+            ${isActive ? `<div class="gate-detail">${renderNodeDetail(node)}</div>` : ''}
+          </div>
+        `;
+      }).join('');
       document.getElementById('diagram').innerHTML = `
-        <svg viewBox="0 0 1120 620" role="img" aria-label="${escapeHtml(map.title)}">
-          <defs>
-            <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-              <path d="M 0 0 L 10 5 L 0 10 z" fill="#8c958f"></path>
-            </marker>
-          </defs>
-          ${edgeMarkup}
-          ${nodeMarkup}
-        </svg>
+        ${activeStep ? `<div class="active-step-bar"><strong>Active Step:</strong> ${escapeHtml(activeStep)}</div>` : ''}
+        <div class="gate-list">${rows}</div>
       `;
-      document.querySelectorAll('.node').forEach(element => {
+      document.querySelectorAll('.gate-row').forEach(el => {
         const activate = () => {
-          activeNode = element.dataset.node;
+          activeNode = activeNode === el.dataset.node ? null : el.dataset.node;
           activeAction = null;
           renderActionQueue();
-          renderDiagram();
+          renderGateList();
           renderDetails();
         };
-        element.addEventListener('click', activate);
-        element.addEventListener('keydown', event => {
-          if (event.key === 'Enter' || event.key === ' ') {
-            event.preventDefault();
-            activate();
-          }
+        el.addEventListener('click', activate);
+        el.addEventListener('keydown', event => {
+          if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); activate(); }
         });
       });
     }
@@ -1076,102 +796,9 @@
         attachFilePreviewHandlers();
         return;
       }
-      const node = currentNode();
-      const links = (node.responsible || []).map(item =>
-        `<button type="button" class="file-button" data-path="${escapeHtml(pathHref(item.path))}" data-label="${escapeHtml(item.label)}">${escapeHtml(item.label)}</button>`
-      ).join('');
-      const metadata = [
-        ['Node Type', node.node_type || 'unclassified'],
-        ['Link Status', node.link_status || 'unknown'],
-        ['Evidence Strength', node.evidence_strength || 'none'],
-        ['Claim Ceiling', node.claim_ceiling || 'unsupported'],
-        ['Review Owner', node.review_owner || 'unassigned'],
-        ['Researcher Checkpoint Marker', node.requires_researcher_review ? 'required' : 'not required']
-      ].map(([key, value]) => `
-        <div class="result-row">
-          <span class="result-key">${escapeHtml(key)}</span>
-          <span class="result-value">${escapeHtml(value)}</span>
-        </div>
-      `).join('');
-      const linkSection = (items, emptyText) => (items || []).length
-        ? `<div class="link-grid">${items.map(item => `
-            <div class="link-card">
-              <a href="${escapeHtml(linkHref(item))}">${escapeHtml(item.role || item.kind || item.relation || item.path)}</a>
-              <div class="link-meta">${escapeHtml([
-                item.path,
-                item.line ? 'line ' + item.line : '',
-                item.relation || '',
-                item.status || '',
-                item.preview ? 'preview: ' + item.preview : ''
-              ].filter(Boolean).join(' · '))}</div>
-            </div>
-          `).join('')}</div>`
-        : `<p class="meta">${escapeHtml(emptyText)}</p>`;
-      const checks = (node.checks || []).map(check => `<li>${escapeHtml(check)}</li>`).join('');
-      const resultEntries = Object.entries(node.result_summary || {});
-      const resultMarkup = resultEntries.length
-        ? resultEntries.map(([key, value]) => `
-          <div class="result-row">
-            <span class="result-key">${escapeHtml(key)}</span>
-            <span class="result-value">${escapeHtml(value)}</span>
-          </div>
-        `).join('')
-        : '<p class="meta">No compact result summary recorded for this node.</p>';
-      const imageMarkup = (node.images || []).length
-        ? (node.images || []).map(image => `
-          <figure>
-            <img class="evidence-image" src="${escapeHtml(pathHref(image.path))}" alt="${escapeHtml(image.label)} evidence preview">
-            <figcaption class="image-caption">${escapeHtml(image.label)} · evidence preview, not a standalone claim</figcaption>
-          </figure>
-        `).join('')
-        : '<p class="meta">No figure preview for this node.</p>';
-      document.getElementById('details').innerHTML = `
-        <h2>${escapeHtml(node.title)}</h2>
-        <div class="meta">${escapeHtml(map.title)} / ${escapeHtml(node.phase)}</div>
-        <p>${escapeHtml(node.summary)}</p>
-        ${renderDashboardSummary(map)}
-        <div class="section">
-          <h3>Link State</h3>
-          <div class="results">${metadata}</div>
-        </div>
-        <div class="section">
-          <h3>Result Summary</h3>
-          <div class="results">${resultMarkup}</div>
-        </div>
-        <div class="section">
-          <h3>Evidence Images</h3>
-          <div class="image-grid">${imageMarkup}</div>
-        </div>
-        <div class="section">
-          <h3>Code Links</h3>
-          ${linkSection(node.code_links, 'No code links recorded for this node.')}
-        </div>
-        <div class="section">
-          <h3>Result Links</h3>
-          ${linkSection(node.result_links, 'No result links recorded for this node.')}
-        </div>
-        <div class="section">
-          <h3>Interpretation Links</h3>
-          ${linkSection(node.interpretation_links, 'No interpretation links recorded for this node.')}
-        </div>
-        <div class="section">
-          <h3>Responsible Files</h3>
-          <div class="docs">${links}</div>
-          <div class="file-preview" id="filePreview">
-            <div class="preview-head">
-              <span>Select a file to preview it here.</span>
-              <a id="rawFileLink" href="#" hidden>Open raw file</a>
-            </div>
-            <pre id="filePreviewText"></pre>
-            <img id="filePreviewImage" alt="" hidden>
-          </div>
-        </div>
-        <div class="section">
-          <h3>Checks</h3>
-          <ul>${checks}</ul>
-        </div>
-      `;
-      attachFilePreviewHandlers();
+      document.getElementById('details').innerHTML =
+        renderDashboardSummary(map, '<h2>Dashboard Summary</h2>')
+        || '<p class="meta">Select a gate to expand its detail, or select an action from the queue.</p>';
     }
 
     function attachFilePreviewHandlers() {
@@ -1236,10 +863,210 @@
       pill.classList.toggle('stale', ageMin > 30);
     }
 
+    // ── Flow tab (Cytoscape + dagre) ──────────────────────────────────────────
+
+    const FLOW_KIND_COLORS = {
+      paper:         '#d8b4fe',
+      decision:      '#fde68a',
+      model_version: '#a7f3d0',
+      result:        '#bae6fd',
+      figure:        '#fbcfe8',
+      claim:         '#fda4af',
+      anomaly:       '#fecaca',
+      waiver:        '#e5e7eb',
+      gate:          '#bbf7d0',
+    };
+    const FLOW_KIND_SHAPES = {
+      paper:         'round-rectangle',
+      decision:      'diamond',
+      model_version: 'rectangle',
+      result:        'barrel',
+      figure:        'tag',
+      claim:         'pentagon',
+      anomaly:       'star',
+      waiver:        'octagon',
+      gate:          'round-tag',
+    };
+    const FLOW_KIND_KEYS = Object.keys(FLOW_KIND_COLORS);
+    const flowFilterState = {};
+    let flowCyInstances = {};
+
+    function flowFilterFor(mapId) {
+      if (!flowFilterState[mapId]) {
+        flowFilterState[mapId] = { kind: new Set(FLOW_KIND_KEYS) };
+      }
+      return flowFilterState[mapId];
+    }
+
+    function buildFlowElements(map) {
+      const nodes = map.nodes || [];
+      const knownIds = new Set(nodes.map(n => n.id));
+      const elements = [];
+      nodes.forEach(node => {
+        const kind = node.lineage_kind || 'decision';
+        elements.push({ data: {
+          id: node.id,
+          label: node.title || node.id,
+          kind,
+          requiresReview: Boolean(node.requires_researcher_review),
+        }});
+      });
+      const edgeSeen = new Set();
+      const addEdge = (src, dst, relation) => {
+        if (!src || !dst || !knownIds.has(src) || !knownIds.has(dst)) return;
+        const key = src + '|' + dst + '|' + (relation || '');
+        if (edgeSeen.has(key)) return;
+        edgeSeen.add(key);
+        elements.push({ data: {
+          id: 'e_' + edgeSeen.size, source: src, target: dst,
+          relation: relation || 'depends_on',
+        }});
+      };
+      nodes.forEach(node => {
+        (node.edges || []).forEach(t => addEdge(node.id, t, 'flow'));
+        (node.graph_links || []).forEach(link => addEdge(link.from, link.to, link.relation));
+      });
+      return elements;
+    }
+
+    function applyFlowFilter(cy, filter) {
+      cy.batch(() => {
+        cy.nodes().forEach(n => {
+          n.style('display', filter.kind.has(n.data('kind')) ? 'element' : 'none');
+        });
+        cy.edges().forEach(e => {
+          const visible = e.source().style('display') !== 'none' &&
+                          e.target().style('display') !== 'none';
+          e.style('display', visible ? 'element' : 'none');
+        });
+      });
+    }
+
+    function renderFlowDiagram(map) {
+      const wrap = document.getElementById('diagram');
+      const nodes = map.nodes || [];
+      const hasRealNodes = nodes.some(n => n.lineage_kind);
+
+      if (!hasRealNodes) {
+        wrap.innerHTML = `<div class="flow-empty">
+          <p>No research artefacts yet.</p>
+          <p style="font-size:12px;margin-top:8px;">Papers, model versions, results, and claims will appear here as the project progresses.<br>Use <code>update_live_json.py</code> to emit lineage nodes.</p>
+        </div>`;
+        return;
+      }
+
+      const filter = flowFilterFor(map.id);
+      const kindControls = FLOW_KIND_KEYS.map(k => `
+        <label><input type="checkbox" data-kind="${k}" ${filter.kind.has(k) ? 'checked' : ''}>
+          <span class="swatch" style="background:${FLOW_KIND_COLORS[k]}"></span>${k.replace('_', ' ')}</label>
+      `).join('');
+      const legend = FLOW_KIND_KEYS.map(k =>
+        `<span><span class="swatch" style="background:${FLOW_KIND_COLORS[k]}"></span>${k.replace('_', ' ')}</span>`
+      ).join('');
+
+      wrap.innerHTML = `
+        <div class="flow-controls">
+          <strong style="color:var(--ink);font-size:12px;">Show:</strong>${kindControls}
+          <button type="button" id="flowRefit">Fit to view</button>
+        </div>
+        <div class="flow-canvas" id="cyCanvas"></div>
+        <div class="flow-legend">${legend}</div>
+      `;
+
+      if (typeof cytoscape === 'undefined') {
+        document.getElementById('cyCanvas').innerHTML =
+          '<p style="padding:16px;color:var(--muted);">Cytoscape failed to load. Check docs/vendor/cytoscape.min.js.</p>';
+        return;
+      }
+
+      const existingCy = flowCyInstances[map.id];
+      if (existingCy) { try { existingCy.destroy(); } catch (e) {} }
+
+      const cy = cytoscape({
+        container: document.getElementById('cyCanvas'),
+        elements: buildFlowElements(map),
+        style: [
+          { selector: 'node', style: {
+            'background-color': ele => FLOW_KIND_COLORS[ele.data('kind')] || '#e5e7eb',
+            'shape': ele => FLOW_KIND_SHAPES[ele.data('kind')] || 'rectangle',
+            'label': 'data(label)',
+            'font-size': 10,
+            'text-wrap': 'wrap',
+            'text-max-width': '140px',
+            'text-valign': 'center',
+            'text-halign': 'center',
+            'width': 110,
+            'height': 36,
+            'padding': '6px',
+            'border-width': 1,
+            'border-color': '#475569',
+            'color': '#111',
+          }},
+          { selector: 'node[?requiresReview]', style: { 'border-width': 3, 'border-color': '#b91c1c' }},
+          { selector: 'node.selected',         style: { 'border-width': 4, 'border-color': '#0b57d0' }},
+          { selector: 'edge', style: {
+            'curve-style': 'bezier',
+            'target-arrow-shape': 'triangle',
+            'arrow-scale': 0.9,
+            'line-color': '#94a3b8',
+            'target-arrow-color': '#94a3b8',
+            'width': 1.5,
+            'label': 'data(relation)',
+            'font-size': 8,
+            'color': '#64748b',
+            'text-rotation': 'autorotate',
+            'text-background-color': '#fbfbf8',
+            'text-background-opacity': 0.9,
+            'text-background-padding': '1px',
+          }},
+          { selector: 'edge[relation = "evolved_from"]', style: { 'line-color': '#0f766e', 'target-arrow-color': '#0f766e', 'width': 2.5 }},
+          { selector: 'edge[relation = "reproduces"]',   style: { 'line-color': '#7c2d12', 'target-arrow-color': '#7c2d12', 'line-style': 'dashed' }},
+          { selector: 'edge[relation = "supports"]',     style: { 'line-color': '#16a34a', 'target-arrow-color': '#16a34a' }},
+          { selector: 'edge[relation = "contradicts"]',  style: { 'line-color': '#dc2626', 'target-arrow-color': '#dc2626' }},
+        ],
+        layout: { name: 'dagre', rankDir: 'TB', nodeSep: 28, rankSep: 60, edgeSep: 12, fit: true, padding: 30 },
+      });
+      flowCyInstances[map.id] = cy;
+      applyFlowFilter(cy, filter);
+
+      cy.on('tap', 'node', evt => {
+        cy.nodes().removeClass('selected');
+        evt.target.addClass('selected');
+        activeNode = evt.target.id();
+        renderDetails();
+      });
+      wrap.querySelectorAll('input[data-kind]').forEach(input => {
+        input.addEventListener('change', () => {
+          if (input.checked) filter.kind.add(input.dataset.kind);
+          else filter.kind.delete(input.dataset.kind);
+          applyFlowFilter(cy, filter);
+        });
+      });
+      const refitBtn = document.getElementById('flowRefit');
+      if (refitBtn) refitBtn.addEventListener('click', () => cy.fit(null, 40));
+    }
+
+    function ensureFlowTab() {
+      const liveMap = DATA.maps.find(m => m.id === 'live_research_run');
+      if (!liveMap || DATA.maps.some(m => m.id === 'flow_view')) return;
+      const clone = JSON.parse(JSON.stringify(liveMap));
+      clone.id = 'flow_view';
+      clone.title = 'Flow';
+      clone.display_kind = 'flow';
+      clone.dashboard = null;
+      DATA.maps.push(clone);
+    }
+
     function render() {
+      ensureFlowTab();
       renderTabs();
-      renderActionQueue();
-      renderDiagram();
+      const map = currentMap();
+      if ((map.display_kind || '') === 'flow') {
+        renderFlowDiagram(map);
+      } else {
+        renderActionQueue();
+        renderGateList();
+      }
       renderDetails();
       renderFooter();
       updateFreshnessPill();
@@ -1265,9 +1092,6 @@
           return;
         }
         DATA = fresh;
-        // Re-derive single-project lineage clone so polling does not erase
-        // the Lineage tab.
-        ensureLineageMaps();
         // Preserve selection where possible; otherwise fall back to first.
         const map = DATA.maps.find(m => m.id === activeMap) || DATA.maps[0];
         activeMap = map.id;
@@ -1275,7 +1099,7 @@
           activeNode = map.nodes[0].id;
         }
         if (activeAction && !actionStillExists(map, activeAction)) {
-          activeAction = firstActionId(map);
+          activeAction = null;
         }
         render();
       } catch (error) {
@@ -1284,7 +1108,6 @@
       }
     }
 
-    ensureLineageMaps();
     render();
     window.setInterval(pollForUpdate, 10000);
     window.setInterval(updateFreshnessPill, 60000);
