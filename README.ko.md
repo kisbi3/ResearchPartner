@@ -30,6 +30,7 @@ flowchart LR
 * 통과한(또는 현재 막혀 있는) "게이트".
 * 입력, 승인, 권장 검토 항목을 클릭해서 볼 수 있는 Action Queue.
 * 연구자가 보는 것이 권장되는 문서, 관련 로그, 그림, 증거에 대한 직접 링크.
+* Lucidchart 스타일의 **Lineage 탭**: Cytoscape.js + dagre(인터넷 불필요, `docs/vendor/`에 동봉)로 Papers → Decisions → Model Versions → Results → Claims 흐름을 한 화면에 시각화합니다. `python scripts/build_lineage_graph.py`가 `ResearchPartner-runs/_index/lineage_graph.json`을 생성하면 **Cross-Run Lineage** 탭이 추가로 나타나 `parent_run` / `evolved_from` / `reproduces` 관계로 여러 실행을 잇습니다. 실제 실행 전에 탭이 어떻게 보이는지 미리 보고 싶다면 `python scripts/seed_lineage_demo.py` 후 `python scripts/build_lineage_graph.py`로 예시용 `_demo_lineage` 실행을 추가하세요.
 
 ---
 

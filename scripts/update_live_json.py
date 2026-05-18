@@ -42,6 +42,45 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
 _X_POSITIONS = [80, 330, 580, 830]
+# Map (node_type | event_type) -> lineage_kind for Lineage-tab grouping.
+# Lineage kinds drive Cytoscape node shape, color, and filters. The sender may
+# override by setting `lineage_kind` directly in the Cartographer packet.
+_LINEAGE_KIND_BY_TYPE = {
+    "question": "decision",
+    "assumption": "decision",
+    "decision": "decision",
+    "task_seed": "decision",
+    "review": "decision",
+    "retrospective": "decision",
+    "open_issue": "decision",
+    "model": "model_version",
+    "equation": "model_version",
+    "parameter": "model_version",
+    "baseline": "model_version",
+    "validation": "result",
+    "validation_gate": "gate",
+    "run": "result",
+    "dataset": "result",
+    "figure": "figure",
+    "table": "figure",
+    "anomaly": "anomaly",
+    "waiver": "waiver",
+    "claim": "claim",
+    "paper": "paper",
+    "literature": "paper",
+}
+
+
+def _infer_lineage_kind(node_type, event_type):
+    for value in (node_type, event_type):
+        if not value:
+            continue
+        kind = _LINEAGE_KIND_BY_TYPE.get(str(value).lower())
+        if kind:
+            return kind
+    return "decision"
+
+
 _PHASE_MAP = {
     "pass": "passed",
     "passed": "passed",
@@ -160,6 +199,14 @@ def _event_to_node(event: dict, existing_nodes: list[dict]) -> dict:
         or str(lnk.get("path", "")).lower().endswith((".png", ".jpg", ".jpeg", ".gif", ".webp"))
     ]
 
+    # Lineage fields are optional; only emitted when the sender provides them.
+    # They drive the Cytoscape-based Lineage tab in workflow_map.html. Existing
+    # nodes without these fields render exactly as before in the flow tab.
+    lineage_kind = update.get("lineage_kind")
+    derived_lineage_kind = lineage_kind or _infer_lineage_kind(
+        update.get("node_type"), update.get("event_type")
+    )
+
     return {
         "id": node_id,
         "title": update.get("title") or update.get("summary") or "Cartographer Update",
@@ -170,6 +217,12 @@ def _event_to_node(event: dict, existing_nodes: list[dict]) -> dict:
         "claim_ceiling": update.get("claim_ceiling", "unsupported"),
         "review_owner": update.get("review_owner") or update.get("from") or "unknown",
         "requires_researcher_review": bool(update.get("requires_researcher_review", False)),
+        "lineage_kind": derived_lineage_kind,
+        "model_version": update.get("model_version"),
+        "paper_id": update.get("paper_id"),
+        "thumbnail_path": update.get("thumbnail_path"),
+        "parent_run": update.get("parent_run"),
+        "created_at": update.get("created_at") or datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "x": x,
         "y": y,
         "summary": update.get("summary", ""),
@@ -223,6 +276,7 @@ def _gate_to_node(
         "claim_ceiling": "unsupported",
         "review_owner": "lead-agent",
         "requires_researcher_review": status.lower() in {"partial", "fail", "blocked", "waived"},
+        "lineage_kind": "gate",
         "x": x,
         "y": y,
         "summary": f"{status.upper()}: {note}",
