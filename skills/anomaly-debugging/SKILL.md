@@ -114,4 +114,24 @@ python scripts/update_live_json.py --run "$RUN" --event '{
 }'
 ```
 
-The `limits` edge is essential — it shows on the lineage graph which downstream result, model, or claim is at risk until the anomaly is resolved. Do not omit it; an anomaly with no outbound edge looks unanchored and is easy to overlook in review.
+The `limits` edge is essential — it shows on the lineage graph which downstream result, model, or claim is at risk until the anomaly is resolved. Do not omit it; an anomaly with no outbound edge looks unanchored and is easy to overlook in review (and is flagged by `scripts/check_lineage_coverage.py`).
+
+### When the anomaly is resolved
+
+Re-emit the same node with `status: "resolved"` (or `"superseded"`). `update_live_json.py` will automatically flip every outgoing `limits` edge on that node to `status: "superseded"`, so the lineage graph stops marking the downstream nodes as threatened:
+
+```bash
+python scripts/update_live_json.py --run "$RUN" --event '{
+  "cartographer_update": {
+    "from": "lead-agent",
+    "node_id": "anomaly_<same_slug>",
+    "title": "<same title>",
+    "node_type": "anomaly",
+    "lineage_kind": "anomaly",
+    "status": "resolved",
+    "summary": "<one sentence on the fix and verifying check>"
+  }
+}'
+```
+
+Do not delete the anomaly node — the historical record of what was wrong and how it was fixed is part of the audit trail.

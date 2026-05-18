@@ -30,7 +30,11 @@ flowchart LR
 * 통과한(또는 현재 막혀 있는) "게이트".
 * 입력, 승인, 권장 검토 항목을 클릭해서 볼 수 있는 Action Queue.
 * 연구자가 보는 것이 권장되는 문서, 관련 로그, 그림, 증거에 대한 직접 링크.
-* Lucidchart 스타일의 **Lineage 탭**: Cytoscape.js + dagre(인터넷 불필요, `docs/vendor/`에 동봉)로 Papers → Decisions → Model Versions → Results → Claims 흐름을 한 화면에 시각화합니다. `python scripts/build_lineage_graph.py`가 `ResearchPartner-runs/_index/lineage_graph.json`을 생성하면 **Cross-Run Lineage** 탭이 추가로 나타나 `parent_run` / `evolved_from` / `reproduces` 관계로 여러 실행을 잇습니다. 실제 실행 전에 탭이 어떻게 보이는지 미리 보고 싶다면 `python scripts/seed_lineage_demo.py` 후 `python scripts/build_lineage_graph.py`로 예시용 `_demo_lineage` 실행을 추가하세요.
+* Lucidchart 스타일의 **Lineage 탭**: Cytoscape.js + dagre(인터넷 불필요, `docs/vendor/`에 동봉)로 Papers → Decisions → Model Versions → Results → Claims 흐름을 한 화면에 시각화합니다. 엣지 색상은 관계(relation), 굵기는 `evidence_strength`, stale/broken 링크는 주황/빨강으로 표시됩니다. lineage_kind, claim ceiling, "review 대기만" 필터를 지원합니다. `python scripts/build_lineage_graph.py`가 `ResearchPartner-runs/_index/lineage_graph.json`을 생성하면 **Cross-Run Lineage** 탭이 추가로 나타나 `parent_run` / `evolved_from` / `reproduces` 관계로 여러 실행을 잇습니다. 실제 실행 전에 탭이 어떻게 보이는지 미리 보고 싶다면 빈 탭의 **Load demo lineage** 버튼을 누르거나, `python scripts/seed_lineage_demo.py` 후 `python scripts/build_lineage_graph.py`로 예시용 `_demo_lineage` 실행을 추가하세요.
+
+  ![Lineage 탭 — 실제 실행과 데모 lineage를 나란히 보여주는 Cross-Run 뷰](docs/images/lineage_screenshot.png)
+
+  Skill 출력이 lineage 노드를 자동으로 시드합니다 (`literature/reviews/<id>.md` 작성 → paper 노드, `docs/model_versions/<v>.md` → model_version 노드, `docs/claims/<id>.md` → claim 노드 — `scripts/workflow_hooks.py`가 처리). 각 skill의 `Cartographer Update` 섹션은 그 위에 cross-referential 엣지(`cites_paper`, `evolved_from`, `reproduces`, `supports`, `limits`)를 추가하도록 에이전트에게 지시합니다. **Lineage Coverage Gate**(`python scripts/check_lineage_coverage.py --run <run-dir>`)는 에이전트가 그 단계를 건너뛴 경우 경고합니다 (supports 없는 claim, evolved_from 없는 비초기 model version, 고립된 paper 리뷰, limits 없는 미해결 anomaly). **Broken-Edge Linter**(`python scripts/update_live_json.py --run <run-dir> --validate`)는 Cytoscape가 조용히 무시할 graph_links 오타를 잡아냅니다.
 
 ---
 
