@@ -21,6 +21,12 @@ The sender reports facts, links, status, and limits. The Cartographer (hook-driv
     "claim_ceiling": "observation | interpretation | mechanism | generalization | unsupported",
     "review_owner": "professor | researcher | graduate-test-design | coding-subagent",
     "requires_researcher_review": true,
+    "lineage_kind": "paper | decision | model_version | result | claim | figure | anomaly | waiver | gate",
+    "model_version": "v1 | v2-with-damping | ...  (only when node_type=model/baseline)",
+    "paper_id": "lacasa2008 | luque2011 | ...  (only when node_type=paper)",
+    "thumbnail_path": "outputs/figures/fig3.png  (only when node_type=figure)",
+    "parent_run": "ResearchPartner-runs/YYYY-MM-DD-prior-slug  (only for cross-run lineage)",
+    "created_at": "2026-05-18T12:00:00+00:00  (ISO 8601; auto-stamped if omitted)",
     "code_links": [
       {
         "path": "scripts/example.py",
@@ -51,7 +57,7 @@ The sender reports facts, links, status, and limits. The Cartographer (hook-driv
       {
         "from": "source-node-id",
         "to": "target-node-id",
-        "relation": "depends_on | supports | contradicts | limits | blocks | waived_by | supersedes | generated_by | computed_from | interprets | documents | requires_review",
+        "relation": "depends_on | supports | contradicts | limits | blocks | waived_by | supersedes | generated_by | computed_from | interprets | documents | requires_review | evolved_from | reproduces | cites_paper",
         "status": "fresh | stale | missing | broken | pending_review | superseded"
       }
     ]

@@ -333,7 +333,55 @@
       .action-groups, .summary-grid { grid-template-columns: 1fr; }
       svg { min-width: 760px; }
     }
+    /* Lineage tab (Cytoscape + dagre). */
+    .lineage-canvas {
+      width: 100%;
+      height: 620px;
+      background: #fbfbf8;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+    }
+    .lineage-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 10px;
+      padding: 8px 4px 12px;
+      font-size: 12px;
+      color: var(--muted);
+      align-items: center;
+    }
+    .lineage-controls label {
+      display: inline-flex;
+      gap: 4px;
+      align-items: center;
+      background: #fbfbf8;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 3px 9px;
+      cursor: pointer;
+    }
+    .lineage-controls label input { margin: 0; }
+    .lineage-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      font-size: 11px;
+      color: var(--muted);
+      padding: 4px 6px 10px;
+    }
+    .lineage-legend .swatch {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      margin-right: 4px;
+      vertical-align: middle;
+      border: 1px solid rgba(0,0,0,0.2);
+    }
   </style>
+  <script src="vendor/cytoscape.min.js"></script>
+  <script src="vendor/dagre.min.js"></script>
+  <script src="vendor/cytoscape-dagre.min.js"></script>
 </head>
 <body>
   <header>
@@ -499,8 +547,301 @@
       });
     }
 
+    // Lineage tab state — filters are per-canvas, persisted across re-renders.
+    const LINEAGE_KIND_COLORS = {
+      paper:         '#d8b4fe',
+      decision:      '#fde68a',
+      model_version: '#a7f3d0',
+      result:        '#bae6fd',
+      figure:        '#fbcfe8',
+      claim:         '#fda4af',
+      anomaly:       '#fecaca',
+      waiver:        '#e5e7eb',
+      gate:          '#bbf7d0',
+      run_root:      '#cbd5e1',
+    };
+    const LINEAGE_KIND_SHAPES = {
+      paper:         'round-rectangle',
+      decision:      'diamond',
+      model_version: 'rectangle',
+      result:        'barrel',
+      figure:        'tag',
+      claim:         'pentagon',
+      anomaly:       'star',
+      waiver:        'octagon',
+      gate:          'round-tag',
+      run_root:      'round-octagon',
+    };
+    const LINEAGE_FILTER_KEYS = ['paper', 'decision', 'model_version', 'result', 'figure', 'claim', 'anomaly', 'waiver', 'gate', 'run_root'];
+    const lineageFilterState = {};   // mapId -> { kind: Set, runIds: Set }
+    let lineageCyInstances = {};     // mapId -> cy
+    let crossLineageCache = null;    // last-fetched cross-run map; survives polling
+
+    function lineageFilterFor(mapId, allRunIds) {
+      if (!lineageFilterState[mapId]) {
+        lineageFilterState[mapId] = {
+          kind: new Set(LINEAGE_FILTER_KEYS),
+          runIds: new Set(allRunIds || []),
+        };
+      } else {
+        // New runs that appear after first render should be visible by default.
+        (allRunIds || []).forEach(id => lineageFilterState[mapId].runIds.add(id));
+      }
+      return lineageFilterState[mapId];
+    }
+
+    function buildLineageElements(map) {
+      const nodes = map.nodes || [];
+      const knownIds = new Set(nodes.map(n => n.id));
+      const elements = [];
+      nodes.forEach(node => {
+        const kind = node.lineage_kind || 'decision';
+        elements.push({
+          data: {
+            id: node.id,
+            label: node.title || node.id,
+            kind: kind,
+            runId: node.run_id || '',
+            phase: node.phase || '',
+            requiresReview: Boolean(node.requires_researcher_review),
+            hasWaiver: kind === 'waiver',
+            hasAnomaly: kind === 'anomaly',
+          },
+        });
+      });
+      const edgeSeen = new Set();
+      const addEdge = (src, dst, relation) => {
+        if (!src || !dst || !knownIds.has(src) || !knownIds.has(dst)) return;
+        const key = src + '|' + dst + '|' + (relation || '');
+        if (edgeSeen.has(key)) return;
+        edgeSeen.add(key);
+        elements.push({
+          data: {
+            id: 'e_' + edgeSeen.size,
+            source: src,
+            target: dst,
+            relation: relation || 'depends_on',
+          },
+        });
+      };
+      nodes.forEach(node => {
+        (node.edges || []).forEach(t => addEdge(node.id, t, 'flow'));
+        (node.graph_links || []).forEach(link => addEdge(link.from, link.to, link.relation));
+        // Group run-local nodes under the synthetic _run_root for cross-run view.
+        if (node.run_root && node.run_root !== node.id && knownIds.has(node.run_root)) {
+          addEdge(node.run_root, node.id, 'contains');
+        }
+      });
+      (map.inter_run_edges || []).forEach(link => addEdge(link.from, link.to, link.relation));
+      return elements;
+    }
+
+    function destroyLineageCy(mapId) {
+      const cy = lineageCyInstances[mapId];
+      if (cy) {
+        try { cy.destroy(); } catch (e) { /* ignore */ }
+        delete lineageCyInstances[mapId];
+      }
+    }
+
+    function applyLineageFilter(cy, filter) {
+      cy.batch(() => {
+        cy.nodes().forEach(n => {
+          const visible = filter.kind.has(n.data('kind')) &&
+            (!n.data('runId') || filter.runIds.has(n.data('runId')));
+          n.style('display', visible ? 'element' : 'none');
+        });
+        cy.edges().forEach(e => {
+          const visible = e.source().style('display') !== 'none' &&
+                          e.target().style('display') !== 'none';
+          e.style('display', visible ? 'element' : 'none');
+        });
+      });
+    }
+
+    function renderLineageDiagram(map) {
+      const wrap = document.getElementById('diagram');
+      const allRunIds = Array.from(new Set((map.nodes || [])
+        .map(n => n.run_id).filter(Boolean)));
+      const filter = lineageFilterFor(map.id, allRunIds);
+
+      const kindControls = LINEAGE_FILTER_KEYS.map(k => `
+        <label><input type="checkbox" data-kind="${k}" ${filter.kind.has(k) ? 'checked' : ''}>
+          <span class="swatch" style="background:${LINEAGE_KIND_COLORS[k]}"></span>${k.replace('_', ' ')}</label>
+      `).join('');
+      const runControls = allRunIds.length > 1 ? allRunIds.map(r => `
+        <label><input type="checkbox" data-run="${escapeHtml(r)}" ${filter.runIds.has(r) ? 'checked' : ''}>${escapeHtml(r)}</label>
+      `).join('') : '';
+
+      const legend = LINEAGE_FILTER_KEYS.map(k =>
+        `<span><span class="swatch" style="background:${LINEAGE_KIND_COLORS[k]}"></span>${k.replace('_', ' ')}</span>`
+      ).join('');
+
+      wrap.innerHTML = `
+        <div class="lineage-controls">
+          <strong style="color:var(--ink);font-size:12px;">Show kinds:</strong>${kindControls}
+          ${runControls ? `<strong style="color:var(--ink);font-size:12px;margin-left:8px;">Runs:</strong>${runControls}` : ''}
+          <button type="button" id="lineageRefit">Fit to view</button>
+        </div>
+        <div class="lineage-canvas" id="cyCanvas"></div>
+        <div class="lineage-legend">${legend}</div>
+      `;
+
+      if (typeof cytoscape === 'undefined') {
+        document.getElementById('cyCanvas').innerHTML =
+          '<p style="padding:16px;color:var(--muted);">Cytoscape failed to load. Check docs/vendor/cytoscape.min.js.</p>';
+        return;
+      }
+
+      destroyLineageCy(map.id);
+      const cy = cytoscape({
+        container: document.getElementById('cyCanvas'),
+        elements: buildLineageElements(map),
+        style: [
+          {
+            selector: 'node',
+            style: {
+              'background-color': ele => LINEAGE_KIND_COLORS[ele.data('kind')] || '#e5e7eb',
+              'shape': ele => LINEAGE_KIND_SHAPES[ele.data('kind')] || 'rectangle',
+              'label': 'data(label)',
+              'font-size': 10,
+              'text-wrap': 'wrap',
+              'text-max-width': '140px',
+              'text-valign': 'center',
+              'text-halign': 'center',
+              'width': 110,
+              'height': 36,
+              'padding': '6px',
+              'border-width': 1,
+              'border-color': '#475569',
+              'color': '#111',
+            },
+          },
+          {
+            selector: 'node[?requiresReview]',
+            style: { 'border-width': 3, 'border-color': '#b91c1c' },
+          },
+          {
+            selector: 'node.selected',
+            style: { 'border-width': 4, 'border-color': '#0b57d0' },
+          },
+          {
+            selector: 'edge',
+            style: {
+              'curve-style': 'bezier',
+              'target-arrow-shape': 'triangle',
+              'arrow-scale': 0.9,
+              'line-color': '#94a3b8',
+              'target-arrow-color': '#94a3b8',
+              'width': 1.5,
+              'label': 'data(relation)',
+              'font-size': 8,
+              'color': '#64748b',
+              'text-rotation': 'autorotate',
+              'text-background-color': '#fbfbf8',
+              'text-background-opacity': 0.9,
+              'text-background-padding': '1px',
+            },
+          },
+          {
+            selector: 'edge[relation = "evolved_from"]',
+            style: { 'line-color': '#0f766e', 'target-arrow-color': '#0f766e', 'width': 2.5 },
+          },
+          {
+            selector: 'edge[relation = "reproduces"]',
+            style: { 'line-color': '#7c2d12', 'target-arrow-color': '#7c2d12', 'line-style': 'dashed' },
+          },
+          {
+            selector: 'edge[relation = "supports"]',
+            style: { 'line-color': '#16a34a', 'target-arrow-color': '#16a34a' },
+          },
+          {
+            selector: 'edge[relation = "contradicts"]',
+            style: { 'line-color': '#dc2626', 'target-arrow-color': '#dc2626' },
+          },
+          {
+            selector: 'edge[relation = "contains"]',
+            style: { 'line-color': '#cbd5e1', 'target-arrow-color': '#cbd5e1', 'line-style': 'dotted' },
+          },
+        ],
+        layout: {
+          // TB (top-to-bottom) reads like a research flow: question/papers up top,
+          // model versions in the middle, results/claims at the bottom. Users can
+          // re-rank by changing graph_link relations; dagre groups by DAG depth.
+          name: 'dagre',
+          rankDir: 'TB',
+          nodeSep: 28,
+          rankSep: 60,
+          edgeSep: 12,
+          fit: true,
+          padding: 30,
+        },
+      });
+      lineageCyInstances[map.id] = cy;
+      applyLineageFilter(cy, filter);
+      cy.on('tap', 'node', evt => {
+        cy.nodes().removeClass('selected');
+        evt.target.addClass('selected');
+        activeNode = evt.target.id();
+        renderDetails();
+      });
+
+      wrap.querySelectorAll('input[data-kind]').forEach(input => {
+        input.addEventListener('change', () => {
+          if (input.checked) filter.kind.add(input.dataset.kind);
+          else filter.kind.delete(input.dataset.kind);
+          applyLineageFilter(cy, filter);
+        });
+      });
+      wrap.querySelectorAll('input[data-run]').forEach(input => {
+        input.addEventListener('change', () => {
+          if (input.checked) filter.runIds.add(input.dataset.run);
+          else filter.runIds.delete(input.dataset.run);
+          applyLineageFilter(cy, filter);
+        });
+      });
+      const refitBtn = document.getElementById('lineageRefit');
+      if (refitBtn) refitBtn.addEventListener('click', () => cy.fit(null, 40));
+    }
+
+    function ensureLineageMaps() {
+      // Derive a single-run lineage view from the live workflow map.
+      const liveMap = DATA.maps.find(m => m.id === 'live_research_run');
+      const hasDerived = DATA.maps.some(m => m.id === 'current_run_lineage');
+      if (liveMap && !hasDerived) {
+        const clone = JSON.parse(JSON.stringify(liveMap));
+        clone.id = 'current_run_lineage';
+        clone.title = 'Current Run Lineage';
+        clone.display_kind = 'lineage';
+        clone.dashboard = null;
+        DATA.maps.push(clone);
+      }
+      // Try cross-run aggregate. Best-effort; failure is silent.
+      if (!DATA.maps.some(m => m.id === 'cross_run_lineage')) {
+        const crossPath = (liveMap && liveMap.dashboard && liveMap.dashboard.run_root)
+          ? (liveMap.dashboard.run_root.replace(/[^/]+$/, '') + '_index/lineage_graph.json')
+          : '../../ResearchPartner-runs/_index/lineage_graph.json';
+        fetch(crossPath, { cache: 'no-store' })
+          .then(r => r.ok ? r.json() : null)
+          .then(payload => {
+            if (!payload || !payload.maps || !payload.maps.length) return;
+            const cross = payload.maps[0];
+            cross.id = 'cross_run_lineage';
+            cross.display_kind = 'lineage';
+            crossLineageCache = cross;
+            DATA.maps.push(cross);
+            render();
+          })
+          .catch(() => { /* aggregator output not present yet */ });
+      }
+    }
+
     function renderDiagram() {
       const map = currentMap();
+      if ((map.display_kind || '').toLowerCase() === 'lineage') {
+        renderLineageDiagram(map);
+        return;
+      }
       const nodesById = Object.fromEntries(map.nodes.map(node => [node.id, node]));
       const edgeMarkup = map.nodes.flatMap(node =>
         (node.edges || []).map(targetId => {
@@ -790,6 +1131,12 @@
           return;
         }
         DATA = fresh;
+        // Re-derive single-run lineage clone + re-attach any cross-run map that
+        // was previously fetched, otherwise polling would erase the Lineage tabs.
+        if (crossLineageCache && !DATA.maps.some(m => m.id === 'cross_run_lineage')) {
+          DATA.maps.push(crossLineageCache);
+        }
+        ensureLineageMaps();
         // Preserve selection where possible; otherwise fall back to first.
         const map = DATA.maps.find(m => m.id === activeMap) || DATA.maps[0];
         activeMap = map.id;
@@ -806,6 +1153,7 @@
       }
     }
 
+    ensureLineageMaps();
     render();
     window.setInterval(pollForUpdate, 10000);
     window.setInterval(updateFreshnessPill, 60000);

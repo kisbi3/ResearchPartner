@@ -26,6 +26,7 @@ The harness generates an **Interactive Workflow Map** (`docs/workflow_map.html`)
 - The "gates" you have passed (or are currently blocked by).
 - A clickable Action Queue for input, approval, and recommended review items.
 - Direct links to the recommended researcher-facing documents, logs, figures, and evidence.
+- A Lucidchart-style **Lineage tab** that visualizes Papers → Decisions → Model Versions → Results → Claims with Cytoscape.js + dagre (vendored under `docs/vendor/`, no internet required). A **Cross-Run Lineage** tab appears once `python scripts/build_lineage_graph.py` has produced `ResearchPartner-runs/_index/lineage_graph.json`, connecting runs through `parent_run` / `evolved_from` / `reproduces` edges. To preview the tab end-to-end before your first real run, seed an illustrative `_demo_lineage` run with `python scripts/seed_lineage_demo.py` and rebuild the cross-run graph.
 
 ---
 

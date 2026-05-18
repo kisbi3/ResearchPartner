@@ -75,6 +75,15 @@ def signal_for(file_path_str: str):
             # cache/*.npy|npz|pkl|pickle|joblib → "Cache artifact written"
             if rel.startswith("cache/") and rel.lower().endswith(CACHE_EXTS):
                 return (f"Cache artifact written ({Path(rel).name})", None, None, run_dir)
+            # docs/model_versions/<id>.md → new model_version lineage node
+            if rel.startswith("docs/model_versions/") and rel.endswith(".md"):
+                return (f"Model version recorded ({Path(rel).stem})", None, None, run_dir)
+            # literature/reviews/<paper_id>.md → paper lineage node
+            if rel.startswith("literature/reviews/") and rel.endswith(".md"):
+                return (f"Paper review recorded ({Path(rel).stem})", None, None, run_dir)
+            # docs/claims/<claim_id>.md → claim lineage node
+            if rel.startswith("docs/claims/") and rel.endswith(".md"):
+                return (f"Claim recorded ({Path(rel).stem})", None, None, run_dir)
             if rel in SIGNAL_ARTIFACTS:
                 ev, gate, gs = SIGNAL_ARTIFACTS[rel]
                 return (ev, gate, gs, run_dir)
