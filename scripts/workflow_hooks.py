@@ -32,16 +32,28 @@ MAX_STEP_LEN = 100
 # Maps relative path (within a run dir) -> (event label, optional gate name,
 # optional gate status). When `gate` is None, only an event-log line is added.
 SIGNAL_ARTIFACTS = {
-    "docs/orient_note.md":             ("Orient note recorded",          "Professor interview", "pending"),
-    "docs/interview_notes.md":         ("Interview notes recorded",      "Professor interview", "pass"),
-    "docs/literature_review_plan.md":  ("Literature review plan recorded","Literature review and replanning", "pass"),
-    "docs/model_spec.md":              ("Model spec recorded",            None, None),
-    "docs/baseline_strategy.md":       ("Baseline strategy decided",      "Baseline or reproduction target", "pass"),
-    "docs/research_plan.md":           ("Research plan updated",          None, None),
-    "docs/replanning_memo.md":         ("Replanning memo updated",        None, None),
-    "docs/gates/agent_spawn_log.md":   ("Agent spawn log updated",        None, None),
-    "docs/gates/validation_log.md":    ("Validation log updated",         "Execution", "in_progress"),
-    "docs/research_retrospective.md":  ("Retrospective recorded",         "Completion conference", "pass"),
+    # v3 layout (docs/gates/, docs/literature/, docs/plan/, docs/process/)
+    "docs/gates/orient_note.md":            ("Orient note recorded",           "Professor interview",              "pending"),
+    "docs/gates/interview_notes.md":        ("Interview notes recorded",       "Professor interview",              "pass"),
+    "docs/gates/agent_spawn_log.md":        ("Agent spawn log updated",        None,                               None),
+    "docs/gates/validation_log.md":         ("Validation log updated",         "Execution",                        "in_progress"),
+    "docs/gates/baseline_registry.md":      ("Baseline registry updated",      "Baseline or reproduction target",  "in_progress"),
+    "docs/literature/literature_review_plan.md": ("Literature review plan recorded", "Literature review and replanning", "pass"),
+    "docs/literature/replanning_memo.md":   ("Replanning memo updated",        None,                               None),
+    "docs/literature/paper_request_queue.md": ("Paper request queue updated",  None,                               None),
+    "docs/plan/model_spec.md":              ("Model spec recorded",            None,                               None),
+    "docs/plan/baseline_strategy.md":       ("Baseline strategy decided",      "Baseline or reproduction target",  "pass"),
+    "docs/plan/research_plan.md":           ("Research plan updated",          None,                               None),
+    "docs/process/research_retrospective.md": ("Retrospective recorded",       "Completion conference",            "pass"),
+    # v2 legacy paths — kept so existing runs written before v3 still trigger
+    "docs/orient_note.md":              ("Orient note recorded",           "Professor interview",              "pending"),
+    "docs/interview_notes.md":          ("Interview notes recorded",       "Professor interview",              "pass"),
+    "docs/literature_review_plan.md":   ("Literature review plan recorded","Literature review and replanning", "pass"),
+    "docs/model_spec.md":               ("Model spec recorded",            None,                               None),
+    "docs/baseline_strategy.md":        ("Baseline strategy decided",      "Baseline or reproduction target",  "pass"),
+    "docs/research_plan.md":            ("Research plan updated",          None,                               None),
+    "docs/replanning_memo.md":          ("Replanning memo updated",        None,                               None),
+    "docs/research_retrospective.md":   ("Retrospective recorded",         "Completion conference",            "pass"),
 }
 
 
