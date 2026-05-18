@@ -16,7 +16,14 @@ ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "docs" / "workflow_map.json"
 OUTPUT = ROOT / "docs" / "workflow_map.html"
 TEMPLATE = ROOT / "docs" / "workflow_map.template.html"
-RUNS_ROOT = ROOT.parent / "ResearchPartner-runs"
+# Runs live inside the harness/project root by default — see start_research_run.py
+# for the rationale (downstream installs would otherwise create runs at disk root).
+RUNS_ROOT = ROOT / "ResearchPartner-runs"
+_LEGACY_RUNS_ROOT = ROOT.parent / "ResearchPartner-runs"
+if not RUNS_ROOT.exists() and _LEGACY_RUNS_ROOT.exists():
+    # Fall back to the legacy sibling location so existing runs are still
+    # discoverable until the user moves them.
+    RUNS_ROOT = _LEGACY_RUNS_ROOT
 
 DASHBOARD_DOCUMENT_GROUPS = [
     {
@@ -814,17 +821,29 @@ def _run_local_json_has_real_nodes(json_path: Path) -> bool:
         return False
 
 
-def write_outputs(include_paper_logic: bool = False, force: bool = False) -> list[Path]:
+def write_outputs(
+    include_paper_logic: bool = False,
+    force: bool = False,
+    central: bool = False,
+) -> list[Path]:
+    """Generate the run-local workflow_map.html (and optionally the central one).
+
+    `central=False` is the default — a downstream project install should never
+    produce a docs/workflow_map.html in its own docs/ tree unless the user asks
+    for it explicitly via `--central`. The run-local map inside the current
+    run directory remains the single source of truth the researcher opens.
+    """
     written = []
-    central_data = build_data(include_paper_logic=include_paper_logic, base_dir=OUTPUT.parent)
-    OUTPUT.parent.mkdir(parents=True, exist_ok=True)
-    OUTPUT.write_text(build_html(central_data), encoding="utf-8")
-    # Sidecar lives at workflow_map.live.json so it does not collide with the
-    # static design source at docs/workflow_map.json. The HTML polls this file
-    # to detect updates; the contents include a `generated_at` timestamp.
-    central_json = OUTPUT.parent / "workflow_map.live.json"
-    central_json.write_text(json.dumps(central_data, indent=2), encoding="utf-8")
-    written.extend([OUTPUT, central_json])
+    if central:
+        central_data = build_data(include_paper_logic=include_paper_logic, base_dir=OUTPUT.parent)
+        OUTPUT.parent.mkdir(parents=True, exist_ok=True)
+        OUTPUT.write_text(build_html(central_data), encoding="utf-8")
+        # Sidecar lives at workflow_map.live.json so it does not collide with the
+        # static design source at docs/workflow_map.json. The HTML polls this file
+        # to detect updates; the contents include a `generated_at` timestamp.
+        central_json = OUTPUT.parent / "workflow_map.live.json"
+        central_json.write_text(json.dumps(central_data, indent=2), encoding="utf-8")
+        written.extend([OUTPUT, central_json])
 
     live_path = latest_live_workflow_path()
     if live_path is not None:
@@ -865,8 +884,19 @@ def main() -> int:
         help="Overwrite the run-local workflow_map.live.json even if it was updated by "
              "update_live_json.py. Use this to re-parse live_workflow_diagram.md from scratch.",
     )
+    parser.add_argument(
+        "--central",
+        action="store_true",
+        help="Also write the central docs/workflow_map.html (off by default — the "
+             "per-run workflow_map.html inside the active run directory is the "
+             "single source of truth a researcher should open).",
+    )
     args = parser.parse_args()
-    for path in write_outputs(include_paper_logic=args.include_paper_logic, force=args.force):
+    for path in write_outputs(
+        include_paper_logic=args.include_paper_logic,
+        force=args.force,
+        central=args.central,
+    ):
         try:
             display = path.relative_to(ROOT)
         except ValueError:

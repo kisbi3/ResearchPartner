@@ -15,3 +15,7 @@ outputs/
 # Virtual environments
 .venv/
 venv/
+
+# Research runs (live workflow state, per-run outputs, cache, errors).
+# Lives inside the project root by default — see scripts/start_research_run.py.
+ResearchPartner-runs/

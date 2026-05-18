@@ -481,8 +481,10 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
                         help="Full cartographer_update JSON packet (same format as in "
                              "live_workflow_diagram.md Cartographer Update Events section).")
     parser.add_argument("--update-central", action="store_true",
-                        help="Also regenerate docs/workflow_map.live.json via "
-                             "generate_workflow_map.py after updating the run-local JSON.")
+                        help="Also generate the central docs/workflow_map.html via "
+                             "generate_workflow_map.py --central (the central dashboard "
+                             "is off by default; the per-run workflow_map.html inside "
+                             "the run directory is the single source of truth).")
     parser.add_argument("--validate", action="store_true",
                         help="After applying updates (or with no other flags, on the "
                              "current file), check every graph_links.from/to and edges "
@@ -532,7 +534,7 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.update_central:
         result = subprocess.run(
-            [sys.executable, str(ROOT / "scripts" / "generate_workflow_map.py")],
+            [sys.executable, str(ROOT / "scripts" / "generate_workflow_map.py"), "--central"],
             capture_output=True,
             text=True,
         )

@@ -24,7 +24,7 @@ flowchart LR
 
 ### 3. 시각적 워크플로우 내비게이션
 
-이 하네스는 **인터랙티브 워크플로우 맵**(`docs/workflow_map.html`)과 최신 활성 실행 전용 **Current Run Dashboard**(`ResearchPartner-runs/.../workflow_map.html`)를 생성합니다. 다음과 같은 정보를 실시간 대시보드로 제공합니다:
+이 하네스는 활성 실행 전용 **Current Run Dashboard**(`<project>/ResearchPartner-runs/.../workflow_map.html`)를 생성합니다. 중앙 대시보드(`docs/workflow_map.html`)는 기본적으로 생성하지 않으며 `python scripts/generate_workflow_map.py --central`로 명시적으로 요청해야 만들어집니다. 실행 대시보드는 다음과 같은 정보를 실시간으로 제공합니다:
 
 * 현재 어느 단계에 있는지.
 * 통과한(또는 현재 막혀 있는) "게이트".
@@ -130,11 +130,11 @@ Orient -> Interview -> Specify -> Seed -> Validate -> Execute -> Evaluate -> Rev
 | --- | --- | --- |
 | 하네스 설치 | `python -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/kisbi3/ResearchPartner/main/scripts/install.py').read())"` | 지침, 스킬, 문서, 스크립트를 현재 프로젝트에 설치 |
 | 하네스 새로고침 | 위 설치 명령어에 `--force` 추가 | 관리되는 하네스 파일을 의도적으로 덮어씀 |
-| 실행 시작 | `python scripts\start_research_run.py --name "topic name"` | 상위 `ResearchPartner-runs` 루트 아래에 날짜가 지정된 실행 패킷 생성, `docs\process\live_workflow_diagram.md` 포함 |
+| 실행 시작 | `python scripts\start_research_run.py --name "topic name"` | 프로젝트 안의 `ResearchPartner-runs\` 루트 아래에 날짜가 지정된 실행 패킷 생성 (`--runs-root`로 변경 가능), `docs\process\live_workflow_diagram.md` 포함 |
 | 기존 프로젝트 감사 | `python scripts\audit_existing_project.py` | 레트로핏 전 스크립트, 그림, 출력, 검증 누락 항목의 인벤토리 작성 |
 | 하네스 평가 | `python scripts\evaluate_harness.py` | 올바른 스킬, 게이트 및 차단된 동작에 대한 현실적인 시나리오 확인 |
 | 링크 검증 | `python scripts\validate_workflow_links.py` | 워크플로우 문서 링크 확인 |
-| 워크플로우 맵 생성 | `python scripts\generate_workflow_map.py` | `docs\workflow_map.html`을 빌드하고 최신 실행의 `workflow_map.html` 및 `workflow_map.json`도 새로고침 |
+| 워크플로우 맵 생성 | `python scripts\generate_workflow_map.py` | 최신 실행의 `workflow_map.html` 및 `workflow_map.json`을 새로고침. 중앙 `docs\workflow_map.html`은 `--central` 옵션을 명시할 때만 빌드 |
 | 논문 로직 포함 | `python scripts\generate_workflow_map.py --include-paper-logic` | 논문 계획이 명시적으로 시작될 때 논문 로직 뷰 추가 |
 | 논문 리뷰 스캐폴딩 | `python scripts\scaffold_paper_review.py --run <run-dir> --paper-id P1 --title "Title"` | 재사용 가능한 논문 리뷰 노트를 생성하고 문헌 인덱스 업데이트 |
 | 논문 PDF 처리 | `python scripts\process_paper_for_review.py --run <run-dir> --paper-id P1 --title "Title" --pdf <pdf-path>` | 리뷰 스캐폴딩, 텍스트 추출, 임시 추출 노트 초안 작성 |
@@ -229,7 +229,7 @@ cd C:\ExistingPhysicsProject
 
 ```
 
-실행(run) 출력 결과를 하네스 소스 리포지토리에 다시 설치하지 마세요. 실행별 증거는 `C:\ResearchPartner-runs\YYYY-MM-DD-topic-name\`과 같이 형제 계층 루트 아래의 별도 실행 디렉토리에 보관되어야 합니다.
+실행(run) 출력 결과를 하네스 소스 리포지토리에 다시 설치하지 마세요. 실행별 증거는 `<project-root>\ResearchPartner-runs\YYYY-MM-DD-topic-name\`처럼 프로젝트 안에 만들어지며 하네스 `.gitignore`에 의해 git에서 제외됩니다. 다른 위치를 원하면 `start_research_run.py`에 `--runs-root <path>` 옵션을 전달하세요.
 
 한 줄 설치 프로그램은 관리되는 하네스 항목들을 대상 프로젝트에 배치합니다:
 
@@ -262,7 +262,7 @@ python scripts\generate_workflow_map.py
 
 * 평가 스크립트가 하네스가 다루는 현실적인 연구 시나리오를 보고해야 합니다.
 * 링크 검증기가 끊어진 워크플로우 문서 링크를 보고하지 않아야 합니다.
-* `docs\workflow_map.html`이 재생성되고, 실행이 있으면 최신 실행에도 `workflow_map.html` 및 `workflow_map.json`이 생성되어야 합니다.
+* 실행이 있으면 최신 실행에 `workflow_map.html` 및 `workflow_map.json`이 생성되어야 합니다 (중앙 `docs\workflow_map.html`은 `--central` 옵션 없으면 생성되지 않음).
 
 터미널에서 `python`을 찾을 수 없다면 `python` 대신 `py -3`을 시도해 보세요.
 
@@ -351,7 +351,7 @@ Orient -> Interview -> Specify -> Seed -> Validate -> Execute -> Evaluate -> Rev
 
 Research Partner를 사용하면, 당신의 연구 결과물은 단순한 논문이 아니라 재현 가능한 계통(reproducible lineage)이 됩니다.
 
-* **워크플로우 맵**: `python scripts/generate_workflow_map.py`를 실행하고 최신 실행의 `workflow_map.html`을 열어 현재 연구 대시보드를 사용하세요. Action Queue는 연구자 입력, 승인, 검토 항목, 연결 문서, 추천 다음 명령을 보여줍니다. `docs/workflow_map.html`은 중앙 생성본으로 유지됩니다.
+* **워크플로우 맵**: `python scripts/generate_workflow_map.py`를 실행하고 최신 실행의 `workflow_map.html`(`<project>/ResearchPartner-runs/<run>/workflow_map.html`)을 열어 현재 연구 대시보드를 사용하세요. Action Queue는 연구자 입력, 승인, 검토 항목, 연결 문서, 추천 다음 명령을 보여줍니다. 중앙 `docs/workflow_map.html`은 기본적으로 생성되지 않으며 `--central` 옵션이 필요합니다.
 * **주장-증거 맵**: 초안의 문장 위에 마우스를 올리면 어떤 시뮬레이션 실행과 어떤 방정식이 이를 뒷받침하는지 정확히 볼 수 있습니다.
 * **베이스라인 레지스트리**: 미래의 모델이 물리적 현실에서 벗어나지 않도록 보장하는 "건전성 검사(sanity checks)" 라이브러리입니다.
 

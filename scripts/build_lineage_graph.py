@@ -29,7 +29,13 @@ from pathlib import Path
 
 def _default_runs_root() -> Path:
     here = Path(__file__).resolve().parents[1]
-    # ResearchPartner-runs is a sibling of the harness checkout
+    # ResearchPartner-runs lives INSIDE the harness/project root so a downstream
+    # install never spills files into its parent directory. The legacy sibling
+    # location is checked as a fallback so existing runs are still aggregated
+    # until the user moves them.
+    in_project = here / "ResearchPartner-runs"
+    if in_project.exists() or not (here.parent / "ResearchPartner-runs").exists():
+        return in_project
     return here.parent / "ResearchPartner-runs"
 
 
