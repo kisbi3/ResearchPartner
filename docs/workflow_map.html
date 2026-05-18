@@ -693,6 +693,20 @@
         `<span><span class="swatch" style="background:${LINEAGE_KIND_COLORS[k]}"></span>${k.replace('_', ' ')}</span>`
       ).join('');
 
+      const emptyHint = isEmpty
+        ? `<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+              max-width:520px;text-align:center;color:var(--muted);font-size:13px;">
+             <p style="margin:0 0 8px 0;"><strong>No research artefacts yet.</strong></p>
+             <p style="margin:0 0 8px 0;">Lineage nodes appear here as your work
+              produces them — paper reviews (literature/reviews/&lt;id&gt;.md),
+              model versions (docs/model_versions/&lt;v&gt;.md), claims
+              (docs/claims/&lt;id&gt;.md), figures (outputs/figures/*), and
+              recorded results.</p>
+             <p style="margin:0;">Click <em>Load demo lineage</em> above to see
+              what a populated view looks like.</p>
+           </div>`
+        : '';
+
       wrap.innerHTML = `
         <div class="lineage-controls">
           <strong style="color:var(--ink);font-size:12px;">Kinds:</strong>${kindControls}
@@ -702,7 +716,7 @@
           <button type="button" id="lineageRefit">Fit to view</button>
           ${isEmpty ? '<button type="button" id="lineageLoadDemo" style="background:#fde68a;">Load demo lineage</button>' : ''}
         </div>
-        <div class="lineage-canvas" id="cyCanvas"></div>
+        <div class="lineage-canvas" id="cyCanvas" style="position:relative;">${emptyHint}</div>
         <div class="lineage-legend">${legend}
           <span style="margin-left:auto;font-size:10px;color:var(--muted);">
             Edge color = relation · width = evidence_strength · dashed/orange = stale · red = broken
@@ -906,8 +920,36 @@
       };
     }
 
+    // Node types that the live workflow diagram template seeds at scaffold
+    // time — these are loop-phase placeholders, NOT real research artefacts.
+    // The Lineage tab filters them out so a freshly-initialised project
+    // shows an empty graph until actual papers/models/results/claims land.
+    const SCAFFOLDING_NODE_TYPES = new Set(['phase', 'loop_phase', 'placeholder', 'update']);
+
+    function _isScaffoldingNode(node) {
+      // A node is lineage-worthy when it carries an explicit lineage-bearing
+      // signal: a paper_id, model_version, thumbnail_path, requires_researcher_review,
+      // or outgoing graph_links, or a node_type that maps to a real artefact
+      // (paper, model, validation, run, figure, table, anomaly, claim, waiver).
+      if (node.paper_id || node.model_version || node.thumbnail_path) return false;
+      if (Array.isArray(node.graph_links) && node.graph_links.length > 0) return false;
+      const realKinds = new Set([
+        'paper', 'model', 'baseline', 'validation', 'run', 'dataset',
+        'figure', 'table', 'anomaly', 'waiver', 'claim',
+      ]);
+      const nt = (node.node_type || '').toLowerCase();
+      if (realKinds.has(nt)) return false;
+      // Everything else (template-seeded phase nodes, generic "update", etc.)
+      // is scaffolding for the Lineage view.
+      return SCAFFOLDING_NODE_TYPES.has(nt) || !node.lineage_kind ||
+             // The flow-tab dashboard nodes auto-receive lineage_kind="decision"
+             // via update_live_json._infer_lineage_kind but have no real
+             // lineage signal — filter them too.
+             (node.lineage_kind === 'decision' && !node.graph_links?.length);
+    }
+
     function ensureLineageMaps() {
-      // Derive a single-run lineage view from the live workflow map.
+      // Derive a single-project lineage view from the live workflow map.
       const liveMap = DATA.maps.find(m => m.id === 'live_research_run');
       const hasDerived = DATA.maps.some(m => m.id === 'current_run_lineage');
       if (liveMap && !hasDerived) {
@@ -916,6 +958,11 @@
         clone.title = 'Project Lineage';
         clone.display_kind = 'lineage';
         clone.dashboard = null;
+        // Strip phase / scaffolding nodes so an empty project shows an
+        // empty Lineage tab. Real research artefacts (papers, models,
+        // results, claims) survive the filter because they always carry
+        // either an explicit lineage signal or a real node_type.
+        clone.nodes = (clone.nodes || []).filter(n => !_isScaffoldingNode(n));
         DATA.maps.push(clone);
       }
       // v3 removed Cross-Run Lineage: the project root IS the research root,

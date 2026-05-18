@@ -102,6 +102,10 @@ The Cartographer (hook-driven, not a spawned agent) maintains a **Live Linked Re
 
 Load `skills/task-intake/SKILL.md` and follow its classification, role assignment, and first-question protocol before any other action. The skill defines the canonical task categories, responsible roles, and which skill to invoke next.
 
+**Auto-init**: if the current working directory does not have a `.research-harness` marker (or any ancestor up to filesystem root), the very first thing the Lead Agent does — before classification, before the first researcher question, before anything — is run `python <harness>/scripts/init_research_project.py` from cwd. This scaffolds the harness directory tree and writes the marker. It is NOT a question to the researcher; it is a precondition for everything else. The Lead Agent then proceeds to task-intake.
+
+**Required skill order (no short-cuts)**: for research tasks (New model, Simulation, Analysis, Manuscript claim, Reproduction), the Lead Agent MUST traverse task-intake → professor-interview → literature-review-planning → model-specification → baseline-strategy → seed-design → baseline-validation in order. Each step writes a gate artefact and the next step's gate-check script refuses to advance without it. The researcher's eagerness to "just start coding" is not a valid reason to skip a step; the only escape hatch is an explicit waiver file (`docs/literature_skip_waiver.md`, `docs/model_skip_waiver.md`) with a stated reason and the resulting claim-ceiling demotion.
+
 ## Harness Evaluation
 
 The harness itself must be evaluated periodically.

@@ -11,6 +11,21 @@ Use this skill at the very beginning of any research task — before any other s
 
 Classify the research task, assign the responsible research role, and surface the first professor question. This is the Orient phase: do not execute, implement, or interpret until classification and the first question are complete.
 
+## Project Initialization (Hard Gate, Runs First)
+
+Before classifying the task, check whether the current working directory is a marked research project.
+
+1. If a `.research-harness` marker file exists at the project root (cwd or any ancestor), proceed to Task Classification below.
+2. If **no** marker is found, **automatically run** `python scripts/init_research_project.py` from cwd before asking the researcher anything. This is not optional and is not a question — the harness cannot record orient notes, gate artefacts, or lineage state without the project structure.
+
+After init completes:
+
+- A `.research-harness` marker is written at the project root.
+- `docs/`, `literature/`, `src/`, `outputs/`, `cache/`, `logs/`, `errors/` are scaffolded.
+- An empty `workflow_map.live.json` is bootstrapped.
+
+Only then proceed to classification. Do NOT ask the researcher whether to initialize; do NOT show them the run-directory tree as a question. Initialization is a precondition, not a step they approve.
+
 ## Task Classification
 
 Classify the task as one or more of:
@@ -69,15 +84,11 @@ If the task scope is unclear, classify what is known, mark uncertain categories 
 
 ## Orient Note
 
-If the project is already initialized (a `.research-harness` marker exists at
-the project root), write the output below into `docs/orient_note.md` at the
-project root. This file is the artifact checked by
-`scripts/check_orient_recorded.py` before Seed, Execute, or Evaluate work
-may begin.
-
-If the project is not yet initialized, remind the researcher to run
-`python scripts/init_research_project.py` so the orient note
-can be recorded before execution starts.
+Write the output below into `docs/orient_note.md` at the project root (the
+directory with the `.research-harness` marker — created by the
+Project Initialization step above if it did not already exist). This file
+is the artefact checked by `scripts/check_orient_recorded.py` before Seed,
+Execute, or Evaluate work may begin.
 
 ## Output Format
 
@@ -97,7 +108,29 @@ One sentence describing the task and what makes it scientifically non-trivial.
 
 The single most important clarifying question before execution begins.
 
-### Suggested Next Skill
+### Required Skill Order (No Short-Cuts)
+
+For New model, Simulation, Analysis, Manuscript claim, or Reproduction tasks, the Lead Agent MUST traverse these skills in order before any code is written, any simulation is run, or any claim is drafted:
+
+1. `task-intake` (this skill) — Orient
+2. `professor-interview` — Interview
+3. `literature-review-planning` — Literature (skip only via explicit `docs/literature_skip_waiver.md`)
+4. `model-specification` — Specify (skip only via explicit `docs/model_skip_waiver.md`)
+5. `baseline-strategy` — Decide variation vs new-model verification target (no skip waiver)
+6. `seed-design` — Seed (concrete tasks)
+7. `baseline-validation` — Validate baseline before full-scale execution
+
+Skipping a step in this order is a workflow violation. The corresponding gate-check script will refuse downstream work:
+
+- `scripts/check_interview_recorded.py` blocks Specify/Seed/Execute until `docs/interview_notes.md` is filled.
+- `scripts/check_literature_reviewed.py` blocks model-spec / seed-design until `docs/literature_review_plan.md` is either `ready` or `waived`.
+- `scripts/check_model_specified.py` blocks seed-design until `docs/model_spec.md` is filled or waived.
+- `scripts/check_baseline_strategy.py` blocks seed-design until `docs/baseline_strategy.md` records a decision (no skip waiver).
+- `scripts/check_baseline_gate.py` blocks Execute / Evaluate until a baseline result is recorded.
+
+When the researcher seems eager to jump ahead ("just start coding", "skip the lit review"), do not comply. Either run the skipped skill, or surface the explicit waiver file with the reason and risk. Bypassing a gate without a waiver is a workflow violation that the Lead Agent must refuse.
+
+## Suggested Next Skill
 
 For most new research tasks, the next skill is `professor-interview`. This is the brainstorming dialogue that crystallizes the research question before Specify, Seed, or literature work begins.
 
