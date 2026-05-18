@@ -90,3 +90,28 @@ State the most likely cause and confidence.
 ### Next Diagnostic
 
 Name the smallest next test.
+
+## Cartographer Update
+
+Writing an entry to `docs/logs/anomaly_log.md` does not by itself add an anomaly node to the lineage graph (only `errors/*.err` does, via the workflow_hooks auto-emit). So when an anomaly is significant enough to log, also emit an explicit `anomaly` node:
+
+```bash
+python scripts/update_live_json.py --run "$RUN" --event '{
+  "cartographer_update": {
+    "from": "lead-agent",
+    "node_id": "anomaly_<short_slug>",
+    "title": "<one-line description>",
+    "node_type": "anomaly",
+    "lineage_kind": "anomaly",
+    "summary": "<expected vs observed in one sentence>",
+    "status": "blocked",
+    "requires_researcher_review": true,
+    "graph_links": [
+      {"from": "anomaly_<short_slug>", "to": "<node_id of the result, model, or claim it threatens>",
+       "relation": "limits", "status": "fresh"}
+    ]
+  }
+}'
+```
+
+The `limits` edge is essential — it shows on the lineage graph which downstream result, model, or claim is at risk until the anomaly is resolved. Do not omit it; an anomaly with no outbound edge looks unanchored and is easy to overlook in review.

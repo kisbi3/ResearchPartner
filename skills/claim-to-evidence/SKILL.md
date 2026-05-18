@@ -79,3 +79,16 @@ Use `--scope review` (not `quick`) because the Peer-Review Professor's adversari
 - Needs citation
 - Needs numerical validation
 - Needs uncertainty estimate
+
+## Cartographer Update
+
+For every claim in the table, write a per-claim file to `docs/claims/<claim_slug>.md` containing the claim text, type, evidence, status, and any revision notes. `scripts/workflow_hooks.py` auto-detects this file and seeds a `lineage_kind="claim"` node with `requires_researcher_review=true`.
+
+You **must** explicitly emit edges that anchor the claim to its supporting and limiting evidence — the filesystem can't infer these:
+
+- `supports` edge from the claim node to each `result_*` node that backs it (or `contradicts` if a result undermines it).
+- `cites_paper` edge from the claim node to each `paper_<paper_id>` node cited.
+- `limits` edge from any active `anomaly_*` node to this claim if the anomaly's resolution would change the claim's status.
+- `claim_ceiling` field set to the highest level the evidence supports: `observation` / `interpretation` / `mechanism` / `generalization` / `unsupported`.
+
+Use `claim_<claim_slug>` as the `node_id` to match the auto-emitted claim node. See `skills/cartographer-update/SKILL.md` for the JSON shape; the `supports` / `contradicts` / `cites_paper` / `limits` relations are all listed in the worked examples.

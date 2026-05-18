@@ -152,3 +152,11 @@ State what the researcher must inspect and after which task, before the next pha
 ### Cartographer Update
 
 List the gate statuses, evidence links, and waivers to pass to `cartographer-update` when this seed is accepted.
+
+For lineage continuity, also emit one `decision` node per task (`node_id="task_<n>_<short_slug>"`, `lineage_kind="decision"`) with:
+
+- `graph_links` mirroring the **Dependency Map**: every `depends_on: [Task K]` becomes a `depends_on` edge from `task_<n>_*` to `task_<k>_*`.
+- For Task 1 specifically: a `reproduces` edge to the verification target identified in `docs/baseline_strategy.md` (the same `paper_<paper_id>` or analytical-limit node ID the strategy referenced). This makes the lineage graph show that Task 1's role is to verify against that target.
+- Any task that takes a model_version as input should add a `depends_on` edge to the corresponding `model_<version>` node.
+
+See `skills/cartographer-update/SKILL.md` for the JSON shape and worked examples.

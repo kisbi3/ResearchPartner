@@ -152,6 +152,17 @@ State what changed in assumptions, observables, baselines, validation, and claim
 
 Set this to one of: `ready` (review complete and plan revised) or `waived` (with explicit reason). Write this section into `docs/literature_review_plan.md` in the run directory. The Literature Gate (`python scripts/check_literature_reviewed.py --run <run-dir>`) checks this section before model-specification or seed-design work begins.
 
+## Cartographer Update
+
+Each paper review file you write to `literature/reviews/<paper_id>.md` is auto-detected by `scripts/workflow_hooks.py`, which seeds a `lineage_kind="paper"` node with `paper_id=<filename stem>` in `workflow_map.live.json`. You do not need to emit the paper node yourself.
+
+You **must** explicitly emit:
+
+- a `decision` node for the **reproduction target selection** with a `cites_paper` edge to each chosen paper, and
+- a `decision` node for the **novelty map result** with `cites_paper` edges to the papers it relied on.
+
+See worked examples in `skills/cartographer-update/SKILL.md` → *Worked Examples by Lineage Kind* → "Paper node + cites_paper edge". Use `paper_<paper_id>` as the target `node_id` to match the auto-emitted paper node.
+
 ## Suggested Next Skill
 
 **`model-specification`** — to define the physical model, variables, equations, and approximation regime informed by the literature review.

@@ -74,6 +74,22 @@ When a gate blocks progress (rather than being waived), record:
 
 Do not unblock a gate without explicit Lead Agent authorization. Unresolved blocks must remain visible in the live graph as open issue nodes.
 
+## Auto-emission for Signal Artifacts
+
+`scripts/workflow_hooks.py` automatically pushes a lineage node into `workflow_map.live.json` (and appends an event line to `docs/live_workflow_diagram.md`) whenever any of these files are written or edited inside a run directory:
+
+| Path glob | Auto-derived fields |
+|---|---|
+| `docs/model_versions/<id>.md`     | `lineage_kind=model_version`, `model_version=<id>`, `node_type=model` |
+| `literature/reviews/<paper_id>.md`| `lineage_kind=paper`, `paper_id=<paper_id>`, `node_type=paper` |
+| `docs/claims/<claim_id>.md`       | `lineage_kind=claim`, `node_type=claim`, `requires_researcher_review=true` |
+| `outputs/figures/*.png|pdf|svg|jpg` | `lineage_kind=figure`, `thumbnail_path=<rel>`, `node_type=figure` |
+| `errors/*.err`                    | `lineage_kind=anomaly`, `node_type=anomaly`, `status=blocked` |
+
+The hook only seeds the node. **Cross-referential edges** — `evolved_from` between model versions, `reproduces` from a result to a paper, `cites_paper` from a decision or claim to a paper — must still be added by an explicit cartographer-update call (the filesystem can't see them).
+
+When working with these artifacts, **write the file first** (the hook auto-creates the node), then issue a follow-up cartographer-update **only** to add edges or to override an auto-derived field. Do not re-emit the node fields the hook already filled in.
+
 ## Live Workflow Artifact
 
 **Primary (machine path):** call `python scripts/update_live_json.py` to push state directly into `workflow_map.live.json`. The HTML polls this file every 10 seconds, so the researcher's browser updates automatically with no manual regeneration step.
@@ -124,6 +140,96 @@ Waiver nodes:
   - follow-up:
 Researcher checkpoint:
 ```
+
+## Worked Examples by Lineage Kind
+
+These examples cover the cases where the agent must explicitly emit a node or an edge — i.e. anything beyond what the workflow_hooks auto-emit handles.
+
+### Paper node + cites_paper edge (decision references a paper)
+
+```bash
+python scripts/update_live_json.py --run "$RUN" --event '{
+  "cartographer_update": {
+    "from": "lead-agent",
+    "node_id": "decision_use_lacasa_method",
+    "title": "Adopt HVG method from Lacasa 2008",
+    "node_type": "decision",
+    "lineage_kind": "decision",
+    "summary": "Use horizontal visibility graph as primary mapping.",
+    "graph_links": [
+      {"from": "decision_use_lacasa_method", "to": "paper_lacasa2008",
+       "relation": "cites_paper", "status": "fresh"}
+    ]
+  }
+}'
+```
+
+### Model version evolution (v2 evolved_from v1)
+
+```bash
+python scripts/update_live_json.py --run "$RUN" --event '{
+  "cartographer_update": {
+    "from": "lead-agent",
+    "node_id": "model_v2",
+    "title": "Model v2 with damping term",
+    "node_type": "model",
+    "lineage_kind": "model_version",
+    "model_version": "v2",
+    "summary": "Added linear damping to v1 equations of motion.",
+    "graph_links": [
+      {"from": "model_v2", "to": "model_v1",
+       "relation": "evolved_from", "status": "fresh"}
+    ]
+  }
+}'
+```
+
+### Result reproduces a paper figure
+
+```bash
+python scripts/update_live_json.py --run "$RUN" --event '{
+  "cartographer_update": {
+    "from": "lead-agent",
+    "node_id": "result_baseline_fig3",
+    "title": "Reproduced Lacasa 2008 Fig. 3",
+    "node_type": "validation",
+    "lineage_kind": "result",
+    "evidence_strength": "strong",
+    "summary": "HVG degree distribution matches Fig. 3 (chi2 p=0.42).",
+    "graph_links": [
+      {"from": "result_baseline_fig3", "to": "paper_lacasa2008",
+       "relation": "reproduces", "status": "fresh"}
+    ]
+  }
+}'
+```
+
+### Cross-run lineage (current run derived from a prior one)
+
+```bash
+python scripts/update_live_json.py --run "$RUN" --event '{
+  "cartographer_update": {
+    "from": "lead-agent",
+    "node_id": "model_v1",
+    "title": "Model v1 (carried over from prior run)",
+    "node_type": "model",
+    "lineage_kind": "model_version",
+    "model_version": "v1",
+    "parent_run": "ResearchPartner-runs/2026-05-10-hvg-baseline",
+    "summary": "Reusing validated v1 from prior baseline run."
+  }
+}'
+```
+
+`parent_run` is what the **Cross-Run Lineage** tab uses to draw an edge from this node to its ancestor run. Set it whenever a node materially carries forward from another run (a model version, a validated result, a paper review).
+
+### Quick reference: when to use each new relation
+
+| `graph_links.relation` | Use when |
+|---|---|
+| `evolved_from` | model_version B is a successor of model_version A |
+| `reproduces`   | a `result` confirms a target — typically a `paper` figure/equation, or a prior validated result |
+| `cites_paper`  | a `decision`, `claim`, or `result` is directly justified by a specific `paper` node |
 
 ## Output Format
 

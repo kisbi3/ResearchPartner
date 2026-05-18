@@ -21,6 +21,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import update_workflow_diagram as uwd  # noqa: E402
+import update_live_json as ulj  # noqa: E402
 
 
 AGENT_NAME = "lead-agent"
@@ -91,6 +92,105 @@ def signal_for(file_path_str: str):
     return None
 
 
+def build_lineage_packet(rel: str) -> dict | None:
+    """Map a signal-artifact relpath to a Cartographer event JSON packet.
+
+    The packet seeds the Lineage tab with a node whose `lineage_kind`,
+    `node_type`, and identifying field (`paper_id`, `model_version`,
+    `thumbnail_path`) can be inferred from the filesystem alone. Cross-
+    referential edges (`evolved_from`, `reproduces`, `cites_paper`) cannot
+    be derived from a filename — skills must add those via an explicit
+    cartographer-update call when the agent knows the relationship.
+
+    Returns None when the artifact has no lineage interpretation (e.g. cache
+    files), so the caller can skip the emit step.
+    """
+    name = Path(rel).name
+    stem = Path(rel).stem
+    if rel.startswith("docs/model_versions/") and rel.endswith(".md"):
+        return {"cartographer_update": {
+            "from": "lead-agent",
+            "node_id": f"model_{stem}",
+            "title": f"Model version {stem}",
+            "node_type": "model",
+            "lineage_kind": "model_version",
+            "model_version": stem,
+            "summary": f"Model version recorded: {stem}",
+            "status": "active",
+            "code_links": [{"path": rel, "role": "model spec", "relation": "defines_parameter", "status": "fresh"}],
+        }}
+    if rel.startswith("literature/reviews/") and rel.endswith(".md"):
+        return {"cartographer_update": {
+            "from": "lead-agent",
+            "node_id": f"paper_{stem}",
+            "title": f"Paper review: {stem}",
+            "node_type": "paper",
+            "lineage_kind": "paper",
+            "paper_id": stem,
+            "summary": f"Paper review recorded: {stem}",
+            "status": "active",
+            "interpretation_links": [{"path": rel, "relation": "documents", "status": "fresh"}],
+        }}
+    if rel.startswith("docs/claims/") and rel.endswith(".md"):
+        return {"cartographer_update": {
+            "from": "lead-agent",
+            "node_id": f"claim_{stem}",
+            "title": f"Claim {stem}",
+            "node_type": "claim",
+            "lineage_kind": "claim",
+            "summary": f"Claim recorded: {stem}",
+            "status": "pending_review",
+            "claim_ceiling": "unsupported",
+            "requires_researcher_review": True,
+            "interpretation_links": [{"path": rel, "relation": "documents", "status": "pending_review"}],
+        }}
+    if rel.startswith("outputs/figures/") and rel.lower().endswith(FIGURE_EXTS):
+        return {"cartographer_update": {
+            "from": "lead-agent",
+            "node_id": f"figure_{stem}",
+            "title": f"Figure {name}",
+            "node_type": "figure",
+            "lineage_kind": "figure",
+            "thumbnail_path": rel,
+            "summary": f"Figure generated: {name}",
+            "status": "pending_review",
+            "requires_researcher_review": True,
+            "result_links": [{"path": rel, "kind": "figure", "relation": "generated_by", "status": "fresh"}],
+        }}
+    if rel.startswith("errors/") and rel.endswith(".err"):
+        return {"cartographer_update": {
+            "from": "lead-agent",
+            "node_id": f"anomaly_{stem}",
+            "title": f"Error: {name}",
+            "node_type": "anomaly",
+            "lineage_kind": "anomaly",
+            "summary": f"Error file created: {name}",
+            "status": "blocked",
+            "requires_researcher_review": True,
+            "result_links": [{"path": rel, "kind": "log", "relation": "documents", "status": "fresh"}],
+        }}
+    return None
+
+
+def emit_lineage_event(run_dir: Path, file_path_str: str) -> None:
+    """Push a Cartographer node into workflow_map.live.json for signal artifacts.
+
+    Best-effort: failures are logged to stderr but never block the tool call,
+    matching the hook contract (exit 0 always).
+    """
+    try:
+        rel = Path(file_path_str).resolve().relative_to(run_dir).as_posix()
+    except (ValueError, OSError):
+        return
+    packet = build_lineage_packet(rel)
+    if packet is None:
+        return
+    try:
+        ulj.apply_updates(run_dir, event_json=json.dumps(packet))
+    except Exception as exc:
+        print(f"WORKFLOW WARNING: lineage event emit failed: {exc}", file=sys.stderr)
+
+
 def run_artifact_event(tool_name: str, file_path_str: str, phase: str) -> None:
     """Record a Cartographer event for Write/Edit of a signal artifact."""
     sig = signal_for(file_path_str)
@@ -112,6 +212,11 @@ def run_artifact_event(tool_name: str, file_path_str: str, phase: str) -> None:
         diagram_path.write_text(content, encoding="utf-8")
     except Exception as exc:
         print(f"WORKFLOW WARNING: artifact event failed: {exc}", file=sys.stderr)
+    # Push a lineage node into workflow_map.live.json on post-write. Skills can
+    # later overlay edges (evolved_from / reproduces / cites_paper) via their
+    # own cartographer-update calls; the auto-emit only seeds the node.
+    if phase == "post":
+        emit_lineage_event(run_dir, file_path_str)
 
 
 def extract_step(tool_input: dict) -> str:

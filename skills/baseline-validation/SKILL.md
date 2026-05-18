@@ -92,3 +92,17 @@ State what this baseline does and does not justify.
 ### Next Action
 
 Recommend whether to proceed, revise, or run another baseline.
+
+## Cartographer Update
+
+When a baseline check **passes**, emit a `result` node (lineage_kind=`result`, node_type=`validation`) carrying:
+
+- `evidence_strength` set to `strong` (for analytical-limit match within tolerance) or `moderate` (for partial reproduction)
+- a `reproduces` edge from this result node to the verification target — `paper_<paper_id>` for variation runs, or the analytical-limit node ID used in `baseline-strategy` for new-model runs
+- the figure thumbnail in `thumbnail_path` if the check produced a comparison plot
+
+When a baseline check **fails or is partial**, also emit an `anomaly` node and a `limits` edge from the anomaly to whatever downstream claim it would block.
+
+When a baseline is **waived**, the existing waiver-node emit (already required above) is sufficient — the lineage_kind=`waiver` is auto-derived from `event_type="waiver"`.
+
+See `skills/cartographer-update/SKILL.md` → *Worked Examples by Lineage Kind* → "Result reproduces a paper figure".
