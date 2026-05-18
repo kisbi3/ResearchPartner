@@ -9,10 +9,10 @@ discard the stale checkpoint.
 
 CLI
 ---
-    python scripts/check_computation_resumable.py --run <run_dir>
+    python scripts/check_computation_resumable.py --project <project_dir>
     python scripts/check_computation_resumable.py --all
-    python scripts/check_computation_resumable.py --run <run_dir> --json
-    python scripts/check_computation_resumable.py --run <run_dir> --clear <stem>
+    python scripts/check_computation_resumable.py --project <project_dir> --json
+    python scripts/check_computation_resumable.py --project <project_dir> --clear <stem>
 
 Exit codes
 ----------
@@ -117,9 +117,14 @@ def format_report(records: list[dict]) -> str:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    group = parser.add_mutually_exclusive_group(required=True)
+    group = parser.add_mutually_exclusive_group(required=False)
     group.add_argument(
-        "--run", type=Path, help="Path to the research run directory."
+        "--project", "--run",
+        dest="project",
+        type=Path,
+        default=None,
+        help="Project root directory. Default: walk up from cwd looking for "
+             "the `.research-harness` marker. `--run` kept as alias for one release.",
     )
     group.add_argument(
         "--all",
@@ -138,10 +143,15 @@ def main(argv: list[str] | None = None) -> int:
 
     # --clear shortcut
     if args.clear:
-        if not args.run:
-            print("ERROR: --clear requires --run.", file=sys.stderr)
+        if args.all:
+            print("ERROR: --clear is incompatible with --all.", file=sys.stderr)
             return 1
-        ckpt = cache_dir(args.run.resolve()) / f"checkpoint_{args.clear}.pkl"
+        try:
+            project = project_root_mod.resolve_project(args.project, require=True)
+        except project_root_mod.ProjectRootNotFoundError as exc:
+            print(f"ERROR: {exc}", file=sys.stderr)
+            return 1
+        ckpt = cache_dir(project) / f"checkpoint_{args.clear}.pkl"
         if ckpt.exists():
             ckpt.unlink()
             print(f"Cleared {ckpt}")
@@ -149,8 +159,13 @@ def main(argv: list[str] | None = None) -> int:
         print(f"No checkpoint found: {ckpt}", file=sys.stderr)
         return 1
 
-    if args.run:
-        runs = [args.run.resolve()]
+    if not args.all:
+        try:
+            project = project_root_mod.resolve_project(args.project, require=True)
+        except project_root_mod.ProjectRootNotFoundError as exc:
+            print(f"ERROR: {exc}", file=sys.stderr)
+            return 1
+        runs = [project]
     else:
         runs_root = find_runs_root()
         if runs_root is None:

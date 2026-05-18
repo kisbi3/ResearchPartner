@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """Detect the HPC cluster scheduler and record environment info.
 
-Writes a cluster_env.md summary to the given run docs directory (or prints
-to stdout when no --run is supplied).  Safe to run on a local workstation:
+Writes a cluster_env.md summary to the given project docs directory (or prints
+to stdout when no --project is supplied).  Safe to run on a local workstation:
 it reports 'none' when no scheduler is found.
 
 Usage:
     python scripts/detect_cluster_env.py
-    python scripts/detect_cluster_env.py --run ResearchPartner-runs/2026-05-16-myrun
+    python scripts/detect_cluster_env.py --project <project-dir>
     python scripts/detect_cluster_env.py --json   # machine-readable
 """
 
@@ -20,6 +20,9 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import _project_root as project_root_mod  # noqa: E402
 
 
 # ---------------------------------------------------------------------------
@@ -283,7 +286,14 @@ def _submission_guidelines(info: dict) -> str:
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument("--run", type=Path, help="Run directory; writes docs/cluster_env.md there.")
+    p.add_argument(
+        "--project", "--run",
+        dest="project",
+        type=Path,
+        default=None,
+        help="Project root directory; writes docs/cluster_env.md there. When omitted, "
+             "prints to stdout. `--run` kept as alias for one release.",
+    )
     p.add_argument("--json", action="store_true", help="Print JSON instead of Markdown.")
     return p.parse_args(argv)
 
@@ -298,8 +308,10 @@ def main(argv: list[str] | None = None) -> int:
 
     md = to_markdown(info)
 
-    if args.run:
-        out_path = Path(args.run) / "docs" / "cluster_env.md"
+    if args.project:
+        # Explicit path passed; trust it without requiring the marker.
+        project = project_root_mod.resolve_project(args.project, require=False)
+        out_path = project / "docs" / "cluster_env.md"
         out_path.parent.mkdir(parents=True, exist_ok=True)
         out_path.write_text(md, encoding="utf-8")
         print(f"Written: {out_path}")

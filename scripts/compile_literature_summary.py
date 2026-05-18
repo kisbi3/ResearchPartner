@@ -12,7 +12,7 @@ between `<!-- context-summary:start -->` and `<!-- context-summary:end -->`,
 and writes the rolled-up output to `<run-dir>/literature/summary.md`.
 
 Usage:
-    python scripts/compile_literature_summary.py --run <run-dir>
+    python scripts/compile_literature_summary.py --project <project-dir>
 """
 
 from __future__ import annotations
@@ -22,6 +22,9 @@ import re
 import sys
 from dataclasses import dataclass
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import _project_root as project_root_mod  # noqa: E402
 
 
 START_MARKER = "<!-- context-summary:start -->"
@@ -113,14 +116,26 @@ def compile_summary(run_dir: Path) -> tuple[Path, int]:
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--run", type=Path, required=True, help="Run directory.")
+    parser.add_argument(
+        "--project", "--run",
+        dest="project",
+        type=Path,
+        default=None,
+        help="Project root directory. Default: walk up from cwd looking for "
+             "the `.research-harness` marker. `--run` kept as alias for one release.",
+    )
     return parser.parse_args(argv)
 
 
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
     try:
-        output, missing = compile_summary(args.run.resolve())
+        project = project_root_mod.resolve_project(args.project, require=True)
+    except project_root_mod.ProjectRootNotFoundError as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 1
+    try:
+        output, missing = compile_summary(project)
     except FileNotFoundError as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2
