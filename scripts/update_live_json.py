@@ -310,6 +310,54 @@ def _relink_edges(nodes: list[dict]) -> None:
 
 
 # ---------------------------------------------------------------------------
+# Broken-edge linter
+# ---------------------------------------------------------------------------
+
+def find_broken_edges(run_root: Path) -> list[dict]:
+    """Return graph_links / edges whose endpoints don't exist in the same map.
+
+    Typos in `graph_links.to` are easy to make and currently fail silently
+    (the Cytoscape renderer just skips the dangling edge). This linter walks
+    every node in the run-local live JSON and reports any reference that
+    can't be resolved against the same map's node id set.
+    """
+    json_path = run_root / "workflow_map.live.json"
+    if not json_path.exists():
+        return []
+    try:
+        data = json.loads(json_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return []
+    maps = data.get("maps") or []
+    if not maps:
+        return []
+    nodes = maps[0].get("nodes", []) or []
+    ids = {n.get("id") for n in nodes if n.get("id")}
+    broken: list[dict] = []
+    for node in nodes:
+        node_id = node.get("id") or "(missing-id)"
+        for edge_id in node.get("edges", []) or []:
+            if edge_id not in ids:
+                broken.append({
+                    "source": node_id,
+                    "target": edge_id,
+                    "relation": "flow",
+                    "field": "edges",
+                })
+        for link in node.get("graph_links", []) or []:
+            src = link.get("from")
+            dst = link.get("to")
+            rel = link.get("relation", "")
+            if src and src not in ids:
+                broken.append({"source": src, "target": dst, "relation": rel,
+                               "field": "graph_links.from"})
+            if dst and dst not in ids:
+                broken.append({"source": src, "target": dst, "relation": rel,
+                               "field": "graph_links.to"})
+    return broken
+
+
+# ---------------------------------------------------------------------------
 # Public API (also usable as a library from start_research_run.py)
 # ---------------------------------------------------------------------------
 
@@ -319,6 +367,49 @@ def bootstrap_run_json(run_root: Path) -> Path:
     json_path = run_root / "workflow_map.live.json"
     json_path.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
     return json_path
+
+
+def _resolve_anomaly(nodes: list[dict], anomaly_id: str) -> int:
+    """Mark all outgoing edges from a resolved anomaly node as superseded.
+
+    Returns the number of edges that were updated. The anomaly node itself
+    must have already been upserted to status=resolved by the caller — this
+    helper only cleans up the dangling `limits` edges so the lineage graph
+    no longer shows the threatened downstream node as still at risk.
+    """
+    updated = 0
+    for node in nodes:
+        if node.get("id") != anomaly_id:
+            continue
+        for link in node.get("graph_links", []) or []:
+            if link.get("from") == anomaly_id and link.get("status") != "superseded":
+                link["status"] = "superseded"
+                updated += 1
+    return updated
+
+
+def _maybe_rebuild_cross_run_lineage(run_root: Path, new_node: dict) -> None:
+    """Re-run build_lineage_graph.py when a packet introduces cross-run lineage.
+
+    Best-effort. We only fire when the incoming node carries a `parent_run`
+    field, since that's the only signal that affects Cross-Run Lineage tab
+    edges. A run that never sets parent_run never pays this cost.
+    """
+    if not new_node.get("parent_run"):
+        return
+    script = ROOT / "scripts" / "build_lineage_graph.py"
+    if not script.exists():
+        return
+    try:
+        subprocess.run(
+            [sys.executable, str(script), "--runs-root", str(run_root.parent)],
+            capture_output=True,
+            text=True,
+            timeout=30,
+            check=False,
+        )
+    except Exception as exc:  # noqa: BLE001
+        print(f"WARNING: cross-run lineage rebuild failed: {exc}", file=sys.stderr)
 
 
 def apply_updates(
@@ -337,6 +428,7 @@ def apply_updates(
     data = _load_or_bootstrap(run_root)
     live_map = data["maps"][0]
     nodes: list[dict] = live_map.setdefault("nodes", [])
+    cross_run_dirty = False
 
     if active_step is not None:
         live_map["active_step"] = active_step
@@ -349,6 +441,14 @@ def apply_updates(
         event = json.loads(event_json)
         new_node = _event_to_node(event, nodes)
         nodes = _upsert_node(nodes, new_node)
+        # Anomaly resolution lifecycle: when an anomaly node flips to status
+        # resolved, mark its outgoing limits edges as superseded so the graph
+        # no longer shows the threatened downstream node as at risk.
+        if new_node.get("lineage_kind") == "anomaly" and \
+                str(new_node.get("phase", "")).lower() in {"resolved", "passed"}:
+            _resolve_anomaly(nodes, new_node["id"])
+        if new_node.get("parent_run"):
+            cross_run_dirty = True
 
     _relink_edges(nodes)
     live_map["nodes"] = nodes
@@ -356,6 +456,8 @@ def apply_updates(
 
     json_path = run_root / "workflow_map.live.json"
     json_path.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
+    if cross_run_dirty:
+        _maybe_rebuild_cross_run_lineage(run_root, new_node)
     return json_path
 
 
@@ -381,6 +483,11 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--update-central", action="store_true",
                         help="Also regenerate docs/workflow_map.live.json via "
                              "generate_workflow_map.py after updating the run-local JSON.")
+    parser.add_argument("--validate", action="store_true",
+                        help="After applying updates (or with no other flags, on the "
+                             "current file), check every graph_links.from/to and edges "
+                             "reference against the node id set. Exits 2 on any broken "
+                             "reference; otherwise prints a clean report and exits 0.")
     return parser.parse_args(argv)
 
 
@@ -395,20 +502,33 @@ def main(argv: list[str] | None = None) -> int:
         print("ERROR: --gate requires --status", file=sys.stderr)
         return 1
 
-    try:
-        json_path = apply_updates(
-            run_root,
-            active_step=args.active_step,
-            gate=args.gate,
-            status=args.status,
-            note=args.note,
-            event_json=args.event,
-        )
-    except json.JSONDecodeError as exc:
-        print(f"ERROR: invalid --event JSON: {exc}", file=sys.stderr)
-        return 1
+    # Allow `--validate` to run on its own without requiring any update flags.
+    has_update = any([args.active_step, args.gate, args.event])
+    if has_update:
+        try:
+            json_path = apply_updates(
+                run_root,
+                active_step=args.active_step,
+                gate=args.gate,
+                status=args.status,
+                note=args.note,
+                event_json=args.event,
+            )
+        except json.JSONDecodeError as exc:
+            print(f"ERROR: invalid --event JSON: {exc}", file=sys.stderr)
+            return 1
+        print(f"Updated: {json_path}")
 
-    print(f"Updated: {json_path}")
+    if args.validate:
+        broken = find_broken_edges(run_root)
+        if broken:
+            print(f"Broken-edge linter found {len(broken)} dangling reference(s):",
+                  file=sys.stderr)
+            for b in broken:
+                print(f"  - {b['field']}: {b['source']} -> {b['target']} "
+                      f"(relation={b['relation']})", file=sys.stderr)
+            return 2
+        print("Broken-edge linter: all graph_links and edges resolve to known nodes.")
 
     if args.update_central:
         result = subprocess.run(

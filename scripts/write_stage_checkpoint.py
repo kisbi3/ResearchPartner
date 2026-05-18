@@ -28,6 +28,33 @@ from pathlib import Path
 
 RESPAWN_WARN_THRESHOLD = 3  # >=3 spawns for the same file is a quality flag
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+
+def detect_lineage_coverage(run_dir: Path) -> dict:
+    """Run the lineage coverage gate and summarize for the checkpoint.
+
+    Returns a dict with `violation_count`, `violations` (list), and a
+    short human-readable `status` string. Failure to import the checker
+    or read the run's JSON degrades to status="skipped" rather than
+    breaking the stage checkpoint flow.
+    """
+    try:
+        import check_lineage_coverage as clc  # noqa: PLC0415
+    except Exception as exc:  # noqa: BLE001
+        return {"violation_count": 0, "violations": [],
+                "status": f"skipped (import failed: {exc})"}
+    try:
+        violations = clc.check(run_dir)
+    except Exception as exc:  # noqa: BLE001
+        return {"violation_count": 0, "violations": [],
+                "status": f"skipped (check failed: {exc})"}
+    if not violations:
+        return {"violation_count": 0, "violations": [],
+                "status": "pass — all skill-required lineage edges are present"}
+    return {"violation_count": len(violations), "violations": violations,
+            "status": f"{len(violations)} violation(s) — see check_lineage_coverage.py"}
+
 
 def detect_cross_tier_compliance(run_dir: Path) -> dict:
     """Count src/*.py files vs Implementation Agent spawn log entries.
@@ -136,6 +163,7 @@ def build_checkpoint(
     today: str,
     outputs: list[tuple[str, int]],
     compliance: dict,
+    lineage_block: str = "Status: — lineage check skipped",
 ) -> str:
     title_line = f"Stage {stage}" + (f" — {title}" if title else "")
     output_table = ["| File | Size |", "|---|---|"]
@@ -214,11 +242,32 @@ Status: {compliance['status']}
 > poor spec, an ambiguous task, or a buggy Implementation Agent pass —
 > worth inspecting at this stage gate. Verdict: **{compliance['verdict']}**.
 
+## Lineage Coverage
+
+{lineage_block}
+
+> Auto-seeded lineage nodes (papers / model versions / claims / figures /
+> anomalies) without their skill-required cross-referential edges are silent
+> failures — the Lineage tab still renders the node but shows it as
+> unanchored. The coverage gate (`scripts/check_lineage_coverage.py --run
+> <run-dir>`) lists every node missing an edge a skill said to emit. Fix
+> each row before promoting the run's claim ceiling.
+
 ## Notes for Reuse
 
 - Reusable artifacts: <scripts, recipes, benchmarks created in this stage>
 - Negative results worth remembering: <what failed and why>
 """
+
+
+def _format_lineage_block(lineage: dict) -> str:
+    if lineage.get("violation_count", 0) == 0:
+        return f"Status: {lineage['status']}"
+    lines = [f"Status: {lineage['status']}", "", "| Node | Kind | Missing |", "|---|---|---|"]
+    for v in lineage["violations"]:
+        rule_short = v["rule"].replace("|", "\\|")
+        lines.append(f"| `{v['node_id']}` | {v['lineage_kind']} | {rule_short} |")
+    return "\n".join(lines)
 
 
 def write_checkpoint(*, run_dir: Path, stage: int, title: str, force: bool, skip_compliance: bool = False) -> Path:
@@ -235,6 +284,12 @@ def write_checkpoint(*, run_dir: Path, stage: int, title: str, force: bool, skip
         if skip_compliance
         else detect_cross_tier_compliance(run_dir)
     )
+    lineage = (
+        {"violation_count": 0, "violations": [],
+         "status": "— lineage check skipped (--no-compliance)"}
+        if skip_compliance
+        else detect_lineage_coverage(run_dir)
+    )
     output.write_text(
         build_checkpoint(
             run_dir=run_dir,
@@ -243,6 +298,7 @@ def write_checkpoint(*, run_dir: Path, stage: int, title: str, force: bool, skip
             today=today,
             outputs=outputs,
             compliance=compliance,
+            lineage_block=_format_lineage_block(lineage),
         ),
         encoding="utf-8",
     )

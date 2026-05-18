@@ -76,6 +76,15 @@ The Baseline Strategy Gate (`python scripts/check_baseline_strategy.py --run <ru
 
 Once the strategy is decided, the actual execution of the reproduce or analytical verification task is done using the **`baseline-validation`** skill. The `baseline_strategy.md` defines **what** to verify; `baseline-validation` defines **how** to run and record the check.
 
+## Cartographer Update
+
+After writing `docs/baseline_strategy.md`, emit a `decision` node that captures the variation/new-model classification and links the verification target to its source:
+
+- For **variation**: the decision node must carry a `cites_paper` edge to the parent paper's `paper_<paper_id>` node and a `reproduces` edge from the planned baseline result to the same paper node.
+- For **new model**: the decision node must carry a `reproduces` edge from the planned baseline result to the analytical-limit target (use a stable `node_id` for the limit, e.g. `analytical_meanfield_limit`).
+
+See `skills/cartographer-update/SKILL.md` → *Worked Examples by Lineage Kind* → "Result reproduces a paper figure". Use `decision_baseline_strategy` as the `node_id` so downstream skills can reference it.
+
 ## Suggested Next Skill
 
 **`seed-design`** — Task 1 is automatically defined by the decision in `docs/baseline_strategy.md`.

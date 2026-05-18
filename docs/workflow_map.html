@@ -573,7 +573,8 @@
       run_root:      'round-octagon',
     };
     const LINEAGE_FILTER_KEYS = ['paper', 'decision', 'model_version', 'result', 'figure', 'claim', 'anomaly', 'waiver', 'gate', 'run_root'];
-    const lineageFilterState = {};   // mapId -> { kind: Set, runIds: Set }
+    const CEILING_FILTER_KEYS = ['unsupported', 'observation', 'interpretation', 'mechanism', 'generalization'];
+    const lineageFilterState = {};   // mapId -> { kind, runIds, ceiling, reviewOnly }
     let lineageCyInstances = {};     // mapId -> cy
     let crossLineageCache = null;    // last-fetched cross-run map; survives polling
 
@@ -582,6 +583,8 @@
         lineageFilterState[mapId] = {
           kind: new Set(LINEAGE_FILTER_KEYS),
           runIds: new Set(allRunIds || []),
+          ceiling: new Set(CEILING_FILTER_KEYS),
+          reviewOnly: false,
         };
       } else {
         // New runs that appear after first render should be visible by default.
@@ -594,8 +597,11 @@
       const nodes = map.nodes || [];
       const knownIds = new Set(nodes.map(n => n.id));
       const elements = [];
+      const nodeById = {};
       nodes.forEach(node => {
         const kind = node.lineage_kind || 'decision';
+        const ceiling = node.claim_ceiling || 'unsupported';
+        nodeById[node.id] = node;
         elements.push({
           data: {
             id: node.id,
@@ -603,6 +609,7 @@
             kind: kind,
             runId: node.run_id || '',
             phase: node.phase || '',
+            ceiling: ceiling,
             requiresReview: Boolean(node.requires_researcher_review),
             hasWaiver: kind === 'waiver',
             hasAnomaly: kind === 'anomaly',
@@ -610,29 +617,40 @@
         });
       });
       const edgeSeen = new Set();
-      const addEdge = (src, dst, relation) => {
+      const addEdge = (src, dst, relation, extra) => {
         if (!src || !dst || !knownIds.has(src) || !knownIds.has(dst)) return;
         const key = src + '|' + dst + '|' + (relation || '');
         if (edgeSeen.has(key)) return;
         edgeSeen.add(key);
+        // Edge styling pulls evidence_strength from the source node (the node
+        // making the claim) and link_status from the graph_links entry itself.
+        const srcNode = nodeById[src] || {};
         elements.push({
           data: {
             id: 'e_' + edgeSeen.size,
             source: src,
             target: dst,
             relation: relation || 'depends_on',
+            strength: (extra && extra.strength) || srcNode.evidence_strength || 'none',
+            linkStatus: (extra && extra.linkStatus) || 'fresh',
           },
         });
       };
       nodes.forEach(node => {
         (node.edges || []).forEach(t => addEdge(node.id, t, 'flow'));
-        (node.graph_links || []).forEach(link => addEdge(link.from, link.to, link.relation));
+        (node.graph_links || []).forEach(link => addEdge(
+          link.from, link.to, link.relation,
+          {strength: node.evidence_strength, linkStatus: link.status || 'fresh'},
+        ));
         // Group run-local nodes under the synthetic _run_root for cross-run view.
         if (node.run_root && node.run_root !== node.id && knownIds.has(node.run_root)) {
           addEdge(node.run_root, node.id, 'contains');
         }
       });
-      (map.inter_run_edges || []).forEach(link => addEdge(link.from, link.to, link.relation));
+      (map.inter_run_edges || []).forEach(link => addEdge(
+        link.from, link.to, link.relation,
+        {strength: 'none', linkStatus: link.status || 'fresh'},
+      ));
       return elements;
     }
 
@@ -647,9 +665,11 @@
     function applyLineageFilter(cy, filter) {
       cy.batch(() => {
         cy.nodes().forEach(n => {
-          const visible = filter.kind.has(n.data('kind')) &&
-            (!n.data('runId') || filter.runIds.has(n.data('runId')));
-          n.style('display', visible ? 'element' : 'none');
+          const kindOk = filter.kind.has(n.data('kind'));
+          const runOk = !n.data('runId') || filter.runIds.has(n.data('runId'));
+          const ceilingOk = filter.ceiling.has(n.data('ceiling') || 'unsupported');
+          const reviewOk = !filter.reviewOnly || n.data('requiresReview');
+          n.style('display', (kindOk && runOk && ceilingOk && reviewOk) ? 'element' : 'none');
         });
         cy.edges().forEach(e => {
           const visible = e.source().style('display') !== 'none' &&
@@ -669,9 +689,13 @@
         <label><input type="checkbox" data-kind="${k}" ${filter.kind.has(k) ? 'checked' : ''}>
           <span class="swatch" style="background:${LINEAGE_KIND_COLORS[k]}"></span>${k.replace('_', ' ')}</label>
       `).join('');
+      const ceilingControls = CEILING_FILTER_KEYS.map(c => `
+        <label><input type="checkbox" data-ceiling="${c}" ${filter.ceiling.has(c) ? 'checked' : ''}>${c}</label>
+      `).join('');
       const runControls = allRunIds.length > 1 ? allRunIds.map(r => `
         <label><input type="checkbox" data-run="${escapeHtml(r)}" ${filter.runIds.has(r) ? 'checked' : ''}>${escapeHtml(r)}</label>
       `).join('') : '';
+      const isEmpty = (map.nodes || []).length === 0;
 
       const legend = LINEAGE_FILTER_KEYS.map(k =>
         `<span><span class="swatch" style="background:${LINEAGE_KIND_COLORS[k]}"></span>${k.replace('_', ' ')}</span>`
@@ -679,12 +703,19 @@
 
       wrap.innerHTML = `
         <div class="lineage-controls">
-          <strong style="color:var(--ink);font-size:12px;">Show kinds:</strong>${kindControls}
+          <strong style="color:var(--ink);font-size:12px;">Kinds:</strong>${kindControls}
+          <strong style="color:var(--ink);font-size:12px;margin-left:8px;">Claim ceiling:</strong>${ceilingControls}
+          <label><input type="checkbox" id="lineageReviewOnly" ${filter.reviewOnly ? 'checked' : ''}>review-pending only</label>
           ${runControls ? `<strong style="color:var(--ink);font-size:12px;margin-left:8px;">Runs:</strong>${runControls}` : ''}
           <button type="button" id="lineageRefit">Fit to view</button>
+          ${isEmpty ? '<button type="button" id="lineageLoadDemo" style="background:#fde68a;">Load demo lineage</button>' : ''}
         </div>
         <div class="lineage-canvas" id="cyCanvas"></div>
-        <div class="lineage-legend">${legend}</div>
+        <div class="lineage-legend">${legend}
+          <span style="margin-left:auto;font-size:10px;color:var(--muted);">
+            Edge color = relation · width = evidence_strength · dashed/orange = stale · red = broken
+          </span>
+        </div>
       `;
 
       if (typeof cytoscape === 'undefined') {
@@ -763,6 +794,21 @@
             selector: 'edge[relation = "contains"]',
             style: { 'line-color': '#cbd5e1', 'target-arrow-color': '#cbd5e1', 'line-style': 'dotted' },
           },
+          // Evidence strength → edge width. A `supports` from a strong-evidence
+          // node should look heavier than from a weak-evidence node.
+          { selector: 'edge[strength = "strong"]',         style: { 'width': 3.0 } },
+          { selector: 'edge[strength = "moderate"]',       style: { 'width': 2.0 } },
+          { selector: 'edge[strength = "weak"]',           style: { 'width': 1.0, 'line-style': 'dashed' } },
+          { selector: 'edge[strength = "contradictory"]',  style: { 'line-color': '#dc2626', 'target-arrow-color': '#dc2626' } },
+          // Link status — overrides relation color for failure modes.
+          { selector: 'edge[linkStatus = "stale"]',
+            style: { 'line-color': '#ea580c', 'target-arrow-color': '#ea580c', 'line-style': 'dashed' } },
+          { selector: 'edge[linkStatus = "broken"]',
+            style: { 'line-color': '#b91c1c', 'target-arrow-color': '#b91c1c', 'line-style': 'dotted', 'width': 2.5 } },
+          { selector: 'edge[linkStatus = "missing"]',
+            style: { 'line-color': '#9ca3af', 'target-arrow-color': '#9ca3af', 'line-style': 'dotted', 'opacity': 0.5 } },
+          { selector: 'edge[linkStatus = "superseded"]',
+            style: { 'line-color': '#9ca3af', 'target-arrow-color': '#9ca3af', 'opacity': 0.35 } },
         ],
         layout: {
           // TB (top-to-bottom) reads like a research flow: question/papers up top,
@@ -800,8 +846,72 @@
           applyLineageFilter(cy, filter);
         });
       });
+      wrap.querySelectorAll('input[data-ceiling]').forEach(input => {
+        input.addEventListener('change', () => {
+          if (input.checked) filter.ceiling.add(input.dataset.ceiling);
+          else filter.ceiling.delete(input.dataset.ceiling);
+          applyLineageFilter(cy, filter);
+        });
+      });
+      const reviewOnlyEl = document.getElementById('lineageReviewOnly');
+      if (reviewOnlyEl) reviewOnlyEl.addEventListener('change', () => {
+        filter.reviewOnly = reviewOnlyEl.checked;
+        applyLineageFilter(cy, filter);
+      });
       const refitBtn = document.getElementById('lineageRefit');
       if (refitBtn) refitBtn.addEventListener('click', () => cy.fit(null, 40));
+      const demoBtn = document.getElementById('lineageLoadDemo');
+      if (demoBtn) demoBtn.addEventListener('click', () => loadDemoLineage(map.id));
+    }
+
+    // Load a synthetic lineage straight into the current Lineage tab so
+    // first-time users can see what a populated graph looks like without
+    // having to run the seed_lineage_demo script themselves.
+    function loadDemoLineage(targetMapId) {
+      const demo = buildDemoLineageMap(targetMapId);
+      const idx = DATA.maps.findIndex(m => m.id === targetMapId);
+      if (idx >= 0) DATA.maps[idx] = demo;
+      else DATA.maps.push(demo);
+      render();
+    }
+
+    function buildDemoLineageMap(targetMapId) {
+      const nodes = [
+        {id: 'paper_lacasa2008',  title: 'Lacasa 2008 (HVG)',  lineage_kind: 'paper',         node_type: 'paper',      paper_id: 'lacasa2008'},
+        {id: 'paper_luque2011',   title: 'Luque 2011',          lineage_kind: 'paper',         node_type: 'paper',      paper_id: 'luque2011'},
+        {id: 'decision_baseline', title: 'Adopt HVG variation', lineage_kind: 'decision',      node_type: 'decision'},
+        {id: 'model_v1',          title: 'Model v1 — HVG baseline', lineage_kind: 'model_version', node_type: 'model', model_version: 'v1', first_model_version: true},
+        {id: 'model_v2',          title: 'Model v2 — DHVG extension', lineage_kind: 'model_version', node_type: 'model', model_version: 'v2'},
+        {id: 'result_baseline',   title: 'Baseline reproduction (chi2 p=0.42)', lineage_kind: 'result', node_type: 'validation', evidence_strength: 'strong'},
+        {id: 'result_main',       title: 'Main DHVG sweep',     lineage_kind: 'result',        node_type: 'run',        evidence_strength: 'moderate'},
+        {id: 'figure_fig3',       title: 'Figure 3 (degree dist)', lineage_kind: 'figure',     node_type: 'figure',     thumbnail_path: 'outputs/figures/fig3.png'},
+        {id: 'anomaly_drift',     title: 'Anomaly: edge drift', lineage_kind: 'anomaly',       node_type: 'anomaly',    phase: 'blocked'},
+        {id: 'claim_universality', title: 'Universality of HVG scaling', lineage_kind: 'claim', node_type: 'claim',     requires_researcher_review: true, claim_ceiling: 'mechanism'},
+      ];
+      const links = [
+        ['decision_baseline', 'paper_lacasa2008', 'cites_paper'],
+        ['decision_baseline', 'paper_luque2011',  'cites_paper'],
+        ['model_v1',          'decision_baseline','depends_on'],
+        ['model_v2',          'model_v1',         'evolved_from'],
+        ['result_baseline',   'paper_lacasa2008', 'reproduces'],
+        ['result_baseline',   'model_v1',         'generated_by'],
+        ['result_main',       'model_v2',         'generated_by'],
+        ['figure_fig3',       'result_main',      'generated_by'],
+        ['anomaly_drift',     'result_main',      'limits'],
+        ['claim_universality','result_main',      'supports'],
+        ['claim_universality','paper_luque2011',  'cites_paper'],
+      ];
+      links.forEach(([from, to, relation]) => {
+        const src = nodes.find(n => n.id === from);
+        src.graph_links = (src.graph_links || []).concat([{from, to, relation, status: 'fresh'}]);
+      });
+      return {
+        id: targetMapId,
+        title: 'Current Run Lineage (demo)',
+        display_kind: 'lineage',
+        description: 'Synthetic demo loaded in-browser. Refresh the page to clear.',
+        nodes: nodes,
+      };
     }
 
     function ensureLineageMaps() {
