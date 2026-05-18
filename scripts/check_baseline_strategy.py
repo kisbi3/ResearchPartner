@@ -26,6 +26,7 @@ from pathlib import Path
 _SCRIPTS_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(_SCRIPTS_DIR))
 from _layout import baseline_strategy as _baseline_strategy  # noqa: E402
+import _project_root as project_root_mod  # noqa: E402
 
 
 def _section_text(text: str, heading: str) -> str:
@@ -96,8 +97,8 @@ def _new_model_target_ok(text: str) -> bool:
     return False
 
 
-def check_run(run_dir: Path) -> tuple[int, list[str]]:
-    strategy = _baseline_strategy(run_dir)
+def check_project(project_root: Path) -> tuple[int, list[str]]:
+    strategy = _baseline_strategy(project_root)
     if not strategy.exists():
         return 1, [
             f"Missing baseline strategy: {strategy}\n"
@@ -136,18 +137,30 @@ def check_run(run_dir: Path) -> tuple[int, list[str]]:
     ]
 
 
+# Backward-compat alias retained for one release.
+check_run = check_project
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
-        description="Verify the Baseline Strategy gate for a research run directory."
+        description="Verify the Baseline Strategy gate for a research project directory."
     )
     parser.add_argument(
-        "--run",
-        required=True,
+        "--project", "--run",
+        dest="project",
         type=Path,
-        help="Path to the run directory (must contain docs/plan/baseline_strategy.md).",
+        default=None,
+        help="Project root directory (must contain docs/plan/baseline_strategy.md). "
+             "Default: walk up from cwd looking for the `.research-harness` marker. "
+             "`--run` kept as alias for one release.",
     )
     args = parser.parse_args(argv if argv is not None else [])
-    code, messages = check_run(args.run)
+    try:
+        project = project_root_mod.resolve_project(args.project, require=True)
+    except project_root_mod.ProjectRootNotFoundError as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 1
+    code, messages = check_project(project)
     for message in messages:
         print(message)
     return code

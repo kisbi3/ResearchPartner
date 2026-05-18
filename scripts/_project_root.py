@@ -80,15 +80,15 @@ def find_project_root(start: Path | str | None = None, *, require: bool = False)
 
 
 def resolve_project(explicit: Path | str | None, *, require: bool = False) -> Path:
-    """CLI helper: honour an explicit `--project` flag, else walk from cwd."""
+    """CLI helper: honour an explicit `--project` flag, else walk from cwd.
+
+    When `explicit` is provided the user has told us where the project lives —
+    we trust them and never enforce the marker. The `require` flag only
+    applies to the cwd-walk path; that is the case where ambiguity actually
+    matters (was the user inside a project tree or not?).
+    """
     if explicit is not None:
-        root = Path(explicit).resolve()
-        if require and not (root / MARKER_NAME).exists():
-            raise ProjectRootNotFoundError(
-                f"{root} is not a marked research project (no `{MARKER_NAME}` file). "
-                "Run `python scripts/init_research_project.py --project <path>` first."
-            )
-        return root
+        return Path(explicit).resolve()
     return find_project_root(require=require)
 
 

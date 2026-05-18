@@ -76,7 +76,7 @@ Do not unblock a gate without explicit Lead Agent authorization. Unresolved bloc
 
 ## Auto-emission for Signal Artifacts
 
-`scripts/workflow_hooks.py` automatically pushes a lineage node into `workflow_map.live.json` (and appends an event line to `docs/live_workflow_diagram.md`) whenever any of these files are written or edited inside a run directory:
+`scripts/workflow_hooks.py` automatically pushes a lineage node into `workflow_map.live.json` (and appends an event line to `docs/live_workflow_diagram.md`) whenever any of these files are written or edited inside the project:
 
 | Path glob | Auto-derived fields |
 |---|---|
@@ -96,28 +96,28 @@ When working with these artifacts, **write the file first** (the hook auto-creat
 
 ```bash
 # Gate status update
-python scripts/update_live_json.py --run <run-dir> \
+python scripts/update_live_json.py --project <project-dir> \
     --gate "<gate name>" --status <pass|fail|partial|blocked|waived|pending> \
     --note "<short note>"
 
 # Active-step banner only
-python scripts/update_live_json.py --run <run-dir> \
+python scripts/update_live_json.py --project <project-dir> \
     --active-step "<current phase description>"
 
 # Full cartographer event packet (use when code/result/interpretation links matter)
-python scripts/update_live_json.py --run <run-dir> \
+python scripts/update_live_json.py --project <project-dir> \
     --event '{"cartographer_update": {"node_id": "...", "title": "...", "status": "passed", ...}}'
 
 # Also refresh the central docs/workflow_map.live.json
-python scripts/update_live_json.py --run <run-dir> \
+python scripts/update_live_json.py --project <project-dir> \
     --gate "Stage 2" --status pass --note "13 models done" --update-central
 ```
 
 **Secondary (human log):** also update `docs/process/live_workflow_diagram.md` — the Gate Status table, Active Step, and Next Review Checkpoint sections — so the Markdown file stays readable as a research record. This step is for human auditability; the HTML does not depend on it.
 
-If the run directory has no `workflow_map.live.json` yet, call `update_live_json.py` with any flag and it will bootstrap one from the current run state.
+If the project has no `workflow_map.live.json` yet, call `update_live_json.py` with any flag and it will bootstrap one from the current project state.
 
-If neither the script nor the run directory is available, produce the update as a structured log entry:
+If neither the script nor the project root is available, produce the update as a structured log entry:
 
 ```
 [Cartographer Update]
@@ -148,7 +148,7 @@ These examples cover the cases where the agent must explicitly emit a node or an
 ### Paper node + cites_paper edge (decision references a paper)
 
 ```bash
-python scripts/update_live_json.py --run "$RUN" --event '{
+python scripts/update_live_json.py --project "$PROJECT" --event '{
   "cartographer_update": {
     "from": "lead-agent",
     "node_id": "decision_use_lacasa_method",
@@ -167,7 +167,7 @@ python scripts/update_live_json.py --run "$RUN" --event '{
 ### Model version evolution (v2 evolved_from v1)
 
 ```bash
-python scripts/update_live_json.py --run "$RUN" --event '{
+python scripts/update_live_json.py --project "$PROJECT" --event '{
   "cartographer_update": {
     "from": "lead-agent",
     "node_id": "model_v2",
@@ -187,7 +187,7 @@ python scripts/update_live_json.py --run "$RUN" --event '{
 ### Result reproduces a paper figure
 
 ```bash
-python scripts/update_live_json.py --run "$RUN" --event '{
+python scripts/update_live_json.py --project "$PROJECT" --event '{
   "cartographer_update": {
     "from": "lead-agent",
     "node_id": "result_baseline_fig3",
@@ -203,25 +203,6 @@ python scripts/update_live_json.py --run "$RUN" --event '{
   }
 }'
 ```
-
-### Cross-run lineage (current run derived from a prior one)
-
-```bash
-python scripts/update_live_json.py --run "$RUN" --event '{
-  "cartographer_update": {
-    "from": "lead-agent",
-    "node_id": "model_v1",
-    "title": "Model v1 (carried over from prior run)",
-    "node_type": "model",
-    "lineage_kind": "model_version",
-    "model_version": "v1",
-    "parent_run": "ResearchPartner-runs/2026-05-10-hvg-baseline",
-    "summary": "Reusing validated v1 from prior baseline run."
-  }
-}'
-```
-
-`parent_run` is what the **Cross-Run Lineage** tab uses to draw an edge from this node to its ancestor run. Set it whenever a node materially carries forward from another run (a model version, a validated result, a paper review).
 
 ### Quick reference: when to use each new relation
 

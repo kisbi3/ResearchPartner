@@ -26,6 +26,7 @@ from pathlib import Path
 _SCRIPTS_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(_SCRIPTS_DIR))
 from _layout import orient_note as _orient_note  # noqa: E402
+import _project_root as project_root_mod  # noqa: E402
 
 REQUIRED_SECTIONS = [
     "## Task Classification",
@@ -52,8 +53,8 @@ def _section_has_content(text: str, heading: str) -> bool:
     return False
 
 
-def check_run(run_dir: Path) -> tuple[int, list[str]]:
-    orient = _orient_note(run_dir)
+def check_project(project_root: Path) -> tuple[int, list[str]]:
+    orient = _orient_note(project_root)
     if not orient.exists():
         return 1, [
             f"Missing orient note: {orient}\n"
@@ -78,18 +79,30 @@ def check_run(run_dir: Path) -> tuple[int, list[str]]:
     return 0, ["Orient gate passed: task classification and first question are recorded."]
 
 
+# Backward-compat alias retained for one release.
+check_run = check_project
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
-        description="Verify the Orient gate for a research run directory."
+        description="Verify the Orient gate for a research project directory."
     )
     parser.add_argument(
-        "--run",
-        required=True,
+        "--project", "--run",
+        dest="project",
         type=Path,
-        help="Path to the run directory (must contain docs/gates/orient_note.md).",
+        default=None,
+        help="Project root directory (must contain docs/gates/orient_note.md). "
+             "Default: walk up from cwd looking for the `.research-harness` marker. "
+             "`--run` kept as alias for one release.",
     )
     args = parser.parse_args(argv if argv is not None else [])
-    code, messages = check_run(args.run)
+    try:
+        project = project_root_mod.resolve_project(args.project, require=True)
+    except project_root_mod.ProjectRootNotFoundError as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 1
+    code, messages = check_project(project)
     for message in messages:
         print(message)
     return code

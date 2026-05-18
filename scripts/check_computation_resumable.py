@@ -32,6 +32,7 @@ _SCRIPTS = Path(__file__).resolve().parent
 sys.path.insert(0, str(_SCRIPTS))
 from _layout import cache_dir, logs_dir  # noqa: E402
 from update_workflow_diagram import find_runs_root  # noqa: E402
+import _project_root as project_root_mod  # noqa: E402
 
 
 def _mtime_str(path: Path) -> str:

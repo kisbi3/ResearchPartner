@@ -38,6 +38,7 @@ _SCRIPTS_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(_SCRIPTS_DIR))
 from _layout import live_workflow_diagram as _live_workflow_diagram  # noqa: E402
 import update_workflow_diagram as uwd  # noqa: E402
+import _project_root as project_root_mod  # noqa: E402
 
 
 BLOCKING_GATE_STATUSES = {"blocked", "in_progress"}
@@ -236,9 +237,15 @@ def main(argv: list[str] | None = None) -> int:
         description="Check whether the latest research run can resume cleanly."
     )
     parser.add_argument(
-        "--run", type=Path, default=None,
-        help="Explicit run directory. When omitted, the script auto-discovers the "
-             "most recently modified run under a sibling ResearchPartner-runs folder.",
+        "--project", "--run",
+        dest="project",
+        type=Path,
+        default=None,
+        help="Explicit project root directory. When omitted, the script walks up "
+             "from cwd looking for the `.research-harness` marker, and falls back "
+             "to auto-discovering the most recently modified run under a sibling "
+             "ResearchPartner-runs folder if no marker is found. `--run` kept as "
+             "alias for one release.",
     )
     parser.add_argument(
         "--json", action="store_true",
@@ -246,7 +253,17 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = parser.parse_args(argv if argv is not None else sys.argv[1:])
 
-    code, report = check_run(args.run)
+    project: Path | None
+    if args.project is not None:
+        project = Path(args.project).resolve()
+    else:
+        try:
+            project = project_root_mod.find_project_root(require=True)
+        except project_root_mod.ProjectRootNotFoundError:
+            # Legacy fallback: let check_run auto-discover under ResearchPartner-runs.
+            project = None
+
+    code, report = check_run(project)
 
     if args.json:
         print(json.dumps(report, indent=2))

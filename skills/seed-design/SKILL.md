@@ -15,10 +15,10 @@ Produce the smallest set of concrete, unambiguous tasks that can validate or adv
 
 Confirm all of the following before running this skill:
 
-1. The Interview Gate passes: `python scripts/check_interview_recorded.py --run <run-dir>`. If not, complete the professor-interview skill first.
-2. The Literature Gate passes: `python scripts/check_literature_reviewed.py --run <run-dir>`. If not, complete literature-review-planning or create `docs/literature_skip_waiver.md` with a reason.
-3. The Model Gate passes: `python scripts/check_model_specified.py --run <run-dir>`. If not, complete model-specification or create `docs/model_skip_waiver.md` with a reason.
-4. The Baseline Strategy Gate passes: `python scripts/check_baseline_strategy.py --run <run-dir>`. If not, complete the baseline-strategy skill first. There is no skip waiver for this gate.
+1. The Interview Gate passes: `python scripts/check_interview_recorded.py --project <project-dir>`. If not, complete the professor-interview skill first.
+2. The Literature Gate passes: `python scripts/check_literature_reviewed.py --project <project-dir>`. If not, complete literature-review-planning or create `docs/literature_skip_waiver.md` with a reason.
+3. The Model Gate passes: `python scripts/check_model_specified.py --project <project-dir>`. If not, complete model-specification or create `docs/model_skip_waiver.md` with a reason.
+4. The Baseline Strategy Gate passes: `python scripts/check_baseline_strategy.py --project <project-dir>`. If not, complete the baseline-strategy skill first. There is no skip waiver for this gate.
 5. The observables and failure criteria are defined.
 6. The claim-to-evidence path is stated.
 

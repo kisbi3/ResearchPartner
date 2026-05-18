@@ -30,6 +30,7 @@ from _layout import (  # noqa: E402
     baseline_registry as _baseline_registry,
     live_workflow_diagram as _live_workflow,
 )
+import _project_root as project_root_mod  # noqa: E402
 
 VALID_STATUSES = {"planned", "pass", "fail", "partial", "waived"}
 
@@ -71,8 +72,8 @@ def parse_statuses(text: str) -> list[str]:
     return out
 
 
-def check_run(run_dir: Path) -> tuple[int, list[str]]:
-    registry = _baseline_registry(run_dir)
+def check_project(project_root: Path) -> tuple[int, list[str]]:
+    registry = _baseline_registry(project_root)
     if not registry.exists():
         return 1, [f"Missing baseline registry: {registry}"]
 
@@ -83,7 +84,7 @@ def check_run(run_dir: Path) -> tuple[int, list[str]]:
         return 0, ["Baseline gate passed: at least one Status=pass entry recorded."]
 
     if "waived" in statuses:
-        live = _live_workflow(run_dir)
+        live = _live_workflow(project_root)
         if not live.exists():
             return 1, [
                 "Waiver recorded in baseline_registry.md but "
@@ -110,18 +111,30 @@ def check_run(run_dir: Path) -> tuple[int, list[str]]:
     ]
 
 
+# Backward-compat alias retained for one release.
+check_run = check_project
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
-        description="Verify the baseline gate for a research run directory."
+        description="Verify the baseline gate for a research project directory."
     )
     parser.add_argument(
-        "--run",
-        required=True,
+        "--project", "--run",
+        dest="project",
         type=Path,
-        help="Path to the run directory (must contain docs/gates/baseline_registry.md).",
+        default=None,
+        help="Project root directory (must contain docs/gates/baseline_registry.md). "
+             "Default: walk up from cwd looking for the `.research-harness` marker. "
+             "`--run` kept as alias for one release.",
     )
     args = parser.parse_args(argv if argv is not None else [])
-    code, messages = check_run(args.run)
+    try:
+        project = project_root_mod.resolve_project(args.project, require=True)
+    except project_root_mod.ProjectRootNotFoundError as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 1
+    code, messages = check_project(project)
     for message in messages:
         print(message)
     return code

@@ -96,7 +96,7 @@ Name the smallest next test.
 Writing an entry to `docs/logs/anomaly_log.md` does not by itself add an anomaly node to the lineage graph (only `errors/*.err` does, via the workflow_hooks auto-emit). So when an anomaly is significant enough to log, also emit an explicit `anomaly` node:
 
 ```bash
-python scripts/update_live_json.py --run "$RUN" --event '{
+python scripts/update_live_json.py --project "$PROJECT" --event '{
   "cartographer_update": {
     "from": "lead-agent",
     "node_id": "anomaly_<short_slug>",
@@ -121,7 +121,7 @@ The `limits` edge is essential — it shows on the lineage graph which downstrea
 Re-emit the same node with `status: "resolved"` (or `"superseded"`). `update_live_json.py` will automatically flip every outgoing `limits` edge on that node to `status: "superseded"`, so the lineage graph stops marking the downstream nodes as threatened:
 
 ```bash
-python scripts/update_live_json.py --run "$RUN" --event '{
+python scripts/update_live_json.py --project "$PROJECT" --event '{
   "cartographer_update": {
     "from": "lead-agent",
     "node_id": "anomaly_<same_slug>",

@@ -31,6 +31,7 @@ from _layout import (  # noqa: E402
     literature_review_plan as _lit_review_plan,
     literature_skip_waiver as _lit_skip_waiver,
 )
+import _project_root as project_root_mod  # noqa: E402
 
 
 def _section_has_content(text: str, heading: str) -> bool:
@@ -76,15 +77,15 @@ def _has_real_content(path: Path) -> bool:
     return False
 
 
-def check_run(run_dir: Path) -> tuple[int, list[str]]:
-    waiver = _lit_skip_waiver(run_dir)
+def check_project(project_root: Path) -> tuple[int, list[str]]:
+    waiver = _lit_skip_waiver(project_root)
     if waiver.exists() and _has_real_content(waiver):
         return 0, [
             "Literature gate passed via skip waiver. "
             "Claim ceiling is at most 'interpretation' for this run."
         ]
 
-    plan = _lit_review_plan(run_dir)
+    plan = _lit_review_plan(project_root)
     if not plan.exists():
         return 1, [
             f"Missing literature review plan: {plan}\n"
@@ -114,18 +115,30 @@ def check_run(run_dir: Path) -> tuple[int, list[str]]:
     return 0, ["Literature gate passed: review complete or explicitly waived."]
 
 
+# Backward-compat alias retained for one release.
+check_run = check_project
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
-        description="Verify the Literature gate for a research run directory."
+        description="Verify the Literature gate for a research project directory."
     )
     parser.add_argument(
-        "--run",
-        required=True,
+        "--project", "--run",
+        dest="project",
         type=Path,
-        help="Path to the run directory (must contain docs/literature/literature_review_plan.md).",
+        default=None,
+        help="Project root directory (must contain docs/literature/literature_review_plan.md). "
+             "Default: walk up from cwd looking for the `.research-harness` marker. "
+             "`--run` kept as alias for one release.",
     )
     args = parser.parse_args(argv if argv is not None else [])
-    code, messages = check_run(args.run)
+    try:
+        project = project_root_mod.resolve_project(args.project, require=True)
+    except project_root_mod.ProjectRootNotFoundError as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 1
+    code, messages = check_project(project)
     for message in messages:
         print(message)
     return code

@@ -87,7 +87,7 @@ The resolution must be written into the meeting artifact before the skill exits.
 
 ## Artifact
 
-Write the meeting output to `docs/meetings/YYYY-MM-DD-<slug>.md` in the run directory. Use the template at `docs/run_templates/meeting_template.md`.
+Write the meeting output to `docs/meetings/YYYY-MM-DD-<slug>.md` at the project root. Use the template at `docs/run_templates/meeting_template.md`.
 
 The slug is derived from the first 4–5 words of `--on`.
 

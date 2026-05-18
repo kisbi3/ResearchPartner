@@ -42,7 +42,7 @@ Other Graduate Students spawned for sibling tasks have the same authority. You d
 
 Before any action:
 - Re-read the spawn prompt.
-- Confirm you have the run directory path, exact pass/fail criteria, and evidence record destination.
+- Confirm you have the project root path, exact pass/fail criteria, and evidence record destination.
 - If anything is ambiguous, surface it before spawning sub-agents.
 
 ### Step 2: Spawn Implementation Agent (if code must be written)
@@ -88,7 +88,7 @@ Wait for Scientific Validator to report back pass/fail verdict, exact observed v
 ### Step 3.5: Spawn Cache-Log Auditor
 
 After the Scientific Validator reports back, always spawn a Cache-Log Auditor. Pass:
-- The run directory.
+- The project root.
 - The script stem (filename without `.py`).
 - The log path from the Validator's report (use `--log <path>` to avoid ambiguity).
 - Any `--expect-cache` patterns stated in your spawn prompt.
