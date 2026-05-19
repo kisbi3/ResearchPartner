@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import json
 import sys
+import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -33,8 +34,12 @@ MAX_STEP_LEN = 100
 # optional gate status). When `gate` is None, only an event-log line is added.
 SIGNAL_ARTIFACTS = {
     # v3 layout (docs/gates/, docs/literature/, docs/plan/, docs/process/)
-    "docs/gates/orient_note.md":            ("Orient note recorded",           "Professor interview",              "pending"),
-    "docs/gates/interview_notes.md":        ("Interview notes recorded",       "Professor interview",              "pass"),
+    # Gate name must match the exact string in the "## Gate Status" table of
+    # live_workflow_diagram.md so that update_gate_status() can find the row.
+    "docs/gates/orient_note.md":            ("Orient note recorded",           "Orient gate",                      "in_progress"),
+    "docs/gates/interview_notes.md":        ("Interview notes recorded",       "Interview gate",                   "pass"),
+    "docs/gates/seed_design.md":            ("Seed design recorded",           "Test-design seed",                 "pass"),
+    "docs/gates/professor_evaluation.md":   ("Professor evaluation recorded",  "Professor evaluation",             "pass"),
     "docs/gates/agent_spawn_log.md":        ("Agent spawn log updated",        None,                               None),
     "docs/gates/validation_log.md":         ("Validation log updated",         "Execution",                        "in_progress"),
     "docs/gates/baseline_registry.md":      ("Baseline registry updated",      "Baseline or reproduction target",  "in_progress"),
@@ -44,10 +49,13 @@ SIGNAL_ARTIFACTS = {
     "docs/plan/model_spec.md":              ("Model spec recorded",            None,                               None),
     "docs/plan/baseline_strategy.md":       ("Baseline strategy decided",      "Baseline or reproduction target",  "pass"),
     "docs/plan/research_plan.md":           ("Research plan updated",          None,                               None),
+    "docs/process/execution_complete.md":   ("Execution marked complete",      "Execution",                        "pass"),
+    "docs/process/visualization_complete.md": ("Visualization marked complete","Visualization",                    "pass"),
+    "docs/process/user_report.md":          ("User report recorded",           "User report",                      "pass"),
     "docs/process/research_retrospective.md": ("Retrospective recorded",       "Completion conference",            "pass"),
     # v2 legacy paths — kept so existing runs written before v3 still trigger
-    "docs/orient_note.md":              ("Orient note recorded",           "Professor interview",              "pending"),
-    "docs/interview_notes.md":          ("Interview notes recorded",       "Professor interview",              "pass"),
+    "docs/orient_note.md":              ("Orient note recorded",           "Orient gate",                      "in_progress"),
+    "docs/interview_notes.md":          ("Interview notes recorded",       "Interview gate",                   "pass"),
     "docs/literature_review_plan.md":   ("Literature review plan recorded","Literature review and replanning", "pass"),
     "docs/model_spec.md":               ("Model spec recorded",            None,                               None),
     "docs/baseline_strategy.md":        ("Baseline strategy decided",      "Baseline or reproduction target",  "pass"),
@@ -55,6 +63,10 @@ SIGNAL_ARTIFACTS = {
     "docs/replanning_memo.md":          ("Replanning memo updated",        None,                               None),
     "docs/research_retrospective.md":   ("Retrospective recorded",         "Completion conference",            "pass"),
 }
+
+# How far back (seconds) to scan for figure files created by a Bash/PowerShell
+# command. Two minutes covers the default Claude Code Bash timeout.
+_BASH_FIGURE_SCAN_WINDOW = 120
 
 
 FIGURE_EXTS = (".png", ".pdf", ".svg", ".jpg", ".jpeg")
@@ -278,6 +290,45 @@ def run_post(tool_input: dict) -> None:
         print(f"WORKFLOW WARNING: Could not update diagram (post): {exc}", file=sys.stderr)
 
 
+def run_bash_post() -> None:
+    """Scan output directories for files created by a Bash/PowerShell command.
+
+    Figures written by Python scripts (e.g. matplotlib.savefig) are not
+    captured by the Write/Edit hook because the shell — not the Write tool —
+    created the file.  This function fills that gap by scanning
+    ``outputs/figures/`` for any file modified within the last
+    ``_BASH_FIGURE_SCAN_WINDOW`` seconds and emitting a Visualization
+    in_progress event for each one found.
+
+    Errors and cache files are scanned the same way.
+    """
+    try:
+        project = project_root_mod.resolve_project(None, require=True)
+    except project_root_mod.ProjectRootNotFoundError:
+        return  # Not inside a research project — nothing to do
+
+    now = time.time()
+    cutoff = now - _BASH_FIGURE_SCAN_WINDOW
+
+    # Map (glob pattern, output dir relative to project) → synthetic file_path
+    scan_dirs = [
+        project / "outputs" / "figures",
+        project / "errors",
+        project / "cache",
+    ]
+    for scan_dir in scan_dirs:
+        if not scan_dir.is_dir():
+            continue
+        for f in scan_dir.rglob("*"):
+            if not f.is_file():
+                continue
+            try:
+                if f.stat().st_mtime >= cutoff:
+                    run_artifact_event("Bash", str(f), "post")
+            except OSError:
+                continue
+
+
 def main() -> int:
     if len(sys.argv) < 2 or sys.argv[1] not in ("pre", "post"):
         print("Usage: workflow_hooks.py <pre|post>", file=sys.stderr)
@@ -304,6 +355,10 @@ def main() -> int:
     if tool_name in ("Write", "Edit"):
         file_path_str = tool_input.get("file_path", "")
         run_artifact_event(tool_name, file_path_str, phase)
+        return 0
+
+    if tool_name in ("Bash", "PowerShell") and phase == "post":
+        run_bash_post()
         return 0
 
     return 0

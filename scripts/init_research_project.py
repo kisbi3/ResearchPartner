@@ -147,6 +147,12 @@ _CLAUDE_SETTINGS_CONTENT = """\
         "hooks": [
           {"type": "command", "command": "python scripts/workflow_hooks.py post"}
         ]
+      },
+      {
+        "matcher": "Bash|PowerShell",
+        "hooks": [
+          {"type": "command", "command": "python scripts/workflow_hooks.py post"}
+        ]
       }
     ]
   }

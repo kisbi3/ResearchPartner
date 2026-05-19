@@ -92,6 +92,24 @@ def agent_spawn_log(project: Path) -> Path:
     return gates_dir(project) / "agent_spawn_log.md"
 
 
+def professor_evaluation(project: Path) -> Path:
+    return gates_dir(project) / "professor_evaluation.md"
+
+
+# ── Process completion markers  (docs/process/) ───────────────────────────────
+
+def execution_complete(project: Path) -> Path:
+    return process_dir(project) / "execution_complete.md"
+
+
+def visualization_complete(project: Path) -> Path:
+    return process_dir(project) / "visualization_complete.md"
+
+
+def user_report(project: Path) -> Path:
+    return process_dir(project) / "user_report.md"
+
+
 # ── Plan artifacts  (docs/plan/) ─────────────────────────────────────────────
 
 def research_plan(project: Path) -> Path:
