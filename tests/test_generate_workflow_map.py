@@ -134,10 +134,10 @@ def test_live_map_uses_run_root_for_current_process_layout(tmp_path, monkeypatch
         },
         "recommended_review": {
             "ready_to_review": 1,
-            "missing_document": 6,
+            "missing_document": 8,
             "needs_researcher_decision": 0,
             "completed": 0,
-            "total": 7,
+            "total": 9,
         },
     }
 
@@ -427,3 +427,245 @@ def test_cartographer_update_events_create_linked_research_graph(tmp_path, monke
     assert "Interpretation Links" in html
     assert "Evidence Strength" in html
     assert "Claim Ceiling" in html
+
+
+LITERATURE_WORKFLOW_FIXTURE = """\
+# Live Workflow
+
+## Active Step
+
+- Current step: Literature review in progress
+
+## Gate Status
+
+| Gate | Status | Note |
+|---|---|---|
+| Literature review and replanning | pass | Review complete |
+
+## Evidence Links
+
+- `docs/literature/literature_review_plan.md`
+
+## Next Review Checkpoint
+
+- Researcher decision needed: approve replanning memo
+"""
+
+
+def _make_literature_run(tmp_path, monkeypatch, generator):
+    runs_root = tmp_path / "ResearchPartner-runs"
+    run_docs = runs_root / "2026-05-19-literature-run" / "docs"
+    run_docs.mkdir(parents=True)
+    (run_docs / "live_workflow_diagram.md").write_text(LITERATURE_WORKFLOW_FIXTURE, encoding="utf-8")
+    lit_dir = run_docs / "literature"
+    lit_dir.mkdir()
+    (lit_dir / "literature_review_plan.md").write_text(
+        "# Literature Review Plan\n\n## Literature Gate Status\n\nStatus: ready\n",
+        encoding="utf-8",
+    )
+    (lit_dir / "paper_request_queue.md").write_text(
+        "# Paper Request Queue\n\n"
+        "| Paper ID | Citation | Status |\n"
+        "|---|---|---|\n"
+        "| P1 | Smith 2020 | reviewed |\n"
+        "| P2 | Jones 2021 | open |\n"
+        "| P3 | Lee 2022 | reviewed |\n",
+        encoding="utf-8",
+    )
+    (lit_dir / "replanning_memo.md").write_text(
+        "# Replanning Memo\n\nDecision: proceed with current model spec.\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(generator, "RUNS_ROOT", runs_root)
+
+
+def test_literature_gate_node_has_result_summary_and_links(tmp_path, monkeypatch):
+    generator = load_generator()
+    _make_literature_run(tmp_path, monkeypatch, generator)
+
+    nodes = {node["id"]: node for node in generator.build_data()["maps"][0]["nodes"]}
+    node = nodes["literature_review_and_replanning"]
+
+    # result_summary is populated from the plan and queue files
+    assert node["result_summary"]["gate_status"] == "ready"
+    assert node["result_summary"]["papers_total"] == "3"
+    assert node["result_summary"]["papers_open_requests"] == "1"
+
+    # gate-specific interpretation links are prepended before evidence links
+    link_paths = " ".join(item["path"] for item in node["interpretation_links"])
+    assert "literature_review_plan" in link_paths
+    assert "paper_request_queue" in link_paths
+    assert "replanning_memo" in link_paths
+
+
+def test_literature_gate_result_summary_without_files(tmp_path, monkeypatch):
+    """When the literature files are absent the builder returns 'not recorded' and
+    gate_specific_links returns no dead links."""
+    generator = load_generator()
+    runs_root = tmp_path / "ResearchPartner-runs"
+    run_docs = runs_root / "2026-05-19-no-lit-files" / "docs"
+    run_docs.mkdir(parents=True)
+    (run_docs / "live_workflow_diagram.md").write_text(LITERATURE_WORKFLOW_FIXTURE, encoding="utf-8")
+    monkeypatch.setattr(generator, "RUNS_ROOT", runs_root)
+
+    nodes = {node["id"]: node for node in generator.build_data()["maps"][0]["nodes"]}
+    node = nodes["literature_review_and_replanning"]
+
+    assert node["result_summary"]["gate_status"] == "not recorded"
+    assert node["result_summary"]["papers_total"] == "not recorded"
+    assert node["result_summary"]["papers_open_requests"] == "not recorded"
+    # gate_specific_links returns nothing when files are missing — avoids dead links
+    run_root = runs_root / "2026-05-19-no-lit-files"
+    specific = generator.gate_specific_links("literature_review_and_replanning", run_root)
+    assert specific == []
+
+
+def test_literature_summary_appears_in_dashboard_recommended_review(tmp_path, monkeypatch):
+    """literature/summary.md and literature/reviews/ are both listed under Recommended Review."""
+    generator = load_generator()
+    _make_literature_run(tmp_path, monkeypatch, generator)
+
+    map_data = generator.build_data()["maps"][0]
+    rec = next(g for g in map_data["dashboard"]["document_groups"] if g["id"] == "recommended_review")
+    labels = [doc["label"] for doc in rec["documents"]]
+
+    assert "Literature Summary" in labels
+    assert "Literature Reviews" in labels
+
+
+MERMAID_WORKFLOW_FIXTURE = """\
+# Live Workflow
+
+## Active Step
+
+- Current step: Literature review
+
+## Workflow Diagram
+
+```mermaid
+flowchart LR
+    I["Interview gate"] --> L["Literature review and replanning"]
+    L --> I
+    L --> S["Test design seed"]
+```
+
+## Gate Status
+
+| Gate | Status | Note |
+|---|---|---|
+| Interview gate | pass | Interview complete |
+| Literature review and replanning | pass | Review done, replanning triggered |
+| Test design seed | pending | Awaiting seed |
+
+## Evidence Links
+
+- `docs/gates/interview_notes.md`
+
+## Next Review Checkpoint
+
+- Researcher decision needed: begin seed design
+"""
+
+
+def test_mermaid_edges_create_replanning_back_edge(tmp_path, monkeypatch):
+    """Mermaid workflow diagram edges override sequential chaining.
+
+    The literature gate's L --> I back-edge must appear in the node's 'edges' list,
+    along with the forward edge L --> S.  The interview gate must point forward to
+    the literature gate (not sequentially to seed).
+    """
+    generator = load_generator()
+    runs_root = tmp_path / "ResearchPartner-runs"
+    run_docs = runs_root / "2026-05-19-mermaid-run" / "docs"
+    run_docs.mkdir(parents=True)
+    (run_docs / "live_workflow_diagram.md").write_text(MERMAID_WORKFLOW_FIXTURE, encoding="utf-8")
+    monkeypatch.setattr(generator, "RUNS_ROOT", runs_root)
+
+    nodes = {node["id"]: node for node in generator.build_data()["maps"][0]["nodes"]}
+
+    # Forward edge: interview → literature
+    assert "literature_review_and_replanning" in nodes["interview_gate"]["edges"]
+    # Back-edge (replanning loop): literature → interview
+    assert "interview_gate" in nodes["literature_review_and_replanning"]["edges"]
+    # Forward edge: literature → seed
+    assert "test_design_seed" in nodes["literature_review_and_replanning"]["edges"]
+
+
+def test_literature_summary_action_guidance_is_recorded():
+    """The action queue provides a meaningful why and command for Literature Summary."""
+    generator = load_generator()
+
+    guidance = generator.ACTION_GUIDANCE.get("Literature Summary", {})
+
+    assert "compile_literature_summary" in guidance.get("suggested_command", "")
+    assert guidance.get("why")
+
+
+def test_mermaid_threshold_requires_ceil_half_nodes(tmp_path, monkeypatch):
+    """With 3 gate nodes, 1 Mermaid match is below the ceiling-half threshold (2);
+    sequential chaining must be used instead."""
+    generator = load_generator()
+    runs_root = tmp_path / "ResearchPartner-runs"
+    run_docs = runs_root / "2026-05-19-threshold-run" / "docs"
+    run_docs.mkdir(parents=True)
+    # Only the first gate appears in the Mermaid diagram; the other two don't.
+    (run_docs / "live_workflow_diagram.md").write_text(
+        "# Live Workflow\n\n"
+        "## Active Step\n\n- Current step: Test\n\n"
+        "## Workflow Diagram\n\n"
+        "```mermaid\n"
+        "flowchart LR\n"
+        '    A["Baseline"] --> X["Nonexistent gate"]\n'
+        "```\n\n"
+        "## Gate Status\n\n"
+        "| Gate | Status | Note |\n"
+        "|---|---|---|\n"
+        "| Baseline | pass | Done |\n"
+        "| Refinement trend | pass | Done |\n"
+        "| Fixed ratio convergence | pending |  |\n\n"
+        "## Evidence Links\n\n"
+        "## Next Review Checkpoint\n\n- None\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(generator, "RUNS_ROOT", runs_root)
+
+    nodes = {node["id"]: node for node in generator.build_data()["maps"][0]["nodes"]}
+
+    # Sequential chaining should apply: baseline → refinement_trend → fixed_ratio
+    assert nodes["baseline"]["edges"] == ["refinement_trend"]
+    assert nodes["refinement_trend"]["edges"] == ["fixed_ratio_convergence"]
+
+
+def test_gate_specific_links_for_orient_and_interview(tmp_path):
+    """orient_gate and interview_gate return links to their source documents."""
+    generator = load_generator()
+    run_root = tmp_path / "run"
+    gates_dir = run_root / "docs" / "gates"
+    gates_dir.mkdir(parents=True)
+    (gates_dir / "orient_note.md").write_text("# Orient\n", encoding="utf-8")
+    (gates_dir / "interview_notes.md").write_text("# Interview\n", encoding="utf-8")
+
+    orient_links = generator.gate_specific_links("orient_gate", run_root)
+    interview_links = generator.gate_specific_links("interview_gate", run_root)
+
+    assert any("orient_note" in item["path"] for item in orient_links)
+    assert any("interview_notes" in item["path"] for item in interview_links)
+
+
+def test_gate_specific_links_for_baseline_and_claim(tmp_path):
+    """baseline and claim_gate return links to their source documents."""
+    generator = load_generator()
+    run_root = tmp_path / "run"
+    (run_root / "docs" / "gates").mkdir(parents=True)
+    (run_root / "docs" / "plan").mkdir(parents=True)
+    (run_root / "docs" / "process").mkdir(parents=True)
+    (run_root / "docs" / "gates" / "baseline_registry.md").write_text("# Registry\n", encoding="utf-8")
+    (run_root / "docs" / "plan" / "baseline_strategy.md").write_text("# Strategy\n", encoding="utf-8")
+    (run_root / "docs" / "gates" / "validation_log.md").write_text("# Log\n", encoding="utf-8")
+
+    baseline_links = generator.gate_specific_links("baseline", run_root)
+    claim_links = generator.gate_specific_links("claim_gate", run_root)
+
+    assert any("baseline_registry" in item["path"] for item in baseline_links)
+    assert any("baseline_strategy" in item["path"] for item in baseline_links)
+    assert any("validation_log" in item["path"] for item in claim_links)

@@ -102,6 +102,57 @@ literature/pdfs/
 workflow_map.live.json
 """
 
+# Claude Code hook registration.  Written to .claude/settings.local.json so
+# that Write/Edit/Agent tool calls automatically trigger workflow_hooks.py and
+# keep live_workflow_diagram.md / workflow_map.live.json in sync without
+# requiring the AI to call update scripts manually.
+_CLAUDE_SETTINGS_CONTENT = """\
+{
+  "permissions": {
+    "allow": []
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Agent",
+        "hooks": [
+          {"type": "command", "command": "python scripts/enforce_gate_sequence.py"},
+          {"type": "command", "command": "python scripts/workflow_hooks.py pre"},
+          {"type": "command", "command": "python scripts/check_peer_review_invocation.py"}
+        ]
+      },
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {"type": "command", "command": "python scripts/check_src_write_authorization.py"},
+          {"type": "command", "command": "python scripts/workflow_hooks.py pre"}
+        ]
+      },
+      {
+        "matcher": "Bash|PowerShell",
+        "hooks": [
+          {"type": "command", "command": "python scripts/check_bash_code_write.py"}
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Agent",
+        "hooks": [
+          {"type": "command", "command": "python scripts/workflow_hooks.py post"}
+        ]
+      },
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {"type": "command", "command": "python scripts/workflow_hooks.py post"}
+        ]
+      }
+    ]
+  }
+}
+"""
+
 
 def scaffold_project(project: Path | str = ".") -> Path:
     """Create the harness directory tree at the given project root.
@@ -185,6 +236,13 @@ def scaffold_project(project: Path | str = ".") -> Path:
     gitignore = project / ".gitignore"
     if not gitignore.exists():
         gitignore.write_text(_GITIGNORE_CONTENT, encoding="utf-8")
+
+    # ── Write .claude/settings.local.json (hook registration) ─────────────────
+    # Created only if absent so a researcher's custom permissions are preserved.
+    claude_settings = project / ".claude" / "settings.local.json"
+    if not claude_settings.exists():
+        claude_settings.parent.mkdir(parents=True, exist_ok=True)
+        claude_settings.write_text(_CLAUDE_SETTINGS_CONTENT, encoding="utf-8")
 
     # ── Write project-root marker ────────────────────────────────────────────
     project_root_mod.create_marker(project)

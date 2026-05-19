@@ -86,6 +86,8 @@ DASHBOARD_DOCUMENT_GROUPS = [
                 "Research Retrospective",
                 ["docs/process/research_retrospective.md", "docs/research_retrospective.md"],
             ),
+            ("Literature Summary", ["literature/summary.md"]),
+            ("Literature Reviews", ["literature/reviews"]),
         ],
     },
 ]
@@ -122,6 +124,10 @@ ACTION_GUIDANCE = {
     "Live Workflow Diagram": {
         "why": "Review active workflow state, blocked behavior, stale artifacts, and next researcher checkpoint.",
         "suggested_command": "python scripts/generate_workflow_map.py",
+    },
+    "Literature Summary": {
+        "why": "Review compiled paper context summaries before model specification or replanning decisions.",
+        "suggested_command": "python scripts/compile_literature_summary.py --project <project-dir>",
     },
 }
 
@@ -468,6 +474,98 @@ def cartographer_event_nodes(
     return nodes
 
 
+def _label_tokens(normalized: str) -> frozenset[str]:
+    """Return the meaningful token set of a normalized label for edge matching."""
+    return frozenset(t for t in normalized.split("_") if len(t) > 1)
+
+
+def _mermaid_label_to_gate_id(label_norm: str, gate_ids: list[str]) -> str | None:
+    """Map a normalized Mermaid label to the best-matching gate ID.
+
+    Uses token-subset matching first (all Mermaid tokens appear in the gate ID),
+    then Jaccard similarity ≥ 0.35 as a fallback.  Returns None when no confident
+    match is found.
+    """
+    label_toks = _label_tokens(label_norm)
+    if not label_toks:
+        return None
+    for gid in gate_ids:
+        if label_toks.issubset(_label_tokens(gid)):
+            return gid
+    best_gid, best_score = None, 0.0
+    for gid in gate_ids:
+        gate_toks = _label_tokens(gid)
+        if not gate_toks:
+            continue
+        score = len(label_toks & gate_toks) / len(label_toks | gate_toks)
+        if score > best_score:
+            best_gid, best_score = gid, score
+    return best_gid if best_score >= 0.35 else None
+
+
+def extract_mermaid_edges(markdown: str) -> list[tuple[str, str]]:
+    """Parse directed edges from the Mermaid flowchart in '## Workflow Diagram'.
+
+    Returns a list of (from_normalized_label, to_normalized_label) pairs.
+    Labels are normalized the same way as gate IDs so token matching works.
+    """
+    section = extract_section(markdown, "Workflow Diagram")
+    if not section:
+        return []
+    mermaid_match = re.search(r"```mermaid\s*(.*?)```", section, re.DOTALL)
+    if not mermaid_match:
+        return []
+    mermaid_text = mermaid_match.group(1)
+
+    # Map short Mermaid IDs → normalized labels from declarations like ID["Label"]
+    id_to_norm: dict[str, str] = {}
+    for m in re.finditer(r'(\w+)\s*\["([^"]+)"\]', mermaid_text):
+        raw = m.group(2).replace("\\n", " ").strip()
+        id_to_norm[m.group(1)] = re.sub(r"[^a-z0-9]+", "_", raw.lower()).strip("_")
+
+    def resolve(node_id: str) -> str:
+        return id_to_norm.get(node_id) or re.sub(
+            r"[^a-z0-9]+", "_", node_id.lower()
+        ).strip("_")
+
+    edges = []
+    # Match: NodeID [optional ["Label"]] --> TargetID
+    for m in re.finditer(
+        r'(\w+)(?:\s*\[[^\]]*\])?\s*--[>-]+\s*(\w+)', mermaid_text
+    ):
+        edges.append((resolve(m.group(1)), resolve(m.group(2))))
+    return edges
+
+
+def apply_mermaid_edges_to_nodes(
+    nodes: list[dict], mermaid_edges: list[tuple[str, str]]
+) -> bool:
+    """Apply Mermaid-derived edges to gate nodes where labels match confidently.
+
+    Returns True if edges were applied to at least half the nodes, signalling
+    that the Mermaid diagram is a reliable source for this run's topology.
+    Nodes that don't get a Mermaid edge are left with an empty list so the
+    sequential chaining fallback can fill them in afterwards.
+    """
+    if not mermaid_edges:
+        return False
+    gate_ids = [n["id"] for n in nodes]
+    adj: dict[str, list[str]] = {gid: [] for gid in gate_ids}
+    for from_label, to_label in mermaid_edges:
+        from_id = _mermaid_label_to_gate_id(from_label, gate_ids)
+        to_id = _mermaid_label_to_gate_id(to_label, gate_ids)
+        if from_id and to_id and from_id != to_id and to_id not in adj[from_id]:
+            adj[from_id].append(to_id)
+    matched = sum(1 for targets in adj.values() if targets)
+    if matched < max(1, (len(gate_ids) + 1) // 2):
+        return False
+    for node in nodes:
+        targets = adj.get(node["id"])
+        if targets:
+            node["edges"] = targets
+    return True
+
+
 def read_json(path: Path) -> dict:
     if not path.exists():
         return {}
@@ -605,6 +703,56 @@ def _claim_gate_fields(run_root: Path, base_dir: Path | None):
     )
 
 
+def _literature_review_fields(run_root: Path, base_dir: Path | None):
+    plan_candidates = [
+        run_root / "docs" / "literature" / "literature_review_plan.md",
+        run_root / "docs" / "literature_review_plan.md",
+    ]
+    plan = next((p for p in plan_candidates if p.exists()), plan_candidates[0])
+
+    queue_candidates = [
+        run_root / "docs" / "literature" / "paper_request_queue.md",
+        run_root / "docs" / "paper_request_queue.md",
+    ]
+    queue = next((q for q in queue_candidates if q.exists()), queue_candidates[0])
+
+    gate_status = "not recorded"
+    if plan.exists():
+        text = plan.read_text(encoding="utf-8", errors="ignore")
+        m = re.search(r"(?i)status\s*:\s*(ready|waived|pass|pending|fail)", text)
+        if m:
+            gate_status = m.group(1).lower()
+
+    open_count = 0
+    total_count = 0
+    if queue.exists():
+        text = queue.read_text(encoding="utf-8", errors="ignore")
+        for line in text.splitlines():
+            stripped = line.strip()
+            if not stripped.startswith("|"):
+                continue
+            cells = [c.strip() for c in stripped.strip("|").split("|")]
+            if len(cells) < 2:
+                continue
+            first = cells[0].lower()
+            if not first or first in ("paper id", "id") or re.match(r"^-+$", first):
+                continue
+            total_count += 1
+            if any(re.search(r"\bopen\b", cell, re.IGNORECASE) for cell in cells):
+                open_count += 1
+
+    papers_total = str(total_count) if total_count else "not recorded"
+    papers_open = str(open_count) if total_count else "not recorded"
+    return (
+        {
+            "gate_status": gate_status,
+            "papers_total": papers_total,
+            "papers_open_requests": papers_open,
+        },
+        [],
+    )
+
+
 GATE_RESULT_BUILDERS = {
     "baseline": _baseline_fields,
     "refinement_trend": _refinement_trend_fields,
@@ -614,7 +762,61 @@ GATE_RESULT_BUILDERS = {
     "dirichlet_boundary": _dirichlet_fields,
     "anomaly_probe": _anomaly_probe_fields,
     "claim_gate": _claim_gate_fields,
+    "literature_review_and_replanning": _literature_review_fields,
 }
+
+# Gate IDs that have dedicated document links shown in the detail panel.
+_GATE_SPECIFIC_LINK_PATHS: dict[str, list[tuple[str, list[str]]]] = {
+    "orient_gate": [
+        ("Orient Note", ["docs/gates/orient_note.md", "docs/orient_note.md"]),
+    ],
+    "interview_gate": [
+        ("Interview Notes", ["docs/gates/interview_notes.md", "docs/interview_notes.md"]),
+    ],
+    "baseline": [
+        ("Baseline Registry", ["docs/gates/baseline_registry.md", "docs/baseline_registry.md"]),
+        ("Baseline Strategy", ["docs/plan/baseline_strategy.md", "docs/baseline_strategy.md"]),
+    ],
+    "baseline_or_reproduction_target": [
+        ("Baseline Registry", ["docs/gates/baseline_registry.md", "docs/baseline_registry.md"]),
+        ("Baseline Strategy", ["docs/plan/baseline_strategy.md", "docs/baseline_strategy.md"]),
+    ],
+    "claim_gate": [
+        ("Validation Log", ["docs/gates/validation_log.md", "docs/validation_log.md"]),
+        ("Researcher Review Log", ["docs/process/researcher_review_log.md", "docs/researcher_review_log.md"]),
+    ],
+    "literature_review_and_replanning": [
+        (
+            "Literature Review Plan",
+            ["docs/literature/literature_review_plan.md", "docs/literature_review_plan.md"],
+        ),
+        (
+            "Paper Request Queue",
+            ["docs/literature/paper_request_queue.md", "docs/paper_request_queue.md"],
+        ),
+        (
+            "Replanning Memo",
+            ["docs/literature/replanning_memo.md", "docs/replanning_memo.md"],
+        ),
+    ],
+}
+
+
+def gate_specific_links(
+    gate_id: str, run_root: Path, base_dir: Path | None = None
+) -> list[dict]:
+    """Return dedicated interpretation links for gates that have them.
+
+    Only includes files that exist on disk to avoid dead links in the UI.
+    Missing documents are surfaced separately through the dashboard action queue.
+    """
+    specs = _GATE_SPECIFIC_LINK_PATHS.get(gate_id, [])
+    links = []
+    for label, candidates in specs:
+        path = next((run_root / c for c in candidates if (run_root / c).exists()), None)
+        if path is not None:
+            links.append({"label": label, "path": run_relative_path(path, base_dir)})
+    return links
 
 
 def result_fields_for_gate(
@@ -657,6 +859,7 @@ def live_workflow_map(
         status = row["status"]
         gate_id = re.sub(r"[^a-z0-9]+", "_", row["gate"].lower()).strip("_")
         result_summary, images = result_fields_for_gate(gate_id, run_root, base_dir)
+        specific_links = gate_specific_links(gate_id, run_root, base_dir)
         nodes.append(
             {
                 "id": gate_id or f"gate_{index}",
@@ -677,7 +880,7 @@ def live_workflow_map(
                 "requires_researcher_review": status in {"partial", "fail", "blocked", "waived"},
                 "code_links": [],
                 "result_links": [],
-                "interpretation_links": evidence_links,
+                "interpretation_links": specific_links + evidence_links,
                 "graph_links": [],
                 "responsible": evidence_links
                 + [
@@ -694,6 +897,11 @@ def live_workflow_map(
                 "edges": [],
             }
         )
+
+    # Apply Mermaid-derived topology (back-edges, fan-outs) to gate nodes.
+    # Sequential chaining below fills in any gate without a Mermaid-matched edge.
+    mermaid_edges = extract_mermaid_edges(markdown)
+    apply_mermaid_edges_to_nodes(nodes, mermaid_edges)
 
     if event_nodes:
         if nodes:
