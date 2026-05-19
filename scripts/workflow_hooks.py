@@ -23,6 +23,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import update_workflow_diagram as uwd  # noqa: E402
 import update_live_json as ulj  # noqa: E402
+import _layout as layout  # noqa: E402
 import _project_root as project_root_mod  # noqa: E402
 
 
@@ -220,12 +221,19 @@ def run_artifact_event(tool_name: str, file_path_str: str, phase: str) -> None:
     if sig is None:
         return
     event_label, gate, gate_status, run_dir = sig
-    diagram_path = run_dir / "docs" / "live_workflow_diagram.md"
+    # v3 canonical location first (docs/process/live_workflow_diagram.md), then
+    # the v2 legacy path, then the wide ResearchPartner-runs/ fallback. The v3
+    # path is checked relative to *this* project root, not any other run, so
+    # writes don't leak into unrelated projects on disk.
+    diagram_path = layout.live_workflow_diagram(run_dir)
     if not diagram_path.exists():
-        # Fall back to auto-discovery in case the run uses a non-standard location
-        diagram_path = uwd.find_active_diagram()
-        if diagram_path is None:
-            return
+        legacy = run_dir / "docs" / "live_workflow_diagram.md"
+        if legacy.exists():
+            diagram_path = legacy
+        else:
+            diagram_path = uwd.find_active_diagram()
+            if diagram_path is None:
+                return
     try:
         content = diagram_path.read_text(encoding="utf-8")
         event = "complete" if phase == "post" else "in_progress"
@@ -240,6 +248,19 @@ def run_artifact_event(tool_name: str, file_path_str: str, phase: str) -> None:
     # own cartographer-update calls; the auto-emit only seeds the node.
     if phase == "post":
         emit_lineage_event(run_dir, file_path_str)
+        # Regenerate workflow_map.live.json from the (just-updated) diagram so
+        # that the browser-side dashboard reflects the gate change without
+        # requiring the user to run a CLI command. The diagram is the source
+        # of truth; live.json is a derived artifact. Failure here is non-fatal:
+        # the diagram is already current and the user can hit the Refresh
+        # button in the dashboard later.
+        try:
+            ulj.bootstrap_project_json(run_dir)
+        except Exception as exc:
+            print(
+                f"WORKFLOW WARNING: live.json refresh failed: {exc}",
+                file=sys.stderr,
+            )
 
 
 def extract_step(tool_input: dict) -> str:
@@ -310,11 +331,23 @@ def run_bash_post() -> None:
     now = time.time()
     cutoff = now - _BASH_FIGURE_SCAN_WINDOW
 
-    # Map (glob pattern, output dir relative to project) → synthetic file_path
+    # Scan output directories (Python-side figures, shell-created errors/cache)
+    # AND docs/ subtrees containing signal artifacts — the latter catches
+    # PowerShell `Set-Content` writes to gate files, which bypass the
+    # Write|Edit hook matcher (Claude Code matches by tool name, not by
+    # whether the side-effect resembles a write).
     scan_dirs = [
         project / "outputs" / "figures",
         project / "errors",
         project / "cache",
+        project / "docs" / "gates",
+        project / "docs" / "plan",
+        project / "docs" / "literature",
+        project / "docs" / "process",
+        project / "docs" / "claims",
+        project / "docs" / "meetings",
+        project / "docs" / "checkpoints",
+        project / "docs" / "model_versions",
     ]
     for scan_dir in scan_dirs:
         if not scan_dir.is_dir():

@@ -78,7 +78,37 @@ def find_runs_root() -> Path | None:
 
 
 def find_active_diagram() -> Path | None:
-    """Return live_workflow_diagram.md from the most recently modified run directory."""
+    """Return live_workflow_diagram.md for the active research project.
+
+    Search order:
+        1. **v3 layout** — walk up from cwd looking for `.research-harness`
+           marker. If found, return `<project>/docs/process/live_workflow_diagram.md`
+           (or the v2 `<project>/docs/live_workflow_diagram.md` fallback).
+        2. **v2 layout** — scan `ResearchPartner-runs/<run>/` directories for
+           the most recently modified live diagram.
+
+    Returning a v3 project's own diagram before falling through to v2 is
+    important: otherwise a hook running inside a v3 project but with a v2
+    `ResearchPartner-runs/` directory present on disk would silently write
+    events into an unrelated old run.
+    """
+    # v3: prefer the project the caller is inside.
+    try:
+        # Local import to avoid a hard circular dep at module import time.
+        import _project_root as project_root_mod  # noqa: PLC0415
+        project = project_root_mod.find_project_root(start=Path.cwd(), require=True)
+    except Exception:
+        project = None
+    if project is not None:
+        for relative in (
+            Path("docs") / "process" / "live_workflow_diagram.md",
+            Path("docs") / "live_workflow_diagram.md",
+        ):
+            candidate = project / relative
+            if candidate.exists():
+                return candidate
+
+    # v2 fallback: ResearchPartner-runs/<run>/...
     runs_root = find_runs_root()
     if runs_root is None:
         return None
