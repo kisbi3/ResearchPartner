@@ -132,7 +132,9 @@ _CLAUDE_SETTINGS_CONTENT = """\
       {
         "matcher": "Bash|PowerShell",
         "hooks": [
-          {"type": "command", "command": "python scripts/check_bash_code_write.py"}
+          {"type": "command", "command": "python scripts/check_bash_code_write.py"},
+          {"type": "command", "command": "python scripts/check_seed_before_full_run.py"},
+          {"type": "command", "command": "python scripts/warn_orphan_checkpoints.py"}
         ]
       }
     ],

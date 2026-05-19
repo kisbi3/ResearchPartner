@@ -15,6 +15,7 @@ Registered checks:
   PRE (BLOCKING — exit 2 fails the tool call):
     literature/reviews/*.md           → check_paper_review_quality
     AGENTS.md / GEMINI.md             → check_contract_sync
+    docs/claims/*.md                  → check_claim_promotion_freshness
 
   POST (WARN-ONLY — always exit 0):
     outputs/figures/*.{png,pdf,svg,jpg,jpeg}  → check_figure_provenance
@@ -57,6 +58,10 @@ def _matches_contract(rel: str) -> bool:
     return rel in ("AGENTS.md", "GEMINI.md")
 
 
+def _matches_claim(rel: str) -> bool:
+    return rel.startswith("docs/claims/") and rel.endswith(".md")
+
+
 def _matches_figure(rel: str) -> bool:
     if not rel.startswith("outputs/figures/"):
         return False
@@ -84,6 +89,62 @@ def _check_paper_review_pre(file_path: Path, project: Path) -> tuple[int, list[s
     return 2, [
         f"Paper review {file_path.name} is incomplete — missing: {missing}.\n"
         "Fill in the required sections / links / caveats before saving."
+    ]
+
+
+def _check_claim_freshness_pre(
+    file_path: Path,
+    tool_name: str,
+    tool_input: dict,
+    project: Path,
+) -> tuple[int, list[str]]:
+    """Block promoted claim writes whose cited outputs are stale (>24h).
+
+    Reconstructs the post-edit content from tool_input so the check runs
+    against what is about to be written, not the on-disk version.
+    """
+    try:
+        from check_claim_promotion_freshness import check_claim_freshness  # noqa: PLC0415
+    except Exception as exc:
+        return 0, [f"check_claim_promotion_freshness import error: {exc}"]
+
+    content = ""
+    if tool_name == "Write":
+        content = tool_input.get("content", "") or ""
+    elif tool_name == "Edit":
+        # Best-effort: merge current file with the new_string. We can't fully
+        # simulate Edit's replace semantics without doing the actual edit, so
+        # we union: read current file (if present) + new_string. False
+        # negatives are acceptable (gate is conservative); false positives
+        # would only fire if the promoted+output keywords appear in
+        # new_string itself.
+        current = ""
+        try:
+            current = file_path.read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            pass
+        new_str = tool_input.get("new_string", "") or ""
+        content = current + "\n" + new_str
+
+    if not content:
+        return 0, []
+
+    result = check_claim_freshness(file_path, content, project)
+    if result.status != "fail":
+        return 0, []
+    bits = []
+    if result.stale:
+        bits.append("stale: " + ", ".join(result.stale[:3]))
+    if result.missing:
+        bits.append("missing: " + ", ".join(result.missing[:3]))
+    detail = "; ".join(bits) if bits else result.reason
+    return 2, [
+        f"PROMOTED CLAIM BLOCKED — cited outputs are not fresh ({detail}).\n"
+        "  Rule: a promoted claim (ceiling > observation) must cite outputs/\n"
+        "        artifacts that have been modified within the last 24 hours.\n"
+        "  Fix:  re-run the figure/data generator so the cited file's mtime\n"
+        "        is recent, then retry the claim Write. If the older artifact\n"
+        "        is intentional, lower the ceiling to 'observation'."
     ]
 
 
@@ -152,6 +213,11 @@ def main() -> int:
             (blocking_failures if code != 0 else warnings).extend(msgs)
         if _matches_contract(rel):
             code, msgs = _check_contract_sync_pre()
+            (blocking_failures if code != 0 else warnings).extend(msgs)
+        if _matches_claim(rel):
+            code, msgs = _check_claim_freshness_pre(
+                Path(file_path_str), tool_name, tool_input, project
+            )
             (blocking_failures if code != 0 else warnings).extend(msgs)
 
     if phase == "post":
