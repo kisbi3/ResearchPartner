@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate the interactive workflow map HTML from docs/workflow_map.json."""
+"""Generate the interactive workflow map HTML from workflow_map.json."""
 
 from __future__ import annotations
 
@@ -13,8 +13,8 @@ import re
 
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCE = ROOT / "docs" / "workflow_map.json"
-OUTPUT = ROOT / "docs" / "workflow_map.html"
+SOURCE = ROOT / "workflow_map.json"
+OUTPUT = ROOT / "workflow_map.html"
 TEMPLATE = ROOT / "docs" / "workflow_map.template.html"
 # Runs live inside the harness/project root by default — see init_research_project.py
 # for the rationale (downstream installs would otherwise create runs at disk root).
@@ -1060,9 +1060,9 @@ def write_outputs(
     """Generate the run-local workflow_map.html (and optionally the central one).
 
     `central=False` is the default — a downstream project install should never
-    produce a docs/workflow_map.html in its own docs/ tree unless the user asks
-    for it explicitly via `--central`. The run-local map inside the current
-    run directory remains the single source of truth the researcher opens.
+    produce a root-level workflow_map.html for the harness itself unless the
+    user asks for it explicitly via `--central`. The run-local map inside the
+    current run directory remains the single source of truth the researcher opens.
 
     `project_root` pins the search to a specific project directory instead of
     scanning RUNS_ROOT. Pass this when calling from init_research_project.py.
@@ -1137,7 +1137,7 @@ def main() -> int:
     parser.add_argument(
         "--central",
         action="store_true",
-        help="Also write the central docs/workflow_map.html (off by default — the "
+        help="Also write the central workflow_map.html at the harness root (off by default — the "
              "per-run workflow_map.html inside the active run directory is the "
              "single source of truth a researcher should open).",
     )
