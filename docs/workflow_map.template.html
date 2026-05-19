@@ -170,7 +170,12 @@
       color: var(--bg);
       border-color: var(--accent);
     }
-    .theme-toggle {
+    .header-actions {
+      display: inline-flex;
+      gap: 8px;
+      flex: 0 0 auto;
+    }
+    .theme-toggle, .refresh-btn {
       flex: 0 0 auto;
       display: inline-flex;
       align-items: center;
@@ -180,6 +185,11 @@
       white-space: nowrap;
     }
     .theme-toggle::before { content: "◐"; font-size: 14px; line-height: 1; }
+    .refresh-btn::before { content: "↻"; font-size: 14px; line-height: 1; }
+    .refresh-btn[data-state="busy"]::before { content: "⟳"; animation: spin 1s linear infinite; }
+    .refresh-btn[data-state="error"] { color: var(--bg); background: #c44; border-color: #c44; }
+    .refresh-btn[data-state="ok"] { color: var(--bg); background: var(--accent); border-color: var(--accent); }
+    @keyframes spin { from { transform: rotate(0); } to { transform: rotate(360deg); } }
     #diagram { overflow-y: auto; }
     .active-step-bar {
       padding: 8px 14px;
@@ -578,9 +588,12 @@
   <header>
     <div class="header-row">
       <h1>__TITLE__ <span class="beta-badge">Beta</span> <span id="freshness" class="freshness-pill" hidden></span></h1>
-      <button type="button" class="theme-toggle" id="themeToggle" aria-pressed="false">Dark</button>
+      <div class="header-actions">
+        <button type="button" class="refresh-btn" id="refreshBtn" title="Regenerate workflow_map.live.json from the on-disk diagram and reload">Refresh</button>
+        <button type="button" class="theme-toggle" id="themeToggle" aria-pressed="false">Dark</button>
+      </div>
     </div>
-    <p>Click a workflow node to inspect current gates, evidence links, blocked behaviors, and next review checkpoints. This page is the live research workflow by default. Add the paper logic workflow only when the researcher explicitly starts manuscript planning. Auto-refreshes every 10 seconds by polling <code>workflow_map.live.json</code>; your selection and scroll position are preserved when the data changes.</p>
+    <p>Click a workflow node to inspect current gates, evidence links, blocked behaviors, and next review checkpoints. This page is the live research workflow by default. Add the paper logic workflow only when the researcher explicitly starts manuscript planning. Auto-refreshes every 10 seconds by polling <code>workflow_map.live.json</code>; your selection and scroll position are preserved when the data changes. Click <strong>Refresh</strong> to force-regenerate from the on-disk diagram (requires <code>python scripts/serve_workflow_map.py</code>).</p>
   </header>
   <main class="shell">
     <section class="panel">
@@ -1265,6 +1278,46 @@
     document.getElementById('themeToggle').addEventListener('click', () => {
       setTheme(theme() === 'dark' ? 'light' : 'dark');
     });
+
+    // Refresh button — POST /regenerate (served by scripts/serve_workflow_map.py),
+    // then immediately re-fetch live.json. Degrades gracefully when opened via
+    // file://: the POST fails, and we fall back to a plain cache-busted fetch +
+    // a one-line instruction in the title attribute.
+    const refreshBtn = document.getElementById('refreshBtn');
+    let lastRefreshLabel = 'Refresh';
+    function setRefreshState(state, label, tooltip) {
+      refreshBtn.dataset.state = state || '';
+      refreshBtn.textContent = label || lastRefreshLabel;
+      if (tooltip) refreshBtn.title = tooltip;
+    }
+    refreshBtn.addEventListener('click', async () => {
+      setRefreshState('busy', 'Refreshing…');
+      let regenerated = false;
+      let regenMsg = '';
+      try {
+        const resp = await fetch('/regenerate', { method: 'POST' });
+        const body = await resp.json().catch(() => ({}));
+        regenerated = resp.ok && body.ok !== false;
+        regenMsg = body.message || (regenerated ? 'regenerated' : 'regen failed');
+      } catch (err) {
+        // No server — likely opened as file://. Continue with a plain re-fetch.
+        regenMsg = 'no server (run scripts/serve_workflow_map.py for full regen)';
+      }
+      // Re-fetch live.json regardless. If regeneration ran, we get the new
+      // version; if not, at least the user sees whatever is currently on disk.
+      try {
+        await pollForUpdate();
+        const ts = new Date().toLocaleTimeString();
+        const label = regenerated ? `Refreshed ${ts}` : `Reloaded ${ts}`;
+        setRefreshState(regenerated ? 'ok' : '', label, regenMsg);
+        // Snap back to neutral after a few seconds so the next click reads as fresh.
+        setTimeout(() => setRefreshState('', 'Refresh', regenMsg), 4000);
+      } catch (err) {
+        setRefreshState('error', 'Refresh failed', String(err));
+        setTimeout(() => setRefreshState('', 'Refresh', regenMsg), 6000);
+      }
+    });
+
     try {
       window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
         // Only follow OS if the user hasn't pinned a preference.
