@@ -83,7 +83,7 @@ def test_live_map_uses_run_root_for_current_process_layout(tmp_path, monkeypatch
     (run_root / "docs" / "plan").mkdir(parents=True)
     (run_root / "docs" / "plan" / "research_plan.md").write_text("# Plan\n", encoding="utf-8")
     monkeypatch.setattr(generator, "RUNS_ROOT", runs_root)
-    monkeypatch.setattr(generator, "OUTPUT", tmp_path / "harness" / "docs" / "workflow_map.html")
+    monkeypatch.setattr(generator, "OUTPUT", tmp_path / "harness" / "workflow_map.html")
 
     map_data = generator.build_data()["maps"][0]
 
@@ -166,8 +166,8 @@ def _setup_run_for_write_outputs(tmp_path, monkeypatch, generator):
     process_docs = run_root / "docs" / "process"
     process_docs.mkdir(parents=True)
     (process_docs / "live_workflow_diagram.md").write_text(LIVE_WORKFLOW_FIXTURE, encoding="utf-8")
-    source = tmp_path / "harness" / "docs" / "workflow_map.json"
-    output = tmp_path / "harness" / "docs" / "workflow_map.html"
+    source = tmp_path / "harness" / "workflow_map.json"
+    output = tmp_path / "harness" / "workflow_map.html"
     source.parent.mkdir(parents=True)
     source.write_text(json.dumps({"maps": []}), encoding="utf-8")
     monkeypatch.setattr(generator, "RUNS_ROOT", runs_root)
@@ -222,7 +222,7 @@ def test_default_build_data_contains_only_live_research_workflow(tmp_path, monke
 
 
 def test_static_research_workflow_includes_interview_gate():
-    data = json.loads((ROOT / "docs" / "workflow_map.json").read_text(encoding="utf-8"))
+    data = json.loads((ROOT / "workflow_map.json").read_text(encoding="utf-8"))
     research_map = next(map_data for map_data in data["maps"] if map_data["id"] == "research_workflow")
     nodes = {node["id"]: node for node in research_map["nodes"]}
 

@@ -99,7 +99,13 @@ cache/
 logs/
 errors/
 literature/pdfs/
+# Generated outputs — live at project root, not in docs/
 workflow_map.live.json
+workflow_map.html
+# Legacy docs-level artifacts from older harness versions
+docs/workflow_map.html
+docs/workflow_map.json
+docs/workflow_map.live.json
 """
 
 

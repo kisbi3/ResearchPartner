@@ -9,8 +9,8 @@ import sys
 
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCE = ROOT / "docs" / "workflow_map.json"
-HTML = ROOT / "docs" / "workflow_map.html"
+SOURCE = ROOT / "workflow_map.json"
+HTML = ROOT / "workflow_map.html"
 
 
 def main() -> int:
@@ -42,7 +42,7 @@ def main() -> int:
                     errors.append(f"{map_data.get('id')}/{node_id}: missing responsible path {path}")
 
     if not HTML.exists():
-        errors.append("docs/workflow_map.html has not been generated")
+        errors.append("workflow_map.html has not been generated")
     else:
         html_text = HTML.read_text(encoding="utf-8", errors="ignore")
         if "Live Research Workflow" not in html_text:
