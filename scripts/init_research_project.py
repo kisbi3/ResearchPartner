@@ -116,6 +116,7 @@ _CLAUDE_SETTINGS_CONTENT = """\
       {
         "matcher": "Agent",
         "hooks": [
+          {"type": "command", "command": "python scripts/enforce_gate_sequence.py"},
           {"type": "command", "command": "python scripts/workflow_hooks.py pre"},
           {"type": "command", "command": "python scripts/check_peer_review_invocation.py"}
         ]
