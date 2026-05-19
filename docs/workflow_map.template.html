@@ -49,8 +49,13 @@
       --stale-bg: #fdecec;
       --stale-ink: #a83232;
       --flow-node-ink: #111111;
+      --flow-node-border: #475569;
       --flow-edge: #94a3b8;
       --flow-edge-label: #64748b;
+      --flow-edge-evolved: #0f766e;
+      --flow-edge-reproduces: #7c2d12;
+      --flow-edge-supports: #16a34a;
+      --flow-edge-contradicts: #dc2626;
     }
     :root[data-theme="dark"] {
       color-scheme: dark;
@@ -84,9 +89,14 @@
       --waived-ink: #d1d5db;
       --stale-bg: #4a1f24;
       --stale-ink: #fecaca;
-      --flow-node-ink: #0f172a;
+      --flow-node-ink: #eef2ef;
+      --flow-node-border: #64748b;
       --flow-edge: #64748b;
       --flow-edge-label: #cbd5e1;
+      --flow-edge-evolved: #5eead4;
+      --flow-edge-reproduces: #fdba74;
+      --flow-edge-supports: #4ade80;
+      --flow-edge-contradicts: #f87171;
     }
     * { box-sizing: border-box; }
     body {
@@ -994,6 +1004,20 @@
       waiver:        '#e5e7eb',
       gate:          '#bbf7d0',
     };
+    const FLOW_KIND_COLORS_DARK = {
+      paper:         '#581c87',
+      decision:      '#78350f',
+      model_version: '#134e4a',
+      result:        '#0c4a6e',
+      figure:        '#831843',
+      claim:         '#881337',
+      anomaly:       '#7f1d1d',
+      waiver:        '#374151',
+      gate:          '#14532d',
+    };
+    function flowKindColors() {
+      return theme() === 'dark' ? FLOW_KIND_COLORS_DARK : FLOW_KIND_COLORS;
+    }
     const FLOW_KIND_SHAPES = {
       paper:         'round-rectangle',
       decision:      'diamond',
@@ -1074,12 +1098,13 @@
       }
 
       const filter = flowFilterFor(map.id);
+      const kindColors = flowKindColors();
       const kindControls = FLOW_KIND_KEYS.map(k => `
         <label><input type="checkbox" data-kind="${k}" ${filter.kind.has(k) ? 'checked' : ''}>
-          <span class="swatch" style="background:${FLOW_KIND_COLORS[k]}"></span>${k.replace('_', ' ')}</label>
+          <span class="swatch" style="background:${kindColors[k]}"></span>${k.replace('_', ' ')}</label>
       `).join('');
       const legend = FLOW_KIND_KEYS.map(k =>
-        `<span><span class="swatch" style="background:${FLOW_KIND_COLORS[k]}"></span>${k.replace('_', ' ')}</span>`
+        `<span><span class="swatch" style="background:${kindColors[k]}"></span>${k.replace('_', ' ')}</span>`
       ).join('');
 
       wrap.innerHTML = `
@@ -1102,16 +1127,21 @@
       const flowEdge = cssVar('--flow-edge') || '#94a3b8';
       const flowEdgeLabel = cssVar('--flow-edge-label') || '#64748b';
       const flowNodeInk = cssVar('--flow-node-ink') || '#111111';
+      const flowNodeBorder = cssVar('--flow-node-border') || '#475569';
       const flowTextBg = cssVar('--panel-soft') || '#fbfbf8';
       const flowFocus = cssVar('--focus') || '#0b57d0';
       const flowReview = cssVar('--fail-ink') || '#b91c1c';
+      const flowEdgeEvolved = cssVar('--flow-edge-evolved') || '#0f766e';
+      const flowEdgeReproduces = cssVar('--flow-edge-reproduces') || '#7c2d12';
+      const flowEdgeSupports = cssVar('--flow-edge-supports') || '#16a34a';
+      const flowEdgeContradicts = cssVar('--flow-edge-contradicts') || '#dc2626';
 
       const cy = cytoscape({
         container: document.getElementById('cyCanvas'),
         elements: buildFlowElements(map),
         style: [
           { selector: 'node', style: {
-            'background-color': ele => FLOW_KIND_COLORS[ele.data('kind')] || '#e5e7eb',
+            'background-color': ele => kindColors[ele.data('kind')] || cssVar('--waived-bg') || '#e5e7eb',
             'shape': ele => FLOW_KIND_SHAPES[ele.data('kind')] || 'rectangle',
             'label': 'data(label)',
             'font-size': 10,
@@ -1123,7 +1153,7 @@
             'height': 36,
             'padding': '6px',
             'border-width': 1,
-            'border-color': '#475569',
+            'border-color': flowNodeBorder,
             'color': flowNodeInk,
           }},
           { selector: 'node[?requiresReview]', style: { 'border-width': 3, 'border-color': flowReview }},
@@ -1143,10 +1173,10 @@
             'text-background-opacity': 0.9,
             'text-background-padding': '1px',
           }},
-          { selector: 'edge[relation = "evolved_from"]', style: { 'line-color': '#0f766e', 'target-arrow-color': '#0f766e', 'width': 2.5 }},
-          { selector: 'edge[relation = "reproduces"]',   style: { 'line-color': '#7c2d12', 'target-arrow-color': '#7c2d12', 'line-style': 'dashed' }},
-          { selector: 'edge[relation = "supports"]',     style: { 'line-color': '#16a34a', 'target-arrow-color': '#16a34a' }},
-          { selector: 'edge[relation = "contradicts"]',  style: { 'line-color': '#dc2626', 'target-arrow-color': '#dc2626' }},
+          { selector: 'edge[relation = "evolved_from"]', style: { 'line-color': flowEdgeEvolved,     'target-arrow-color': flowEdgeEvolved,     'width': 2.5 }},
+          { selector: 'edge[relation = "reproduces"]',   style: { 'line-color': flowEdgeReproduces,  'target-arrow-color': flowEdgeReproduces,  'line-style': 'dashed' }},
+          { selector: 'edge[relation = "supports"]',     style: { 'line-color': flowEdgeSupports,    'target-arrow-color': flowEdgeSupports }},
+          { selector: 'edge[relation = "contradicts"]',  style: { 'line-color': flowEdgeContradicts, 'target-arrow-color': flowEdgeContradicts }},
         ],
         layout: { name: 'dagre', rankDir: 'TB', nodeSep: 28, rankSep: 60, edgeSep: 12, fit: true, padding: 30 },
       });
@@ -1235,6 +1265,14 @@
     document.getElementById('themeToggle').addEventListener('click', () => {
       setTheme(theme() === 'dark' ? 'light' : 'dark');
     });
+    try {
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+        // Only follow OS if the user hasn't pinned a preference.
+        if (!localStorage.getItem('workflowMapTheme')) {
+          setTheme(event.matches ? 'dark' : 'light');
+        }
+      });
+    } catch (error) {}
     updateThemeToggle();
     render();
     window.setInterval(pollForUpdate, 10000);
