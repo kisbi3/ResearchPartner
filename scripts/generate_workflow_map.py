@@ -557,7 +557,7 @@ def apply_mermaid_edges_to_nodes(
         if from_id and to_id and from_id != to_id and to_id not in adj[from_id]:
             adj[from_id].append(to_id)
     matched = sum(1 for targets in adj.values() if targets)
-    if matched < max(1, len(gate_ids) // 2):
+    if matched < max(1, (len(gate_ids) + 1) // 2):
         return False
     for node in nodes:
         targets = adj.get(node["id"])
@@ -767,6 +767,24 @@ GATE_RESULT_BUILDERS = {
 
 # Gate IDs that have dedicated document links shown in the detail panel.
 _GATE_SPECIFIC_LINK_PATHS: dict[str, list[tuple[str, list[str]]]] = {
+    "orient_gate": [
+        ("Orient Note", ["docs/gates/orient_note.md", "docs/orient_note.md"]),
+    ],
+    "interview_gate": [
+        ("Interview Notes", ["docs/gates/interview_notes.md", "docs/interview_notes.md"]),
+    ],
+    "baseline": [
+        ("Baseline Registry", ["docs/gates/baseline_registry.md", "docs/baseline_registry.md"]),
+        ("Baseline Strategy", ["docs/plan/baseline_strategy.md", "docs/baseline_strategy.md"]),
+    ],
+    "baseline_or_reproduction_target": [
+        ("Baseline Registry", ["docs/gates/baseline_registry.md", "docs/baseline_registry.md"]),
+        ("Baseline Strategy", ["docs/plan/baseline_strategy.md", "docs/baseline_strategy.md"]),
+    ],
+    "claim_gate": [
+        ("Validation Log", ["docs/gates/validation_log.md", "docs/validation_log.md"]),
+        ("Researcher Review Log", ["docs/process/researcher_review_log.md", "docs/researcher_review_log.md"]),
+    ],
     "literature_review_and_replanning": [
         (
             "Literature Review Plan",

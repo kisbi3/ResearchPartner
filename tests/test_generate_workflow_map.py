@@ -599,3 +599,73 @@ def test_literature_summary_action_guidance_is_recorded():
 
     assert "compile_literature_summary" in guidance.get("suggested_command", "")
     assert guidance.get("why")
+
+
+def test_mermaid_threshold_requires_ceil_half_nodes(tmp_path, monkeypatch):
+    """With 3 gate nodes, 1 Mermaid match is below the ceiling-half threshold (2);
+    sequential chaining must be used instead."""
+    generator = load_generator()
+    runs_root = tmp_path / "ResearchPartner-runs"
+    run_docs = runs_root / "2026-05-19-threshold-run" / "docs"
+    run_docs.mkdir(parents=True)
+    # Only the first gate appears in the Mermaid diagram; the other two don't.
+    (run_docs / "live_workflow_diagram.md").write_text(
+        "# Live Workflow\n\n"
+        "## Active Step\n\n- Current step: Test\n\n"
+        "## Workflow Diagram\n\n"
+        "```mermaid\n"
+        "flowchart LR\n"
+        '    A["Baseline"] --> X["Nonexistent gate"]\n'
+        "```\n\n"
+        "## Gate Status\n\n"
+        "| Gate | Status | Note |\n"
+        "|---|---|---|\n"
+        "| Baseline | pass | Done |\n"
+        "| Refinement trend | pass | Done |\n"
+        "| Fixed ratio convergence | pending |  |\n\n"
+        "## Evidence Links\n\n"
+        "## Next Review Checkpoint\n\n- None\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(generator, "RUNS_ROOT", runs_root)
+
+    nodes = {node["id"]: node for node in generator.build_data()["maps"][0]["nodes"]}
+
+    # Sequential chaining should apply: baseline → refinement_trend → fixed_ratio
+    assert nodes["baseline"]["edges"] == ["refinement_trend"]
+    assert nodes["refinement_trend"]["edges"] == ["fixed_ratio_convergence"]
+
+
+def test_gate_specific_links_for_orient_and_interview(tmp_path):
+    """orient_gate and interview_gate return links to their source documents."""
+    generator = load_generator()
+    run_root = tmp_path / "run"
+    gates_dir = run_root / "docs" / "gates"
+    gates_dir.mkdir(parents=True)
+    (gates_dir / "orient_note.md").write_text("# Orient\n", encoding="utf-8")
+    (gates_dir / "interview_notes.md").write_text("# Interview\n", encoding="utf-8")
+
+    orient_links = generator.gate_specific_links("orient_gate", run_root)
+    interview_links = generator.gate_specific_links("interview_gate", run_root)
+
+    assert any("orient_note" in item["path"] for item in orient_links)
+    assert any("interview_notes" in item["path"] for item in interview_links)
+
+
+def test_gate_specific_links_for_baseline_and_claim(tmp_path):
+    """baseline and claim_gate return links to their source documents."""
+    generator = load_generator()
+    run_root = tmp_path / "run"
+    (run_root / "docs" / "gates").mkdir(parents=True)
+    (run_root / "docs" / "plan").mkdir(parents=True)
+    (run_root / "docs" / "process").mkdir(parents=True)
+    (run_root / "docs" / "gates" / "baseline_registry.md").write_text("# Registry\n", encoding="utf-8")
+    (run_root / "docs" / "plan" / "baseline_strategy.md").write_text("# Strategy\n", encoding="utf-8")
+    (run_root / "docs" / "gates" / "validation_log.md").write_text("# Log\n", encoding="utf-8")
+
+    baseline_links = generator.gate_specific_links("baseline", run_root)
+    claim_links = generator.gate_specific_links("claim_gate", run_root)
+
+    assert any("baseline_registry" in item["path"] for item in baseline_links)
+    assert any("baseline_strategy" in item["path"] for item in baseline_links)
+    assert any("validation_log" in item["path"] for item in claim_links)
