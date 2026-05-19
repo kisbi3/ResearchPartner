@@ -131,13 +131,16 @@ _CLAUDE_SETTINGS_CONTENT = """\
         "matcher": "Write|Edit",
         "hooks": [
           {"type": "command", "command": "python scripts/check_src_write_authorization.py"},
+          {"type": "command", "command": "python scripts/path_check_hooks.py pre"},
           {"type": "command", "command": "python scripts/workflow_hooks.py pre"}
         ]
       },
       {
         "matcher": "Bash|PowerShell",
         "hooks": [
-          {"type": "command", "command": "python scripts/check_bash_code_write.py"}
+          {"type": "command", "command": "python scripts/check_bash_code_write.py"},
+          {"type": "command", "command": "python scripts/check_seed_before_full_run.py"},
+          {"type": "command", "command": "python scripts/warn_orphan_checkpoints.py"}
         ]
       }
     ],
@@ -145,19 +148,22 @@ _CLAUDE_SETTINGS_CONTENT = """\
       {
         "matcher": "Agent",
         "hooks": [
-          {"type": "command", "command": "python scripts/workflow_hooks.py post"}
+          {"type": "command", "command": "python scripts/workflow_hooks.py post"},
+          {"type": "command", "command": "python scripts/check_spawn_log_integrity.py"}
         ]
       },
       {
         "matcher": "Write|Edit",
         "hooks": [
-          {"type": "command", "command": "python scripts/workflow_hooks.py post"}
+          {"type": "command", "command": "python scripts/workflow_hooks.py post"},
+          {"type": "command", "command": "python scripts/path_check_hooks.py post"}
         ]
       },
       {
         "matcher": "Bash|PowerShell",
         "hooks": [
-          {"type": "command", "command": "python scripts/workflow_hooks.py post"}
+          {"type": "command", "command": "python scripts/workflow_hooks.py post"},
+          {"type": "command", "command": "python scripts/path_check_hooks.py post"}
         ]
       }
     ]
