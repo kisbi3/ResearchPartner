@@ -44,27 +44,36 @@ import _project_root as project_root_mod  # noqa: E402
 # The check module must expose check_project(project: Path) → (int, list[str]).
 
 GATE_CHECKS: list[tuple[str, str]] = [
-    ("orient",      "check_orient_recorded"),
-    ("interview",   "check_interview_recorded"),
-    ("literature",  "check_literature_reviewed"),
-    ("model",       "check_model_specified"),
-    ("baseline",    "check_baseline_gate"),
+    ("orient",            "check_orient_recorded"),
+    ("interview",         "check_interview_recorded"),
+    ("literature",        "check_literature_reviewed"),
+    ("model",             "check_model_specified"),
+    ("baseline_strategy", "check_baseline_strategy"),
+    ("baseline",          "check_baseline_gate"),
+    ("validation_recent", "check_validation_recent"),
+    ("review_recent",     "check_researcher_review_recent"),
 ]
 
 # Human-readable labels and artifact paths for block messages.
 GATE_LABELS: dict[str, str] = {
-    "orient":      "Orient gate",
-    "interview":   "Interview gate",
-    "literature":  "Literature gate",
-    "model":       "Model specification gate",
-    "baseline":    "Baseline gate",
+    "orient":            "Orient gate",
+    "interview":         "Interview gate",
+    "literature":        "Literature gate",
+    "model":             "Model specification gate",
+    "baseline_strategy": "Baseline strategy gate",
+    "baseline":          "Baseline gate",
+    "validation_recent": "Recent validation gate",
+    "review_recent":     "Recent researcher-review gate",
 }
 GATE_ARTIFACTS: dict[str, str] = {
-    "orient":      "docs/gates/orient_note.md",
-    "interview":   "docs/gates/interview_notes.md",
-    "literature":  "docs/literature/literature_review_plan.md",
-    "model":       "docs/plan/model_spec.md",
-    "baseline":    "docs/gates/baseline_registry.md",
+    "orient":            "docs/gates/orient_note.md",
+    "interview":         "docs/gates/interview_notes.md",
+    "literature":        "docs/literature/literature_review_plan.md",
+    "model":             "docs/plan/model_spec.md",
+    "baseline_strategy": "docs/plan/baseline_strategy.md",
+    "baseline":          "docs/gates/baseline_registry.md",
+    "validation_recent": "docs/gates/validation_log.md",
+    "review_recent":     "docs/process/researcher_review_log.md",
 }
 
 
@@ -106,7 +115,7 @@ SKILL_REQUIREMENTS: list[dict] = [
             r"synthetic\s+data\s+generation",
             r"\bseed\s+stage\b",
         ],
-        "requires": ["orient", "interview", "literature", "model"],
+        "requires": ["orient", "interview", "literature", "model", "baseline_strategy"],
     },
     {
         "skill": "implementation-agent",
@@ -116,7 +125,7 @@ SKILL_REQUIREMENTS: list[dict] = [
             r"\bcoding\s+agent\b",
             r"spawning\s+implementation",
         ],
-        "requires": ["orient", "interview", "literature", "model"],
+        "requires": ["orient", "interview", "literature", "model", "baseline_strategy"],
     },
     {
         "skill": "model-specification",
@@ -146,7 +155,7 @@ SKILL_REQUIREMENTS: list[dict] = [
             r"numerical[-_\s]?validation",
             r"skills/numerical[-_\s]?validation",
         ],
-        "requires": ["orient", "interview", "literature", "model", "baseline"],
+        "requires": ["orient", "interview", "literature", "model", "baseline_strategy", "baseline"],
     },
     {
         "skill": "claim-to-evidence",
@@ -156,7 +165,8 @@ SKILL_REQUIREMENTS: list[dict] = [
             r"\bclaim\s+ceiling\b",
             r"\bpromote\s+claim\b",
         ],
-        "requires": ["orient", "interview", "literature", "model", "baseline"],
+        "requires": ["orient", "interview", "literature", "model", "baseline_strategy",
+                     "baseline", "validation_recent", "review_recent"],
     },
     {
         "skill": "research-retrospective",
@@ -166,7 +176,8 @@ SKILL_REQUIREMENTS: list[dict] = [
             r"\bcompletion\s+conference\b",
             r"\bwrap[-_\s]?up\b",
         ],
-        "requires": ["orient", "interview", "literature", "model", "baseline"],
+        "requires": ["orient", "interview", "literature", "model", "baseline_strategy",
+                     "baseline", "review_recent"],
     },
     {
         "skill": "numerical-validation",
