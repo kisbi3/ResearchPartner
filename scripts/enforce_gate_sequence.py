@@ -47,9 +47,8 @@ GATE_CHECKS: list[tuple[str, str]] = [
     ("orient",      "check_orient_recorded"),
     ("interview",   "check_interview_recorded"),
     ("literature",  "check_literature_reviewed"),
-    # Extend here when check scripts for later gates are added:
-    # ("seed",        "check_seed_recorded"),
-    # ("baseline",    "check_baseline_gate"),
+    ("model",       "check_model_specified"),
+    ("baseline",    "check_baseline_gate"),
 ]
 
 # Human-readable labels and artifact paths for block messages.
@@ -57,11 +56,15 @@ GATE_LABELS: dict[str, str] = {
     "orient":      "Orient gate",
     "interview":   "Interview gate",
     "literature":  "Literature gate",
+    "model":       "Model specification gate",
+    "baseline":    "Baseline gate",
 }
 GATE_ARTIFACTS: dict[str, str] = {
     "orient":      "docs/gates/orient_note.md",
     "interview":   "docs/gates/interview_notes.md",
     "literature":  "docs/literature/literature_review_plan.md",
+    "model":       "docs/plan/model_spec.md",
+    "baseline":    "docs/gates/baseline_registry.md",
 }
 
 
@@ -103,7 +106,7 @@ SKILL_REQUIREMENTS: list[dict] = [
             r"synthetic\s+data\s+generation",
             r"\bseed\s+stage\b",
         ],
-        "requires": ["orient", "interview", "literature"],
+        "requires": ["orient", "interview", "literature", "model"],
     },
     {
         "skill": "implementation-agent",
@@ -113,7 +116,7 @@ SKILL_REQUIREMENTS: list[dict] = [
             r"\bcoding\s+agent\b",
             r"spawning\s+implementation",
         ],
-        "requires": ["orient", "interview", "literature"],
+        "requires": ["orient", "interview", "literature", "model"],
     },
     {
         "skill": "model-specification",
@@ -123,6 +126,58 @@ SKILL_REQUIREMENTS: list[dict] = [
             r"\bmodel\s+specification\b",
         ],
         "requires": ["orient", "interview", "literature"],
+    },
+    {
+        "skill": "baseline-strategy",
+        "patterns": [
+            r"baseline[-_\s]?strateg",
+            r"skills/baseline[-_\s]?strateg",
+            r"\bbaseline\s+plan\b",
+            r"\btoy\s+model\s+plan\b",
+        ],
+        "requires": ["orient", "interview", "literature", "model"],
+    },
+    {
+        "skill": "scientific-validator",
+        "patterns": [
+            r"scientific[-_\s]?verif",
+            r"skills/scientific[-_\s]?verif",
+            r"\bvalidat",
+            r"numerical[-_\s]?validation",
+            r"skills/numerical[-_\s]?validation",
+        ],
+        "requires": ["orient", "interview", "literature", "model", "baseline"],
+    },
+    {
+        "skill": "claim-to-evidence",
+        "patterns": [
+            r"claim[-_\s]?to[-_\s]?evidence",
+            r"skills/claim[-_\s]?to[-_\s]?evidence",
+            r"\bclaim\s+ceiling\b",
+            r"\bpromote\s+claim\b",
+        ],
+        "requires": ["orient", "interview", "literature", "model", "baseline"],
+    },
+    {
+        "skill": "research-retrospective",
+        "patterns": [
+            r"retrospective",
+            r"skills/research[-_\s]?retrospective",
+            r"\bcompletion\s+conference\b",
+            r"\bwrap[-_\s]?up\b",
+        ],
+        "requires": ["orient", "interview", "literature", "model", "baseline"],
+    },
+    {
+        "skill": "numerical-validation",
+        "patterns": [
+            r"skills/numerical[-_\s]?validation",
+            r"\bnumerical\s+check\b",
+            r"\bconservation\s+check\b",
+            r"\bdimensional\s+analysis\b",
+            r"skills/dimensional[-_\s]?analysis",
+        ],
+        "requires": ["orient", "interview", "literature", "model", "baseline"],
     },
 ]
 
