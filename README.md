@@ -126,7 +126,7 @@ Use these commands from the installed project root. The assistant should invoke 
 | Audit existing project | `python scripts\audit_existing_project.py` | Inventories scripts, figures, outputs, and validation gaps before retrofit |
 | Evaluate harness | `python scripts\evaluate_harness.py` | Checks realistic scenarios for correct skills, gates, and blocked behaviors |
 | Validate links | `python scripts\validate_workflow_links.py` | Checks workflow-document links |
-| Generate workflow map | `python scripts\generate_workflow_map.py` | Refreshes the project's `workflow_map.html` and `workflow_map.json`. Pass `--update-central` to also build the harness-source `docs\workflow_map.html` (off by default) |
+| Generate workflow map | `python scripts\generate_workflow_map.py` | Refreshes the project's `workflow_map.html` and `workflow_map.json`. Pass `--central` to also build the harness-source `docs\workflow_map.html` (off by default) |
 | Include paper logic | `python scripts\generate_workflow_map.py --include-paper-logic` | Adds manuscript-logic view when paper planning explicitly starts |
 | Scaffold paper review | `python scripts\scaffold_paper_review.py --project <project-dir> --paper-id P1 --title "Title"` | Creates a reusable paper review note and updates the literature index |
 | Process paper PDF | `python scripts\process_paper_for_review.py --project <project-dir> --paper-id P1 --title "Title" --pdf <pdf-path>` | Scaffolds review, extracts text, and drafts provisional extraction notes |

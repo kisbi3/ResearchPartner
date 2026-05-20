@@ -61,17 +61,8 @@ def _regenerate(project: Path) -> tuple[bool, str]:
     except Exception as exc:
         return False, f"sync_workflow.sync failed: {exc.__class__.__name__}: {exc}"
 
-    # Optional: refresh the HTML too. The HTML rarely changes between runs,
-    # but generate_workflow_map keeps its dashboard links in sync with the
-    # current docs/ tree. Failures here are non-fatal.
-    try:
-        import generate_workflow_map as gwm  # noqa: PLC0415
-        gwm.write_outputs(project_root=project)
-    except Exception as exc:
-        return True, (
-            f"live.json refreshed at {json_path}; "
-            f"HTML regen warning: {exc.__class__.__name__}: {exc}"
-        )
+    # sync_workflow.sync() already calls _refresh_html() internally, which
+    # replaces any stale bake-in HTML with the harness polling template.
     return True, f"live.json refreshed at {json_path}"
 
 
@@ -147,21 +138,13 @@ def main(argv: list[str] | None = None) -> int:
         return 1
 
     # Ensure live.json + HTML exist; create them if not so the first GET succeeds.
-    html = layout.workflow_map_html(project)
-    if not html.exists():
-        try:
-            import generate_workflow_map as gwm  # noqa: PLC0415
-            gwm.write_outputs(project_root=project)
-        except Exception as exc:
-            print(f"WARNING: could not bootstrap HTML: {exc}", file=sys.stderr)
-
-    json_path = layout.workflow_map_live_json(project)
-    if not json_path.exists():
-        try:
-            import sync_workflow  # noqa: PLC0415
-            sync_workflow.sync(project)
-        except Exception as exc:
-            print(f"WARNING: could not bootstrap live.json: {exc}", file=sys.stderr)
+    # sync() writes live.json and calls _refresh_html() which copies the harness
+    # polling template when the HTML is absent or is a stale bake-in version.
+    try:
+        import sync_workflow  # noqa: PLC0415
+        sync_workflow.sync(project)
+    except Exception as exc:
+        print(f"WARNING: could not bootstrap workflow map: {exc}", file=sys.stderr)
 
     Handler = make_handler(project)
     server = HTTPServer((args.host, args.port), Handler)
