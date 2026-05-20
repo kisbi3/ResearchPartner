@@ -265,18 +265,22 @@ def scaffold_project(project: Path | str = ".") -> Path:
     # ── Write project-root marker ────────────────────────────────────────────
     project_root_mod.create_marker(project)
 
-    # ── Bootstrap live workflow JSON + HTML so workflow_map.html opens immediately ──
+    # ── Bootstrap live workflow JSON so workflow_map.html opens immediately ────
     try:
         import sync_workflow  # noqa: PLC0415
         sync_workflow.sync(project)
     except Exception:
         pass  # Non-fatal: researcher can run /sync-workflow manually.
 
-    try:
-        import generate_workflow_map as gwm  # noqa: PLC0415
-        gwm.write_outputs(project_root=project)
-    except Exception:
-        pass  # Non-fatal: researcher can run generate_workflow_map.py manually.
+    # ── Copy the harness polling template as the project workflow map ────────
+    # generate_workflow_map.py (bake-in approach) is intentionally NOT called
+    # here. The harness template polls workflow_map.live.json every 10 s, so
+    # it stays live without a separate generation step.
+    harness_html = Path(__file__).resolve().parents[1] / "workflow_map.html"
+    project_html = project / "workflow_map.html"
+    if harness_html.exists() and not project_html.exists():
+        import shutil
+        shutil.copy2(harness_html, project_html)
 
     return project
 

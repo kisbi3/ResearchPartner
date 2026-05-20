@@ -674,6 +674,25 @@ def find_broken_edges(project: Path) -> list[dict]:
 # ── Public entry point ────────────────────────────────────────────────────────
 
 
+def _refresh_html(project: Path) -> None:
+    """Ensure project/workflow_map.html is the current harness polling template.
+
+    Replaces a stale generate_workflow_map.py-baked HTML (identifiable by the
+    inline ``let DATA = {`` assignment) with the clean harness template that
+    polls ``workflow_map.live.json`` every 10 s.  Safe to call on every sync.
+    """
+    project_html = project / "workflow_map.html"
+    harness_html = Path(__file__).resolve().parents[1] / "workflow_map.html"
+    if not harness_html.exists():
+        return
+    if project_html.exists():
+        snippet = project_html.read_bytes()[:4096].decode("utf-8", errors="replace")
+        if "let DATA = {" not in snippet:
+            return  # Already the polling template; nothing to do.
+    import shutil
+    shutil.copy2(harness_html, project_html)
+
+
 def sync(project: Path, active_step: str | None = None) -> Path:
     """Full sync: walk filesystem, write JSON, update markdown mirror."""
     records = collect_artifacts(project)
@@ -687,6 +706,7 @@ def sync(project: Path, active_step: str | None = None) -> Path:
     out_path = layout.workflow_map_live_json(project)
     out_path.write_text(json.dumps(data, indent=2, ensure_ascii=False),
                         encoding="utf-8")
+    _refresh_html(project)
     return out_path
 
 
