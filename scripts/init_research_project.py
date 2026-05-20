@@ -267,10 +267,10 @@ def scaffold_project(project: Path | str = ".") -> Path:
 
     # ── Bootstrap live workflow JSON + HTML so workflow_map.html opens immediately ──
     try:
-        import update_live_json as ulj  # noqa: PLC0415
-        ulj.bootstrap_project_json(project)
+        import sync_workflow  # noqa: PLC0415
+        sync_workflow.sync(project)
     except Exception:
-        pass  # Non-fatal: agents can call update_live_json.py manually.
+        pass  # Non-fatal: researcher can run /sync-workflow manually.
 
     try:
         import generate_workflow_map as gwm  # noqa: PLC0415

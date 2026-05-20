@@ -76,14 +76,23 @@ The Baseline Strategy Gate (`python scripts/check_baseline_strategy.py --project
 
 Once the strategy is decided, the actual execution of the reproduce or analytical verification task is done using the **`baseline-validation`** skill. The `baseline_strategy.md` defines **what** to verify; `baseline-validation` defines **how** to run and record the check.
 
-## Cartographer Update
+## Lineage Front-Matter
 
-After writing `docs/plan/baseline_strategy.md`, emit a `decision` node that captures the variation/new-model classification and links the verification target to its source:
+Add a `lineage:` block at the top of `docs/plan/baseline_strategy.md` to record how the verification target connects to its source:
 
-- For **variation**: the decision node must carry a `cites_paper` edge to the parent paper's `paper_<paper_id>` node and a `reproduces` edge from the planned baseline result to the same paper node.
-- For **new model**: the decision node must carry a `reproduces` edge from the planned baseline result to the analytical-limit target (use a stable `node_id` for the limit, e.g. `analytical_meanfield_limit`).
+```yaml
+---
+lineage:
+  node_type: decision
+  # For variation:
+  cites_paper: paper_<paper_id>
+  reproduces: paper_<paper_id>
+  # For new model (use instead of the two lines above):
+  # reproduces: analytical_<limit_slug>
+---
+```
 
-See `skills/cartographer-update/SKILL.md` → *Worked Examples by Lineage Kind* → "Result reproduces a paper figure". Use `decision_baseline_strategy` as the `node_id` so downstream skills can reference it.
+Then run `/sync-workflow` to update the live workflow map. See `skills/sync-workflow/SKILL.md` for the front-matter spec.
 
 ## Suggested Next Skill
 

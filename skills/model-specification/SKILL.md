@@ -104,16 +104,22 @@ Using `###` or renaming the headings will cause the Model Gate to fail.
 
 The Model Gate (`python scripts/check_model_specified.py --project <project-dir>`) checks this file before seed-design or execute work begins. The canonical template lives at `docs/run_templates/model_spec_template.md`.
 
-## Cartographer Update
+## Lineage Front-Matter
 
-When this skill produces a new model definition (or a revised version of an existing model), also write a one-page model-version note to `docs/model_versions/<version>.md` (e.g. `v1.md`). `scripts/workflow_hooks.py` auto-detects this file and seeds a `lineage_kind="model_version"` node with `model_version=<version>` — you do not need to emit that node yourself.
+When this skill produces a new model definition (or a revised version of an existing model), also write a one-page model-version note to `docs/model_versions/<version>.md` (e.g. `v1.md`). Add a `lineage:` block at the top of that file to record lineage edges:
 
-You **must** explicitly emit:
+```yaml
+---
+lineage:
+  node_type: model_version
+  model_version: "v1"
+  evolved_from: model_v0          # omit if this is the first version
+  cites_paper:
+    - paper_smith2020             # each paper whose equations/method the spec relies on
+---
+```
 
-- an `evolved_from` edge from the new model_version to its predecessor (if any), using the worked example in `skills/cartographer-update/SKILL.md`.
-- a `cites_paper` edge from the new model_version to each `paper_<paper_id>` node whose results, equations, or method the spec directly relies on.
-
-Use `model_<version>` as the `node_id` to match the auto-emitted node. Do not re-emit the auto-derived fields (`model_version`, `lineage_kind`, `node_type`).
+Then run `/sync-workflow` to pick up the new file and update the live workflow map. See `skills/sync-workflow/SKILL.md` for the full front-matter spec and supported relations.
 
 ## Suggested Next Skill
 

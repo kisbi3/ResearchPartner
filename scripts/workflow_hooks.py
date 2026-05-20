@@ -1,28 +1,38 @@
 #!/usr/bin/env python3
-"""Claude Code hook entry point for live workflow diagram updates.
+"""Minimal Claude Code hook for `Agent()` spawn tracking.
 
-Registered in .claude/settings.local.json under PreToolUse and PostToolUse
-for the Agent tool. Reads the Claude Code hook JSON from stdin, extracts the
-task description, and updates live_workflow_diagram.md.
+Registered in `.claude/settings.local.json` under PreToolUse and
+PostToolUse for the Agent tool only. Reads the hook JSON payload from
+stdin and maintains the ``## In-Flight Tasks`` table in
+``docs/process/live_workflow_diagram.md``.
 
-Exit code 0 always — warnings go to stderr but the tool call is never blocked.
-(Enforcement is through PHYSICS.md rules, not hard blocking.)
+Why this is the *only* automatic hook left
+------------------------------------------
+Agent spawns are the one piece of workflow state that leaves no
+filesystem trace before completion. If a session is interrupted between
+spawn and the sub-agent returning, the spawn vanishes from view. By
+recording the row here, we let `check_session_resumable.py` find
+abandoned tasks after a cutoff.
 
-Usage (set in .claude/settings.local.json):
-    python scripts/workflow_hooks.py pre
-    python scripts/workflow_hooks.py post
+Everything else — gates, claims, model versions, papers, figures,
+anomalies, lineage edges — is rebuilt on demand by
+``scripts/sync_workflow.py`` (the ``/sync-workflow`` skill). There is no
+auto-update on Write/Edit/Bash any more.
+
+Exit code 0 always. Outside a research project (no `.research-harness`
+marker), this hook is a silent no-op.
 """
 
 from __future__ import annotations
 
+import hashlib
 import json
+import re
 import sys
-import time
+from datetime import datetime, timezone
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-import update_workflow_diagram as uwd  # noqa: E402
-import update_live_json as ulj  # noqa: E402
 import _layout as layout  # noqa: E402
 import _project_root as project_root_mod  # noqa: E402
 
@@ -30,244 +40,30 @@ import _project_root as project_root_mod  # noqa: E402
 AGENT_NAME = "lead-agent"
 MAX_STEP_LEN = 100
 
-# Signal artifacts whose Write/Edit should produce a Cartographer event.
-# Maps relative path (within a run dir) -> (event label, optional gate name,
-# optional gate status). When `gate` is None, only an event-log line is added.
-SIGNAL_ARTIFACTS = {
-    # v3 layout (docs/gates/, docs/literature/, docs/plan/, docs/process/)
-    # Gate name must match the exact string in the "## Gate Status" table of
-    # live_workflow_diagram.md so that update_gate_status() can find the row.
-    "docs/gates/orient_note.md":            ("Orient note recorded",           "Orient gate",                      "in_progress"),
-    "docs/gates/interview_notes.md":        ("Interview notes recorded",       "Interview gate",                   "pass"),
-    "docs/gates/seed_design.md":            ("Seed design recorded",           "Test-design seed",                 "pass"),
-    "docs/gates/professor_evaluation.md":   ("Professor evaluation recorded",  "Professor evaluation",             "pass"),
-    "docs/gates/agent_spawn_log.md":        ("Agent spawn log updated",        None,                               None),
-    "docs/gates/validation_log.md":         ("Validation log updated",         "Execution",                        "in_progress"),
-    "docs/gates/baseline_registry.md":      ("Baseline registry updated",      "Baseline or reproduction target",  "in_progress"),
-    "docs/literature/literature_review_plan.md": ("Literature review plan recorded", "Literature review and replanning", "pass"),
-    "docs/literature/replanning_memo.md":   ("Replanning memo updated",        None,                               None),
-    "docs/literature/paper_request_queue.md": ("Paper request queue updated",  None,                               None),
-    "docs/plan/model_spec.md":              ("Model spec recorded",            None,                               None),
-    "docs/plan/baseline_strategy.md":       ("Baseline strategy decided",      "Baseline or reproduction target",  "pass"),
-    "docs/plan/research_plan.md":           ("Research plan updated",          None,                               None),
-    "docs/process/execution_complete.md":   ("Execution marked complete",      "Execution",                        "pass"),
-    "docs/process/visualization_complete.md": ("Visualization marked complete","Visualization",                    "pass"),
-    "docs/process/user_report.md":          ("User report recorded",           "User report",                      "pass"),
-    "docs/process/research_retrospective.md": ("Retrospective recorded",       "Completion conference",            "pass"),
-    # v2 legacy paths — kept so existing runs written before v3 still trigger
-    "docs/orient_note.md":              ("Orient note recorded",           "Orient gate",                      "in_progress"),
-    "docs/interview_notes.md":          ("Interview notes recorded",       "Interview gate",                   "pass"),
-    "docs/literature_review_plan.md":   ("Literature review plan recorded","Literature review and replanning", "pass"),
-    "docs/model_spec.md":               ("Model spec recorded",            None,                               None),
-    "docs/baseline_strategy.md":        ("Baseline strategy decided",      "Baseline or reproduction target",  "pass"),
-    "docs/research_plan.md":            ("Research plan updated",          None,                               None),
-    "docs/replanning_memo.md":          ("Replanning memo updated",        None,                               None),
-    "docs/research_retrospective.md":   ("Retrospective recorded",         "Completion conference",            "pass"),
+IN_FLIGHT_HEADER = (
+    "## In-Flight Tasks\n\n"
+    "<!-- Auto-updated by scripts/workflow_hooks.py on every Agent() spawn. -->\n\n"
+    "| Task ID | Sub-agent | Spawned (UTC) | Step | Evidence Record | Status |\n"
+    "|---|---|---|---|---|---|\n"
+)
+
+EVENT_EMOJI = {
+    "start": "🔄",
+    "complete": "✅",
+    "error": "❌",
+    "spawn": "🚀",
 }
 
-# How far back (seconds) to scan for figure files created by a Bash/PowerShell
-# command. Two minutes covers the default Claude Code Bash timeout.
-_BASH_FIGURE_SCAN_WINDOW = 120
 
-
-FIGURE_EXTS = (".png", ".pdf", ".svg", ".jpg", ".jpeg")
-CACHE_EXTS = (".npy", ".npz", ".pkl", ".pickle", ".joblib")
-
-
-def signal_for(file_path_str: str):
-    """Return (event, gate, gate_status, project_root) if path matches a signal artifact.
-
-    Project root is identified by the `.research-harness` marker, found by
-    walking up from the written file.
-    """
-    if not file_path_str:
-        return None
-    p = Path(file_path_str).resolve()
-
-    try:
-        project_root = project_root_mod.find_project_root(start=p, require=True)
-    except project_root_mod.ProjectRootNotFoundError:
-        return None
-
-    try:
-        rel = p.relative_to(project_root).as_posix()
-    except ValueError:
-        return None
-
-    if rel.startswith("docs/checkpoints/stage_") and rel.endswith("_checkpoint.md"):
-        return ("Stage checkpoint written", "Completion conference", "pass", project_root)
-    if rel.startswith("docs/meetings/") and rel.endswith(".md"):
-        return (f"Meeting recorded ({Path(rel).stem})", None, None, project_root)
-    if rel.startswith("outputs/figures/") and rel.lower().endswith(FIGURE_EXTS):
-        return (f"Figure generated ({Path(rel).name})", "Visualization", "in_progress", project_root)
-    if rel.startswith("errors/") and rel.endswith(".err"):
-        return (f"Error file created ({Path(rel).name})", None, None, project_root)
-    if rel.startswith("cache/") and rel.lower().endswith(CACHE_EXTS):
-        return (f"Cache artifact written ({Path(rel).name})", None, None, project_root)
-    if rel.startswith("docs/model_versions/") and rel.endswith(".md"):
-        return (f"Model version recorded ({Path(rel).stem})", None, None, project_root)
-    if rel.startswith("literature/reviews/") and rel.endswith(".md"):
-        return (f"Paper review recorded ({Path(rel).stem})", None, None, project_root)
-    if rel.startswith("docs/claims/") and rel.endswith(".md"):
-        return (f"Claim recorded ({Path(rel).stem})", None, None, project_root)
-    if rel in SIGNAL_ARTIFACTS:
-        ev, gate, gs = SIGNAL_ARTIFACTS[rel]
-        return (ev, gate, gs, project_root)
-    return None
-
-
-def build_lineage_packet(rel: str) -> dict | None:
-    """Map a signal-artifact relpath to a Cartographer event JSON packet.
-
-    The packet seeds the Lineage tab with a node whose `lineage_kind`,
-    `node_type`, and identifying field (`paper_id`, `model_version`,
-    `thumbnail_path`) can be inferred from the filesystem alone. Cross-
-    referential edges (`evolved_from`, `reproduces`, `cites_paper`) cannot
-    be derived from a filename — skills must add those via an explicit
-    cartographer-update call when the agent knows the relationship.
-
-    Returns None when the artifact has no lineage interpretation (e.g. cache
-    files), so the caller can skip the emit step.
-    """
-    name = Path(rel).name
-    stem = Path(rel).stem
-    if rel.startswith("docs/model_versions/") and rel.endswith(".md"):
-        return {"cartographer_update": {
-            "from": "lead-agent",
-            "node_id": f"model_{stem}",
-            "title": f"Model version {stem}",
-            "node_type": "model",
-            "lineage_kind": "model_version",
-            "model_version": stem,
-            "summary": f"Model version recorded: {stem}",
-            "status": "active",
-            "code_links": [{"path": rel, "role": "model spec", "relation": "defines_parameter", "status": "fresh"}],
-        }}
-    if rel.startswith("literature/reviews/") and rel.endswith(".md"):
-        return {"cartographer_update": {
-            "from": "lead-agent",
-            "node_id": f"paper_{stem}",
-            "title": f"Paper review: {stem}",
-            "node_type": "paper",
-            "lineage_kind": "paper",
-            "paper_id": stem,
-            "summary": f"Paper review recorded: {stem}",
-            "status": "active",
-            "interpretation_links": [{"path": rel, "relation": "documents", "status": "fresh"}],
-        }}
-    if rel.startswith("docs/claims/") and rel.endswith(".md"):
-        return {"cartographer_update": {
-            "from": "lead-agent",
-            "node_id": f"claim_{stem}",
-            "title": f"Claim {stem}",
-            "node_type": "claim",
-            "lineage_kind": "claim",
-            "summary": f"Claim recorded: {stem}",
-            "status": "pending_review",
-            "claim_ceiling": "unsupported",
-            "requires_researcher_review": True,
-            "interpretation_links": [{"path": rel, "relation": "documents", "status": "pending_review"}],
-        }}
-    if rel.startswith("outputs/figures/") and rel.lower().endswith(FIGURE_EXTS):
-        return {"cartographer_update": {
-            "from": "lead-agent",
-            "node_id": f"figure_{stem}",
-            "title": f"Figure {name}",
-            "node_type": "figure",
-            "lineage_kind": "figure",
-            "thumbnail_path": rel,
-            "summary": f"Figure generated: {name}",
-            "status": "pending_review",
-            "requires_researcher_review": True,
-            "result_links": [{"path": rel, "kind": "figure", "relation": "generated_by", "status": "fresh"}],
-        }}
-    if rel.startswith("errors/") and rel.endswith(".err"):
-        return {"cartographer_update": {
-            "from": "lead-agent",
-            "node_id": f"anomaly_{stem}",
-            "title": f"Error: {name}",
-            "node_type": "anomaly",
-            "lineage_kind": "anomaly",
-            "summary": f"Error file created: {name}",
-            "status": "blocked",
-            "requires_researcher_review": True,
-            "result_links": [{"path": rel, "kind": "log", "relation": "documents", "status": "fresh"}],
-        }}
-    return None
-
-
-def emit_lineage_event(run_dir: Path, file_path_str: str) -> None:
-    """Push a Cartographer node into workflow_map.live.json for signal artifacts.
-
-    Best-effort: failures are logged to stderr but never block the tool call,
-    matching the hook contract (exit 0 always).
-    """
-    try:
-        rel = Path(file_path_str).resolve().relative_to(run_dir).as_posix()
-    except (ValueError, OSError):
-        return
-    packet = build_lineage_packet(rel)
-    if packet is None:
-        return
-    try:
-        ulj.apply_updates(run_dir, event_json=json.dumps(packet))
-    except Exception as exc:
-        print(f"WORKFLOW WARNING: lineage event emit failed: {exc}", file=sys.stderr)
-
-
-def run_artifact_event(tool_name: str, file_path_str: str, phase: str) -> None:
-    """Record a Cartographer event for Write/Edit of a signal artifact."""
-    sig = signal_for(file_path_str)
-    if sig is None:
-        return
-    event_label, gate, gate_status, run_dir = sig
-    # v3 canonical location first (docs/process/live_workflow_diagram.md), then
-    # the v2 legacy path, then the wide ResearchPartner-runs/ fallback. The v3
-    # path is checked relative to *this* project root, not any other run, so
-    # writes don't leak into unrelated projects on disk.
-    diagram_path = layout.live_workflow_diagram(run_dir)
-    if not diagram_path.exists():
-        legacy = run_dir / "docs" / "live_workflow_diagram.md"
-        if legacy.exists():
-            diagram_path = legacy
-        else:
-            diagram_path = uwd.find_active_diagram()
-            if diagram_path is None:
-                return
-    try:
-        content = diagram_path.read_text(encoding="utf-8")
-        event = "complete" if phase == "post" else "in_progress"
-        content = uwd.append_event(content, event, event_label, AGENT_NAME)
-        if phase == "post" and gate and gate_status:
-            content = uwd.update_gate_status(content, gate, gate_status)
-        diagram_path.write_text(content, encoding="utf-8")
-    except Exception as exc:
-        print(f"WORKFLOW WARNING: artifact event failed: {exc}", file=sys.stderr)
-    # Push a lineage node into workflow_map.live.json on post-write. Skills can
-    # later overlay edges (evolved_from / reproduces / cites_paper) via their
-    # own cartographer-update calls; the auto-emit only seeds the node.
-    if phase == "post":
-        emit_lineage_event(run_dir, file_path_str)
-        # Regenerate workflow_map.live.json from the (just-updated) diagram so
-        # that the browser-side dashboard reflects the gate change without
-        # requiring the user to run a CLI command. The diagram is the source
-        # of truth; live.json is a derived artifact. Failure here is non-fatal:
-        # the diagram is already current and the user can hit the Refresh
-        # button in the dashboard later.
-        try:
-            ulj.bootstrap_project_json(run_dir)
-        except Exception as exc:
-            print(
-                f"WORKFLOW WARNING: live.json refresh failed: {exc}",
-                file=sys.stderr,
-            )
+def now_str() -> str:
+    return datetime.now(tz=timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
 
 
 def extract_step(tool_input: dict) -> str:
     """Pull the most descriptive string out of an Agent tool_input dict."""
     step = (
         tool_input.get("description")
-        or tool_input.get("prompt", "")[:MAX_STEP_LEN]
+        or (tool_input.get("prompt", "") or "")[:MAX_STEP_LEN]
         or "unnamed task"
     )
     if isinstance(step, str):
@@ -275,91 +71,198 @@ def extract_step(tool_input: dict) -> str:
     return "unnamed task"
 
 
-def run_pre(tool_input: dict) -> None:
-    step = extract_step(tool_input)
-    diagram_path = uwd.find_active_diagram()
+def derive_task_id(tool_input: dict) -> str:
+    """Deterministic short id derived from the agent's full task input.
 
-    if diagram_path is None:
-        print(
-            "WORKFLOW WARNING: No live_workflow_diagram.md found in any ResearchPartner-runs "
-            "directory. If this is a research task, run scripts/init_research_project.py first.",
-            file=sys.stderr,
+    Pre and Post tool-use hooks for the SAME Agent() call receive
+    identical ``tool_input`` dicts, so the same hash falls out of each
+    invocation and the Post step can find the row that Pre created.
+
+    Format: ``task-<8-char-hash>`` — short enough to read at a glance,
+    long enough that accidental collisions across a single project are
+    vanishingly rare.
+    """
+    description = str(tool_input.get("description", ""))
+    prompt = str(tool_input.get("prompt", ""))
+    subagent = str(tool_input.get("subagent_type", ""))
+    digest = hashlib.sha1(
+        f"{subagent}\0{description}\0{prompt}".encode("utf-8")
+    ).hexdigest()[:8]
+    return f"task-{digest}"
+
+
+def derive_agent_role(tool_input: dict) -> str:
+    """Use subagent_type when present; otherwise fall back to a generic role."""
+    sub = tool_input.get("subagent_type")
+    return str(sub).strip() if sub else "agent"
+
+
+# ── Markdown helpers ──────────────────────────────────────────────────────────
+
+
+def _resolve_diagram_path(project: Path) -> Path:
+    """Project-local diagram path, scaffolded if absent.
+
+    The scaffold here matches sync_workflow.py's so the two stay
+    compatible. If sync_workflow.py runs after this, it will preserve
+    the In-Flight Tasks table we just wrote to.
+    """
+    md = layout.live_workflow_diagram(project)
+    md.parent.mkdir(parents=True, exist_ok=True)
+    if not md.exists():
+        md.write_text(_scaffold(project), encoding="utf-8")
+    return md
+
+
+def _scaffold(project: Path) -> str:
+    return (
+        f"# Live Workflow Diagram — {project.name}\n\n"
+        "Auto-managed by `scripts/sync_workflow.py` (everything except the\n"
+        "In-Flight Tasks and Real-Time Event Log sections).\n\n"
+        "## Active Step\n\n"
+        "- Current step: (not started)\n"
+        "- Current owner: lead-agent\n"
+        "- Last update: never\n\n"
+        "## Gate Status\n\n"
+        "| Gate | Status | Note |\n"
+        "|---|---|---|\n"
+        "| Orient gate | pending |  |\n"
+        "| Interview gate | pending |  |\n"
+        "| Literature review and replanning | pending |  |\n"
+        "| Test-design seed | pending |  |\n"
+        "| Baseline or reproduction target | pending |  |\n"
+        "| Execution | pending |  |\n"
+        "| Visualization | pending |  |\n"
+        "| Professor evaluation | pending |  |\n"
+        "| Completion conference | pending |  |\n"
+        "| User report | pending |  |\n\n"
+        + IN_FLIGHT_HEADER + "\n"
+        "Allowed in-flight status values: `spawned`, `acknowledged`, `abandoned`.\n\n"
+        "## Real-Time Event Log\n\n"
+        "<!-- Append-only. Auto-updated by scripts/workflow_hooks.py on every Agent() spawn. -->\n"
+    )
+
+
+def _ensure_in_flight_section(content: str) -> str:
+    if "## In-Flight Tasks" in content:
+        return content
+    if "## Real-Time Event Log" in content:
+        return content.replace(
+            "## Real-Time Event Log",
+            IN_FLIGHT_HEADER + "\n## Real-Time Event Log",
+            1,
         )
-        return
+    return content.rstrip() + "\n\n" + IN_FLIGHT_HEADER + "\n"
+
+
+def _append_in_flight_row(content: str, task_id: str, agent: str, step: str) -> str:
+    content = _ensure_in_flight_section(content)
+    row = f"| `{task_id}` | {agent} | {now_str()} | {step} | — | `spawned` |\n"
+    pattern = re.compile(
+        r"(## In-Flight Tasks\n.*?\|---\|---\|---\|---\|---\|---\|\n)"
+        r"((?:\|[^\n]*\|\n)*)",
+        flags=re.DOTALL,
+    )
+
+    def _replace(m: re.Match) -> str:
+        return m.group(1) + m.group(2) + row
+
+    new_content, n = pattern.subn(_replace, content, count=1)
+    if n == 0:
+        new_content = content.rstrip() + "\n\n" + IN_FLIGHT_HEADER + row + "\n"
+    return new_content
+
+
+def _set_in_flight_status(content: str, task_id: str, status: str) -> str:
+    """Find the latest row with `task_id` and status `spawned`, mark it `status`.
+
+    If no matching `spawned` row is found, the content is returned
+    unchanged — the post hook silently no-ops when there's nothing to
+    update (e.g., pre never fired because the project marker arrived
+    mid-session).
+    """
+    task_id_esc = re.escape(task_id)
+    pattern = re.compile(
+        rf"(^\|\s*`{task_id_esc}`\s*\|[^\n]*\|\s*)(`spawned`)(\s*\|\s*$)",
+        flags=re.MULTILINE,
+    )
+    # Match the *last* spawned row so back-to-back same-input spawns
+    # are paired in FIFO order with their own post events.
+    matches = list(pattern.finditer(content))
+    if not matches:
+        return content
+    last = matches[-1]
+    return (content[:last.start(2)] + f"`{status}`" + content[last.end(2):])
+
+
+def _update_active_step(content: str, step: str, agent: str) -> str:
+    new_section = (
+        "## Active Step\n\n"
+        f"- Current step: **{step}**\n"
+        f"- Current owner: {agent}\n"
+        f"- Last update: {now_str()}\n"
+    )
+    pattern = re.compile(r"(^## Active Step\s*\n)(.*?)(?=^## |\Z)",
+                         flags=re.MULTILINE | re.DOTALL)
+    if pattern.search(content):
+        return pattern.sub(new_section + "\n", content, count=1)
+    return content + "\n\n" + new_section
+
+
+def _append_event(content: str, event: str, step: str, agent: str) -> str:
+    emoji = EVENT_EMOJI.get(event, "•")
+    entry = f"\n{emoji} `{now_str()}` | `{event}` | **{step}** | _{agent}_"
+    if "## Real-Time Event Log" in content:
+        return content.rstrip() + entry + "\n"
+    return content.rstrip() + "\n\n## Real-Time Event Log\n" + entry + "\n"
+
+
+# ── Pre / Post Agent handlers ────────────────────────────────────────────────
+
+
+def run_pre(tool_input: dict) -> None:
+    try:
+        project = project_root_mod.find_project_root(start=Path.cwd(), require=True)
+    except project_root_mod.ProjectRootNotFoundError:
+        return  # Outside a research project — silent no-op.
+
+    step = extract_step(tool_input)
+    task_id = derive_task_id(tool_input)
+    agent = derive_agent_role(tool_input)
+    diagram_path = _resolve_diagram_path(project)
 
     try:
         content = diagram_path.read_text(encoding="utf-8")
-        content = uwd.update_active_step(content, step, AGENT_NAME)
-        content = uwd.append_event(content, "start", step, AGENT_NAME)
+        content = _update_active_step(content, step, agent)
+        content = _append_in_flight_row(content, task_id, agent, step)
+        content = _append_event(content, "spawn", step, agent)
         diagram_path.write_text(content, encoding="utf-8")
-    except Exception as exc:
-        print(f"WORKFLOW WARNING: Could not update diagram (pre): {exc}", file=sys.stderr)
+    except OSError as exc:
+        print(f"WORKFLOW WARNING: pre-spawn diagram update failed: {exc}",
+              file=sys.stderr)
 
 
 def run_post(tool_input: dict) -> None:
-    step = extract_step(tool_input)
-    diagram_path = uwd.find_active_diagram()
-
-    if diagram_path is None:
+    try:
+        project = project_root_mod.find_project_root(start=Path.cwd(), require=True)
+    except project_root_mod.ProjectRootNotFoundError:
         return
+
+    step = extract_step(tool_input)
+    task_id = derive_task_id(tool_input)
+    agent = derive_agent_role(tool_input)
+    diagram_path = layout.live_workflow_diagram(project)
+    if not diagram_path.exists():
+        return  # Pre never ran (or someone deleted the file); nothing to mark.
 
     try:
         content = diagram_path.read_text(encoding="utf-8")
-        content = uwd.append_event(content, "complete", step, AGENT_NAME)
+        content = _set_in_flight_status(content, task_id, "acknowledged")
+        content = _append_event(content, "complete", step, agent)
         diagram_path.write_text(content, encoding="utf-8")
-    except Exception as exc:
-        print(f"WORKFLOW WARNING: Could not update diagram (post): {exc}", file=sys.stderr)
-
-
-def run_bash_post() -> None:
-    """Scan output directories for files created by a Bash/PowerShell command.
-
-    Figures written by Python scripts (e.g. matplotlib.savefig) are not
-    captured by the Write/Edit hook because the shell — not the Write tool —
-    created the file.  This function fills that gap by scanning
-    ``outputs/figures/`` for any file modified within the last
-    ``_BASH_FIGURE_SCAN_WINDOW`` seconds and emitting a Visualization
-    in_progress event for each one found.
-
-    Errors and cache files are scanned the same way.
-    """
-    try:
-        project = project_root_mod.resolve_project(None, require=True)
-    except project_root_mod.ProjectRootNotFoundError:
-        return  # Not inside a research project — nothing to do
-
-    now = time.time()
-    cutoff = now - _BASH_FIGURE_SCAN_WINDOW
-
-    # Scan output directories (Python-side figures, shell-created errors/cache)
-    # AND docs/ subtrees containing signal artifacts — the latter catches
-    # PowerShell `Set-Content` writes to gate files, which bypass the
-    # Write|Edit hook matcher (Claude Code matches by tool name, not by
-    # whether the side-effect resembles a write).
-    scan_dirs = [
-        project / "outputs" / "figures",
-        project / "errors",
-        project / "cache",
-        project / "docs" / "gates",
-        project / "docs" / "plan",
-        project / "docs" / "literature",
-        project / "docs" / "process",
-        project / "docs" / "claims",
-        project / "docs" / "meetings",
-        project / "docs" / "checkpoints",
-        project / "docs" / "model_versions",
-    ]
-    for scan_dir in scan_dirs:
-        if not scan_dir.is_dir():
-            continue
-        for f in scan_dir.rglob("*"):
-            if not f.is_file():
-                continue
-            try:
-                if f.stat().st_mtime >= cutoff:
-                    run_artifact_event("Bash", str(f), "post")
-            except OSError:
-                continue
+    except OSError as exc:
+        print(f"WORKFLOW WARNING: post-spawn diagram update failed: {exc}",
+              file=sys.stderr)
 
 
 def main() -> int:
@@ -373,26 +276,17 @@ def main() -> int:
         raw = sys.stdin.read()
         payload = json.loads(raw) if raw.strip() else {}
     except Exception:
-        return 0  # Never block on parse failure
-
-    tool_name = payload.get("tool_name", "")
-    tool_input = payload.get("tool_input", {})
-
-    if tool_name == "Agent":
-        if phase == "pre":
-            run_pre(tool_input)
-        else:
-            run_post(tool_input)
         return 0
 
-    if tool_name in ("Write", "Edit"):
-        file_path_str = tool_input.get("file_path", "")
-        run_artifact_event(tool_name, file_path_str, phase)
-        return 0
+    if payload.get("tool_name", "") != "Agent":
+        return 0  # We only care about Agent() now.
 
-    if tool_name in ("Bash", "PowerShell") and phase == "post":
-        run_bash_post()
-        return 0
+    tool_input = payload.get("tool_input", {}) or {}
+
+    if phase == "pre":
+        run_pre(tool_input)
+    else:
+        run_post(tool_input)
 
     return 0
 

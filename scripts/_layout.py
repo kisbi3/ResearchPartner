@@ -139,10 +139,6 @@ def live_workflow_diagram(project: Path) -> Path:
     return process_dir(project) / "live_workflow_diagram.md"
 
 
-def cartographer_update_template(project: Path) -> Path:
-    return process_dir(project) / "cartographer_update_template.md"
-
-
 def researcher_review_log(project: Path) -> Path:
     return process_dir(project) / "researcher_review_log.md"
 

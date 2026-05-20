@@ -50,16 +50,16 @@ import _project_root as project_root_mod  # noqa: E402
 
 
 def _regenerate(project: Path) -> tuple[bool, str]:
-    """Rebuild workflow_map.live.json from the on-disk diagram.
+    """Rebuild workflow_map.live.json by walking the project file system.
 
     Returns (ok, message). Failures are reported as a string so the UI can
     display them without needing a stack trace.
     """
     try:
-        import update_live_json as ulj  # noqa: PLC0415
-        json_path = ulj.bootstrap_project_json(project)
+        import sync_workflow  # noqa: PLC0415
+        json_path = sync_workflow.sync(project)
     except Exception as exc:
-        return False, f"bootstrap_project_json failed: {exc.__class__.__name__}: {exc}"
+        return False, f"sync_workflow.sync failed: {exc.__class__.__name__}: {exc}"
 
     # Optional: refresh the HTML too. The HTML rarely changes between runs,
     # but generate_workflow_map keeps its dashboard links in sync with the
@@ -158,8 +158,8 @@ def main(argv: list[str] | None = None) -> int:
     json_path = layout.workflow_map_live_json(project)
     if not json_path.exists():
         try:
-            import update_live_json as ulj  # noqa: PLC0415
-            ulj.bootstrap_project_json(project)
+            import sync_workflow  # noqa: PLC0415
+            sync_workflow.sync(project)
         except Exception as exc:
             print(f"WARNING: could not bootstrap live.json: {exc}", file=sys.stderr)
 

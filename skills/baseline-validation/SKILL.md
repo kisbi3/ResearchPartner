@@ -50,10 +50,9 @@ If waived, record:
 
 When the researcher issues a waiver, the following steps are mandatory before proceeding:
 
-1. Load `skills/cartographer-update/SKILL.md` and send a Cartographer Update event.
-2. The Cartographer must record the waiver as a visible graph node with status `active`.
-3. The claim ceiling for all downstream work must be immediately lowered to `observation` and must remain there until a real baseline passes.
-4. The waiver node stays visible in the live workflow artifact until the Lead Agent explicitly closes it by approving a completed baseline.
+1. Add a `lineage:` front-matter block to the waiver artifact and run `/sync-workflow` to record the waiver as a visible graph node with status `active`.
+2. The claim ceiling for all downstream work must be immediately lowered to `observation` and must remain there until a real baseline passes.
+3. The waiver node stays visible in the live workflow artifact until the Lead Agent explicitly closes it by approving a completed baseline.
 
 Do not silently absorb a waiver into a log entry. The lowered claim ceiling must be visible in the workflow map before any Execute or Evaluate phase work begins.
 
@@ -93,16 +92,21 @@ State what this baseline does and does not justify.
 
 Recommend whether to proceed, revise, or run another baseline.
 
-## Cartographer Update
+## Lineage Front-Matter
 
-When a baseline check **passes**, emit a `result` node (lineage_kind=`result`, node_type=`validation`) carrying:
+Add a `lineage:` block to the file recording this baseline result. If a comparison plot was produced, include `thumbnail_path`:
 
-- `evidence_strength` set to `strong` (for analytical-limit match within tolerance) or `moderate` (for partial reproduction)
-- a `reproduces` edge from this result node to the verification target — `paper_<paper_id>` for variation runs, or the analytical-limit node ID used in `baseline-strategy` for new-model runs
-- the figure thumbnail in `thumbnail_path` if the check produced a comparison plot
+```yaml
+---
+lineage:
+  node_type: result
+  lineage_kind: result
+  evidence_strength: strong         # or moderate for partial reproduction
+  reproduces: paper_<paper_id>      # or analytical_<limit_slug> for new-model runs
+  thumbnail_path: outputs/figures/baseline_comparison.png   # if produced
+---
+```
 
-When a baseline check **fails or is partial**, also emit an `anomaly` node and a `limits` edge from the anomaly to whatever downstream claim it would block.
+For a **failed or partial** baseline, also add a `lineage:` block to an `errors/*.err` file or `docs/logs/anomaly_log.md` entry with `node_type: anomaly` and a `limits` edge to whatever downstream claim it would block.
 
-When a baseline is **waived**, the existing waiver-node emit (already required above) is sufficient — the lineage_kind=`waiver` is auto-derived from `event_type="waiver"`.
-
-See `skills/cartographer-update/SKILL.md` → *Worked Examples by Lineage Kind* → "Result reproduces a paper figure".
+Then run `/sync-workflow` to update the live workflow map. See `skills/sync-workflow/SKILL.md` for the full front-matter spec.

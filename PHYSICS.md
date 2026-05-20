@@ -165,43 +165,29 @@ The workflow map should connect each step to the code or document that owns the 
 
 ## Workflow Diagram Rules
 
-The live workflow diagram (`docs/live_workflow_diagram.md` inside the active run directory) must be kept current in real time. Violations leave the researcher blind to run state.
+The live workflow diagram (`docs/process/live_workflow_diagram.md` inside the project) must be kept current. Violations leave the researcher blind to run state.
 
-**Mandatory actions for the Lead Agent and all subagents:**
+**How workflow state is updated:**
 
-1. **Before starting any substantial task** (Agent spawn, experiment run, literature review, gate check):
-   ```
-   python scripts/update_workflow_diagram.py \
-       --event start \
-       --step "Short description of this task" \
-       --agent "your-agent-name"
-   ```
+- **Agent() spawns** are tracked automatically by `scripts/workflow_hooks.py` (pre/post hooks). No manual command needed — the In-Flight Tasks table and Real-Time Event Log are updated on every spawn.
 
-2. **After completing a task** (success or failure):
-   ```
-   python scripts/update_workflow_diagram.py \
-       --event complete \          # or: error, blocked
-       --step "Same description as on start" \
-       --agent "your-agent-name"
-   ```
+- **Gate status and lineage** are updated by running `/sync-workflow`:
+  ```
+  python scripts/sync_workflow.py --project <project-dir>
+  ```
+  Run this after completing a gate step, finishing a stage, or after writing any artifact with a `lineage:` front-matter block.
 
-3. **When a gate changes status**, add `--gate` and `--gate-status`:
-   ```
-   python scripts/update_workflow_diagram.py \
-       --event complete \
-       --step "Stage 2 — synthetic experiments" \
-       --agent "lead-agent" \
-       --gate "Test-design seed" \
-       --gate-status pass
-   ```
+- **Lineage edges** (e.g. `evolved_from`, `reproduces`, `cites_paper`, `supports`, `limits`) are declared in the artifact file itself as YAML front-matter:
+  ```yaml
+  ---
+  lineage:
+    node_type: result
+    reproduces: paper_smith2020
+  ---
+  ```
+  Then `/sync-workflow` picks up the front-matter and rebuilds the graph.
 
-**Allowed `--gate-status` values:** `pending`, `in_progress`, `pass`, `fail`, `blocked`, `waived`, `partial`
-
-**Allowed `--event` values:** `start`, `in_progress`, `complete`, `error`, `blocked`
-
-**If no active run exists** (`live_workflow_diagram.md` not found), run `scripts/start_research_run.py` first to scaffold the run directory before spawning research agents.
-
-These calls are enforced automatically by the PreToolUse/PostToolUse hooks in `.claude/settings.local.json` for Agent tool calls. Direct Bash experiment runs must call the script manually.
+See `skills/sync-workflow/SKILL.md` for the full front-matter spec and node type reference.
 
 ## Compound Research Discipline
 

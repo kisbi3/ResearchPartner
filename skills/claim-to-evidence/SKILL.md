@@ -80,15 +80,24 @@ Use `--scope review` (not `quick`) because the Peer-Review Professor's adversari
 - Needs numerical validation
 - Needs uncertainty estimate
 
-## Cartographer Update
+## Lineage Front-Matter
 
-For every claim in the table, write a per-claim file to `docs/claims/<claim_slug>.md` containing the claim text, type, evidence, status, and any revision notes. `scripts/workflow_hooks.py` auto-detects this file and seeds a `lineage_kind="claim"` node with `requires_researcher_review=true`.
+For every claim in the table, write a per-claim file to `docs/claims/<claim_slug>.md` containing the claim text, type, evidence, status, and any revision notes. Add a `lineage:` block at the top to anchor the claim to its supporting and limiting evidence:
 
-You **must** explicitly emit edges that anchor the claim to its supporting and limiting evidence — the filesystem can't infer these:
+```yaml
+---
+lineage:
+  node_type: claim
+  lineage_kind: claim
+  claim_ceiling: interpretation     # observation | interpretation | mechanism | generalization | unsupported
+  requires_researcher_review: true
+  supports:
+    - result_<slug>                 # result nodes that back this claim
+  contradicts:
+    - result_<other_slug>           # results that undermine it (omit if none)
+  cites_paper:
+    - paper_<paper_id>              # papers cited
+---
+```
 
-- `supports` edge from the claim node to each `result_*` node that backs it (or `contradicts` if a result undermines it).
-- `cites_paper` edge from the claim node to each `paper_<paper_id>` node cited.
-- `limits` edge from any active `anomaly_*` node to this claim if the anomaly's resolution would change the claim's status.
-- `claim_ceiling` field set to the highest level the evidence supports: `observation` / `interpretation` / `mechanism` / `generalization` / `unsupported`.
-
-Use `claim_<claim_slug>` as the `node_id` to match the auto-emitted claim node. See `skills/cartographer-update/SKILL.md` for the JSON shape; the `supports` / `contradicts` / `cites_paper` / `limits` relations are all listed in the worked examples.
+Then run `/sync-workflow` to update the live workflow map. Note: `limits` edges belong on the anomaly node pointing to this claim, not here. See `skills/sync-workflow/SKILL.md` for the full front-matter spec.

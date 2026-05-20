@@ -91,47 +91,25 @@ State the most likely cause and confidence.
 
 Name the smallest next test.
 
-## Cartographer Update
+## Lineage Front-Matter
 
-Writing an entry to `docs/logs/anomaly_log.md` does not by itself add an anomaly node to the lineage graph (only `errors/*.err` does, via the workflow_hooks auto-emit). So when an anomaly is significant enough to log, also emit an explicit `anomaly` node:
+When an anomaly is significant enough to log, create an `errors/<slug>.err` file (or add a `lineage:` block to an entry in `docs/logs/anomaly_log.md`) with a `limits` edge to whatever downstream result, model, or claim is at risk:
 
-```bash
-python scripts/update_live_json.py --project "$PROJECT" --event '{
-  "cartographer_update": {
-    "from": "lead-agent",
-    "node_id": "anomaly_<short_slug>",
-    "title": "<one-line description>",
-    "node_type": "anomaly",
-    "lineage_kind": "anomaly",
-    "summary": "<expected vs observed in one sentence>",
-    "status": "blocked",
-    "requires_researcher_review": true,
-    "graph_links": [
-      {"from": "anomaly_<short_slug>", "to": "<node_id of the result, model, or claim it threatens>",
-       "relation": "limits", "status": "fresh"}
-    ]
-  }
-}'
+```yaml
+---
+lineage:
+  node_type: anomaly
+  lineage_kind: anomaly
+  status: blocked                   # or resolved / superseded when fixed
+  requires_researcher_review: true
+  limits:
+    - result_<slug>                 # result, model, or claim this anomaly threatens
+    - claim_<slug>
+---
 ```
 
-The `limits` edge is essential — it shows on the lineage graph which downstream result, model, or claim is at risk until the anomaly is resolved. Do not omit it; an anomaly with no outbound edge looks unanchored and is easy to overlook in review (and is flagged by `scripts/check_lineage_coverage.py`).
+The `limits` edge is essential — it shows on the lineage graph which downstream result or claim is at risk. An anomaly with no outbound `limits` edge is flagged by `scripts/check_lineage_coverage.py`.
 
-### When the anomaly is resolved
+When the anomaly is **resolved**, update `status` to `resolved` (or `superseded`) in the same file and re-run `/sync-workflow`. Do not delete the file — the audit trail of what was wrong and how it was fixed is part of the research record.
 
-Re-emit the same node with `status: "resolved"` (or `"superseded"`). `update_live_json.py` will automatically flip every outgoing `limits` edge on that node to `status: "superseded"`, so the lineage graph stops marking the downstream nodes as threatened:
-
-```bash
-python scripts/update_live_json.py --project "$PROJECT" --event '{
-  "cartographer_update": {
-    "from": "lead-agent",
-    "node_id": "anomaly_<same_slug>",
-    "title": "<same title>",
-    "node_type": "anomaly",
-    "lineage_kind": "anomaly",
-    "status": "resolved",
-    "summary": "<one sentence on the fix and verifying check>"
-  }
-}'
-```
-
-Do not delete the anomaly node — the historical record of what was wrong and how it was fixed is part of the audit trail.
+Run `/sync-workflow` after creating or updating the anomaly file to update the live workflow map. See `skills/sync-workflow/SKILL.md` for the full front-matter spec.

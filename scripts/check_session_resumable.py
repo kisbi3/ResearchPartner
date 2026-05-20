@@ -37,7 +37,6 @@ from pathlib import Path
 _SCRIPTS_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(_SCRIPTS_DIR))
 from _layout import live_workflow_diagram as _live_workflow_diagram  # noqa: E402
-import update_workflow_diagram as uwd  # noqa: E402
 import _project_root as project_root_mod  # noqa: E402
 
 
@@ -136,16 +135,16 @@ def _parse_in_flight_tasks(text: str) -> list[dict[str, str]]:
     return rows
 
 
-def _find_diagram(run_dir: Path | None) -> Path | None:
-    if run_dir is not None:
-        candidate = _live_workflow_diagram(run_dir)
-        if candidate.exists():
-            return candidate
-        legacy = run_dir / "docs" / "live_workflow_diagram.md"
-        if legacy.exists():
-            return legacy
+def _find_diagram(project: Path | None) -> Path | None:
+    if project is None:
         return None
-    return uwd.find_active_diagram()
+    candidate = _live_workflow_diagram(project)
+    if candidate.exists():
+        return candidate
+    legacy = project / "docs" / "live_workflow_diagram.md"
+    if legacy.exists():
+        return legacy
+    return None
 
 
 def check_run(run_dir: Path | None) -> tuple[int, dict]:
@@ -222,11 +221,11 @@ def format_report(report: dict) -> str:
         lines.append(f"Resumable: NO — {report.get('reason')}")
         lines.append("Suggested next step:")
         lines.append(
-            "  For each in-flight task, run "
-            "`python scripts/update_workflow_diagram.py --event resume "
-            "--step \"...\" --agent \"professor-orchestrator\" --task-id <id> "
-            "--resume-decision continue|retry|abandon` after asking the "
-            "researcher how to handle it."
+            "  For each in-flight task, ask the researcher whether to "
+            "continue, retry, or abandon. Then either re-spawn the agent "
+            "(continue/retry) or edit the row's Status cell in "
+            "`docs/process/live_workflow_diagram.md` from `spawned` to "
+            "`abandoned` and run `/sync-workflow`."
         )
 
     return "\n".join(lines)
@@ -242,10 +241,8 @@ def main(argv: list[str] | None = None) -> int:
         type=Path,
         default=None,
         help="Explicit project root directory. When omitted, the script walks up "
-             "from cwd looking for the `.research-harness` marker, and falls back "
-             "to auto-discovering the most recently modified run under a sibling "
-             "ResearchPartner-runs folder if no marker is found. `--run` kept as "
-             "alias for one release.",
+             "from cwd looking for the `.research-harness` marker. `--run` kept "
+             "as alias for one release.",
     )
     parser.add_argument(
         "--json", action="store_true",
@@ -260,7 +257,6 @@ def main(argv: list[str] | None = None) -> int:
         try:
             project = project_root_mod.find_project_root(require=True)
         except project_root_mod.ProjectRootNotFoundError:
-            # Legacy fallback: let check_run auto-discover under ResearchPartner-runs.
             project = None
 
     code, report = check_run(project)

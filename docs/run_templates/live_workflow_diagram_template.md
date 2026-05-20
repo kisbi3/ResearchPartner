@@ -1,8 +1,11 @@
 # Live Workflow Diagram Template
 
-Use this file as the Cartographer (hook-driven, not spawned)'s live artifact for a substantial research run.
+Use this file as the live process-state artifact for a substantial research run. It records which phase the project is in, which gates have passed, and which Agent() spawns are in-flight — nothing more.
 
-The Cartographer (hook-driven, not spawned) listens to the Lead Agent, Graduate Test-Design Agents, and Coding Subagents. It does not give project opinions, infer mechanisms, judge scientific meaning, or strengthen claims. This artifact records process state only.
+This file is managed by two complementary systems:
+
+- **`workflow_hooks.py`** — auto-updates the In-Flight Tasks table and Real-Time Event Log on every `Agent()` spawn (pre/post hooks). No manual intervention needed.
+- **`/sync-workflow`** — regenerates the Gate Status table and the live JSON (`workflow_map.live.json`) by walking the project filesystem. Run it after completing a gate step.
 
 ## Active Step
 
@@ -45,10 +48,7 @@ flowchart LR
 
 Allowed status values: `pending`, `in_progress` 🔄, `pass` ✓, `partial` ◑, `fail` ❌, `blocked` ⛔, `waived` ⚠.
 
-Update gate status in real time with:
-```
-python scripts/update_workflow_diagram.py --event start --step "..." --agent "..." --gate "Gate Name" --gate-status in_progress
-```
+Run `/sync-workflow` to update gate statuses from the filesystem automatically.
 
 ## Evidence Links
 
@@ -68,12 +68,6 @@ python scripts/update_workflow_diagram.py --event start --step "..." --agent "..
 - `docs/process/researcher_review_log.md`
 - `docs/process/research_retrospective.md`
 
-## Cartographer Update Events
-
-Update the live JSON directly with `scripts/update_live_json.py` whenever workflow state changes — gate pass/fail, active step, evidence links. See `skills/cartographer-update/SKILL.md` for the full event packet format and command examples. Allowed node types, relations, link-status values, evidence-strength values, and claim-ceiling values are defined in [`docs/orchestration_protocol.md`](../../../docs/orchestration_protocol.md#live-linked-research-graph).
-
-Delete this section's content and replace with actual events as the run progresses. Leave no placeholder packets here.
-
 ## Blocked Behaviors
 
 - No scientific claim is supported by this workflow diagram alone.
@@ -89,7 +83,7 @@ Delete this section's content and replace with actual events as the run progress
 
 ## In-Flight Tasks
 
-<!-- Auto-updated by scripts/update_workflow_diagram.py via --event spawn / complete / error / resume.
+<!-- Auto-updated by scripts/workflow_hooks.py on every Agent() spawn (pre/post hooks).
      Rows in `spawned` state at session start are candidate abandoned tasks
      that the Professor Orchestrator must resolve before resuming. -->
 
@@ -98,27 +92,8 @@ Delete this section's content and replace with actual events as the run progress
 
 Allowed in-flight status values: `spawned`, `acknowledged`, `abandoned`.
 
-Before spawning a sub-agent via `Agent()`, log the spawn so a future session
-can detect it if this session is cut off:
-
-```
-python scripts/update_workflow_diagram.py --event spawn \
-    --step "..." --agent "graduate-student" \
-    --task-id "task-3-reproduce-guo" \
-    --evidence-record "docs/gates/seed_design.md#task-3"
-```
-
-When the sub-agent reports back, mark the row acknowledged:
-
-```
-python scripts/update_workflow_diagram.py --event complete \
-    --step "..." --agent "graduate-student" --task-id "task-3-reproduce-guo"
-```
-
-After a session interruption, run `python scripts/check_session_resumable.py`
-to list any rows still in `spawned` state.
+The spawn hook (`workflow_hooks.py pre`) records each `Agent()` call automatically. No manual command is needed. After a session interruption, run `python scripts/check_session_resumable.py` to list any rows still in `spawned` state.
 
 ## Real-Time Event Log
 
-<!-- Auto-updated by scripts/update_workflow_diagram.py via PreToolUse/PostToolUse hooks -->
-
+<!-- Auto-updated by scripts/workflow_hooks.py on every Agent() spawn. -->

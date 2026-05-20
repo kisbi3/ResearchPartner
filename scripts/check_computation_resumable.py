@@ -31,8 +31,22 @@ from pathlib import Path
 _SCRIPTS = Path(__file__).resolve().parent
 sys.path.insert(0, str(_SCRIPTS))
 from _layout import cache_dir, logs_dir  # noqa: E402
-from update_workflow_diagram import find_runs_root  # noqa: E402
 import _project_root as project_root_mod  # noqa: E402
+
+
+def find_runs_root() -> Path | None:
+    """Legacy v2: locate a sibling ResearchPartner-runs directory.
+
+    Inlined here from the deleted update_workflow_diagram.py so the
+    ``--all`` mode keeps working for projects still organised under
+    ``ResearchPartner-runs/<run>/``.
+    """
+    root = _SCRIPTS.parent
+    for parent in list(root.parents)[:6]:
+        candidate = parent / "ResearchPartner-runs"
+        if candidate.is_dir():
+            return candidate
+    return None
 
 
 def _mtime_str(path: Path) -> str:

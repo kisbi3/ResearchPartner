@@ -159,16 +159,22 @@ cause the gate to fail.
 
 The Literature Gate (`python scripts/check_literature_reviewed.py --project <project-dir>`) checks the `## Literature Gate Status` section before model-specification or seed-design work begins.
 
-## Cartographer Update
+## Lineage Front-Matter
 
-Each paper review file you write to `literature/reviews/<paper_id>.md` is auto-detected by `scripts/workflow_hooks.py`, which seeds a `lineage_kind="paper"` node with `paper_id=<filename stem>` in `workflow_map.live.json`. You do not need to emit the paper node yourself.
+Each paper review file you write to `literature/reviews/<paper_id>.md` is picked up by `/sync-workflow`, which seeds a `lineage_kind="paper"` node. Add a `lineage:` block at the top of each review file to record key relations:
 
-You **must** explicitly emit:
+```yaml
+---
+lineage:
+  node_type: paper
+  lineage_kind: paper
+  paper_id: smith2020               # must match the filename stem
+---
+```
 
-- a `decision` node for the **reproduction target selection** with a `cites_paper` edge to each chosen paper, and
-- a `decision` node for the **novelty map result** with `cites_paper` edges to the papers it relied on.
+For the **reproduction target selection** and **novelty map result**, add corresponding `lineage:` blocks to `docs/literature/replanning_memo.md` (or a separate decision file) with `cites_paper` edges to the papers they rely on.
 
-See worked examples in `skills/cartographer-update/SKILL.md` → *Worked Examples by Lineage Kind* → "Paper node + cites_paper edge". Use `paper_<paper_id>` as the target `node_id` to match the auto-emitted paper node.
+Run `/sync-workflow` after adding or updating review files to update the live workflow map. See `skills/sync-workflow/SKILL.md` for the full front-matter spec.
 
 ## Suggested Next Skill
 
