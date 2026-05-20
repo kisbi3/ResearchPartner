@@ -143,6 +143,56 @@ def test_frontmatter_paper_node(tmp_path):
     assert any(n.get("lineage_kind") == "paper" and n.get("paper_id") == "smith2020" for n in nodes)
 
 
+# ---------------------------------------------------------------------------
+# Gate status inference via dedicated check scripts
+# ---------------------------------------------------------------------------
+
+def test_derive_gate_status_orient_pass(tmp_path):
+    """orient_note.md with all 4 sections filled → gate shows 'pass'."""
+    sw = _load_sync()
+    project = tmp_path / "proj"
+    _scaffold_project(project)
+    (project / "docs" / "gates").mkdir(parents=True, exist_ok=True)
+    (project / "docs" / "gates" / "orient_note.md").write_text(
+        "## Task Classification\n- New model\n\n"
+        "## Responsible Role\n- Lead Agent\n\n"
+        "## First Professor Question\nWhat is the research question?\n\n"
+        "## Researcher Answer\nWe want to study financial time series.\n"
+    )
+    out = sw.sync(project)
+    data = json.loads(out.read_text())
+    nodes = data["maps"][0]["nodes"]
+    gate_node = next(
+        (n for n in nodes if n.get("id") == "gate_orient_gate"), None
+    )
+    assert gate_node is not None, "orient gate node missing from live JSON"
+    assert gate_node["gate_status"] == "pass", (
+        f"expected 'pass' but got '{gate_node['gate_status']}'"
+    )
+
+
+def test_derive_gate_status_orient_pending_when_blank(tmp_path):
+    """orient_note.md with empty sections → gate stays 'pending'."""
+    sw = _load_sync()
+    project = tmp_path / "proj"
+    _scaffold_project(project)
+    (project / "docs" / "gates").mkdir(parents=True, exist_ok=True)
+    (project / "docs" / "gates" / "orient_note.md").write_text(
+        "## Task Classification\n\n"
+        "## Responsible Role\n\n"
+        "## First Professor Question\n\n"
+        "## Researcher Answer\n"
+    )
+    out = sw.sync(project)
+    data = json.loads(out.read_text())
+    nodes = data["maps"][0]["nodes"]
+    gate_node = next(
+        (n for n in nodes if n.get("id") == "gate_orient_gate"), None
+    )
+    assert gate_node is not None
+    assert gate_node["gate_status"] == "pending"
+
+
 def test_frontmatter_model_version_node(tmp_path):
     sw = _load_sync()
     project = tmp_path / "proj"

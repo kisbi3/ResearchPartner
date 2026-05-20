@@ -108,6 +108,16 @@ GATE_STEM_TO_NAME = {
     "user_report":            "User report",
 }
 
+# For gates whose pass criteria are encoded in a dedicated check script
+# (rather than a ``Status:`` line), call the script as a subprocess.
+# exit 0 → pass, any other exit → fall back to body-text inference.
+GATE_STEM_TO_CHECK_SCRIPT = {
+    "orient_note":            "check_orient_recorded.py",
+    "interview_notes":        "check_interview_recorded.py",
+    "literature_review_plan": "check_literature_reviewed.py",
+    "baseline_strategy":      "check_baseline_strategy.py",
+}
+
 PHASE_MAP = {
     "pass": "passed",
     "passed": "passed",
@@ -420,12 +430,44 @@ def record_to_node(record: dict, index: int) -> dict:
 # ── Gate-table inference ──────────────────────────────────────────────────────
 
 
-def derive_gate_statuses(records: list[dict]) -> dict[str, str]:
+def _gate_status_from_script(project: Path, stem: str) -> str | None:
+    """Call a dedicated gate check function; return 'pass' on exit 0, else None.
+
+    Imports the check module and calls main(['--project', str(project)]) directly
+    rather than spawning a subprocess, which avoids the parse_args(argv or [])
+    pitfall that drops sys.argv when argv is None.
+    """
+    script_name = GATE_STEM_TO_CHECK_SCRIPT.get(stem)
+    if not script_name:
+        return None
+    script = Path(__file__).parent / script_name
+    if not script.exists():
+        return None
+    import importlib.util as _ilu
+    module_name = script.stem
+    spec = _ilu.spec_from_file_location(module_name, script)
+    if spec is None or spec.loader is None:
+        return None
+    mod = _ilu.module_from_spec(spec)
+    try:
+        spec.loader.exec_module(mod)
+        rc = mod.main(["--project", str(project)])
+    except Exception:
+        return None
+    return "pass" if rc == 0 else None
+
+
+def derive_gate_statuses(project: Path, records: list[dict]) -> dict[str, str]:
     """Map canonical gate name → status, derived from docs/gates/ records.
 
     Multiple files can feed one gate (e.g. baseline_registry.md and
     baseline_strategy.md both inform "Baseline or reproduction target");
     in that case the strongest non-pending status wins.
+
+    For gates that have a dedicated check script (orient_note, interview_notes,
+    literature_review_plan, baseline_strategy), the script is called as a
+    subprocess to determine pass/fail rather than relying solely on a
+    ``Status:`` body-text pattern.
     """
     strength = {"pending": 0, "in_progress": 1, "waived": 2, "blocked": 3,
                 "partial": 3, "fail": 4, "passed": 5, "pass": 5}
@@ -434,10 +476,15 @@ def derive_gate_statuses(records: list[dict]) -> dict[str, str]:
         gate = GATE_STEM_TO_NAME.get(rec["stem"])
         if not gate:
             continue
-        phase = _phase(rec)
-        # Convert phase back to a "raw" status for the Gate Status table.
-        raw = {"passed": "pass", "blocked": "blocked", "waived": "waived",
-               "active": "in_progress", "pending": "pending"}.get(phase, phase)
+        # Prefer the dedicated check script when available; fall back to
+        # front-matter / body-text phase inference.
+        script_result = _gate_status_from_script(project, rec["stem"])
+        if script_result is not None:
+            raw = script_result
+        else:
+            phase = _phase(rec)
+            raw = {"passed": "pass", "blocked": "blocked", "waived": "waived",
+                   "active": "in_progress", "pending": "pending"}.get(phase, phase)
         if gate not in statuses:
             statuses[gate] = raw
         elif strength.get(raw, 0) > strength.get(statuses[gate], 0):
@@ -630,7 +677,7 @@ def find_broken_edges(project: Path) -> list[dict]:
 def sync(project: Path, active_step: str | None = None) -> Path:
     """Full sync: walk filesystem, write JSON, update markdown mirror."""
     records = collect_artifacts(project)
-    gate_statuses = derive_gate_statuses(records)
+    gate_statuses = derive_gate_statuses(project, records)
     update_markdown_mirror(project, gate_statuses, active_step)
     live_map = build_live_json(project, records, gate_statuses)
     data = {
