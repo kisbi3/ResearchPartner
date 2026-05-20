@@ -396,6 +396,36 @@ def _resolve_anomaly(nodes: list[dict], anomaly_id: str) -> int:
 # rebuild).
 
 
+def _sync_markdown(run_root: Path, active_step: str | None, gate: str | None, status: str | None) -> None:
+    """Mirror active_step / gate-status changes into live_workflow_diagram.md.
+
+    update_live_json writes directly to the JSON; without this sync the
+    human-readable markdown and the Flow View both drift out of date.
+    Failure is non-fatal — the JSON is the authoritative live state.
+    """
+    try:
+        import update_workflow_diagram as uwd  # noqa: PLC0415
+        import _layout as layout  # noqa: PLC0415
+
+        diagram_path = layout.live_workflow_diagram(run_root)
+        if not diagram_path.exists():
+            legacy = run_root / "docs" / "live_workflow_diagram.md"
+            if legacy.exists():
+                diagram_path = legacy
+            else:
+                diagram_path = uwd.find_active_diagram()
+        if diagram_path is None or not diagram_path.exists():
+            return
+        content = diagram_path.read_text(encoding="utf-8")
+        if active_step is not None:
+            content = uwd.update_active_step(content, active_step, "lead-agent")
+        if gate and status:
+            content = uwd.update_gate_status(content, gate, status)
+        diagram_path.write_text(content, encoding="utf-8")
+    except Exception as exc:
+        print(f"WORKFLOW WARNING: markdown sync failed: {exc}", file=sys.stderr)
+
+
 def apply_updates(
     run_root: Path,
     *,
@@ -407,8 +437,18 @@ def apply_updates(
 ) -> Path:
     """Apply one or more Cartographer updates to the run-local live JSON.
 
+    Also mirrors active_step and gate-status changes into
+    live_workflow_diagram.md so the markdown and the Flow View stay in sync.
+    Previously, callers had to run update_workflow_diagram.py first and then
+    update_live_json.py; now either order is safe.
+
     Returns the path of the written workflow_map.live.json.
     """
+    # Keep markdown in sync before regenerating JSON so that
+    # _load_or_bootstrap (which may parse the markdown) sees fresh state.
+    if active_step is not None or (gate and status):
+        _sync_markdown(run_root, active_step, gate, status)
+
     data = _load_or_bootstrap(run_root)
     live_map = data["maps"][0]
     nodes: list[dict] = live_map.setdefault("nodes", [])

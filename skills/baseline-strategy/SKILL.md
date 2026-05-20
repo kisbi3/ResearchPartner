@@ -22,7 +22,7 @@ Confirm the Model Gate passes: `python scripts/check_model_specified.py --projec
 
 ## Dialogue Format
 
-The professor reads `docs/model_spec.md` before opening the conversation. The professor then leads with probing questions; the graduate student must defend the classification.
+The professor reads `docs/plan/model_spec.md` before opening the conversation. The professor then leads with probing questions; the graduate student must defend the classification.
 
 **Opening questions for Variation path:**
 - Which paper or validated code does this model derive from?
@@ -64,7 +64,7 @@ This step has no skip waiver. A baseline strategy decision is required before se
 
 ## Artifact
 
-Write the output to `docs/baseline_strategy.md` at the project root using the template at `docs/run_templates/baseline_strategy_template.md`.
+Write the output to `docs/plan/baseline_strategy.md` at the project root using the template at `docs/run_templates/baseline_strategy_template.md`.
 
 The Baseline Strategy Gate (`python scripts/check_baseline_strategy.py --project <project-dir>`) reads this file and checks that:
 
@@ -78,7 +78,7 @@ Once the strategy is decided, the actual execution of the reproduce or analytica
 
 ## Cartographer Update
 
-After writing `docs/baseline_strategy.md`, emit a `decision` node that captures the variation/new-model classification and links the verification target to its source:
+After writing `docs/plan/baseline_strategy.md`, emit a `decision` node that captures the variation/new-model classification and links the verification target to its source:
 
 - For **variation**: the decision node must carry a `cites_paper` edge to the parent paper's `paper_<paper_id>` node and a `reproduces` edge from the planned baseline result to the same paper node.
 - For **new model**: the decision node must carry a `reproduces` edge from the planned baseline result to the analytical-limit target (use a stable `node_id` for the limit, e.g. `analytical_meanfield_limit`).
@@ -87,4 +87,4 @@ See `skills/cartographer-update/SKILL.md` → *Worked Examples by Lineage Kind* 
 
 ## Suggested Next Skill
 
-**`seed-design`** — Task 1 is automatically defined by the decision in `docs/baseline_strategy.md`.
+**`seed-design`** — Task 1 is automatically defined by the decision in `docs/plan/baseline_strategy.md`.

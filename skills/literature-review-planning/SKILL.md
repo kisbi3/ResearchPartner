@@ -11,11 +11,11 @@ Use this skill between professor-interview and model-specification.
 
 Before starting:
 
-1. Confirm `docs/interview_notes.md` exists and the Interview Gate passes (`python scripts/check_interview_recorded.py --project <project-dir>`). If not, complete the professor-interview skill first.
+1. Confirm `docs/gates/interview_notes.md` exists and the Interview Gate passes (`python scripts/check_interview_recorded.py --project <project-dir>`). If not, complete the professor-interview skill first.
 
 ## Skipping This Step
 
-If the literature review is genuinely not needed for this iteration (e.g. reproducing a known result with well-understood prior work), the researcher may skip this step by creating `docs/literature_skip_waiver.md` with a one-line reason:
+If the literature review is genuinely not needed for this iteration (e.g. reproducing a known result with well-understood prior work), the researcher may skip this step by creating `docs/literature/literature_skip_waiver.md` with a one-line reason:
 
 ```
 Skipping literature review: reproducing Fourier (1822) heat equation — prior work is fully known and no novelty is claimed.
@@ -46,8 +46,8 @@ Before asking the researcher for any paper, the Lead Agent must first attempt we
 
 1. **Web search first**: use the WebSearch tool (arXiv, Semantic Scholar, Google Scholar, publisher sites) to identify the exact title, authors, year, venue, and DOI or arXiv ID for each paper in the needed category.
 2. **Check open access**: if a paper has an arXiv preprint or is available on PubMed Central or an open-access journal, fetch it directly using WebFetch. Do not request it from the researcher.
-3. **Escalate only what is paywalled**: only add papers to `docs/paper_request_queue.md` when they cannot be retrieved without institutional access. The queue entry must include the confirmed title, authors, year, DOI or arXiv ID, and the reason direct access failed — never a vague category like "a paper about X probably exists."
-4. **No unverified requests**: do not ask the researcher to find a paper whose title or authors are unknown. If a web search cannot identify the paper, record it as an open literature question in `docs/replanning_memo.md` instead.
+3. **Escalate only what is paywalled**: only add papers to `docs/literature/paper_request_queue.md` when they cannot be retrieved without institutional access. The queue entry must include the confirmed title, authors, year, DOI or arXiv ID, and the reason direct access failed — never a vague category like "a paper about X probably exists."
+4. **No unverified requests**: do not ask the researcher to find a paper whose title or authors are unknown. If a web search cannot identify the paper, record it as an open literature question in `docs/literature/replanning_memo.md` instead.
 
 Paper categories to cover:
 
@@ -68,9 +68,9 @@ Maintain a single project-local literature directory:
 - `literature/reviews/`: detailed paper review notes
 - `literature/extracted_text/`: extracted PDF text used as a reading aid
 - `literature/index.md`: project-local paper review index
-- `docs/paper_request_queue.md`: papers requested from the researcher
-- `docs/literature_review_plan.md`: current paper set, review status, and reading priorities
-- `docs/replanning_memo.md`: novelty map, reproduction target, revised plan, and claim ceiling
+- `docs/literature/paper_request_queue.md`: papers requested from the researcher
+- `docs/literature/literature_review_plan.md`: current paper set, review status, and reading priorities
+- `docs/literature/replanning_memo.md`: novelty map, reproduction target, revised plan, and claim ceiling
 
 Repository templates live in `docs/literature/`.
 
@@ -84,7 +84,7 @@ Use `scripts/process_paper_for_review.py` when the PDF is already inside the pro
 
 Maintain clickable links across the literature graph. The paper index should link to PDFs and review notes, each review note should link to the paper index and replanning memo, and extracted text artifacts should link back to the source PDF and review note. Keep project-relative code paths alongside Markdown links so future agents can inspect artifacts without guessing locations.
 
-Run `scripts/check_paper_review_quality.py` on important review notes before using them to update `docs/replanning_memo.md`. If the check fails, either complete the review or record an explicit waiver and keep novelty/reproduction claims provisional.
+Run `scripts/check_paper_review_quality.py` on important review notes before using them to update `docs/literature/replanning_memo.md`. If the check fails, either complete the review or record an explicit waiver and keep novelty/reproduction claims provisional.
 
 ## Review Agent Rules
 
@@ -124,33 +124,40 @@ Separate the authors' claims from the reviewer interpretation and from the proje
 
 ## Output Format
 
-### Literature Gate Status
+Write the following sections into `docs/literature/literature_review_plan.md`.
+The `## Literature Gate Status` section **must** be at level 2 (`##`) with
+that exact name and must contain the word `ready` or `waived` —
+`check_literature_reviewed.py` matches the heading level- and case-sensitively
+and scans for those tokens. A `###`-level heading or any other name will
+cause the gate to fail.
 
-Ready / needs PDFs / needs review / needs reproduction target / needs novelty revision / waived.
+```markdown
+## Paper Requests
 
-### Paper Requests
+<exact paper categories or known papers the researcher should collect as PDFs>
 
-List the exact paper categories or known papers the researcher should collect as PDFs.
+## Reviewed Evidence
 
-### Reviewed Evidence
+<separate direct PDF evidence from external memory, abstracts, or unverified claims>
 
-Separate direct PDF evidence from external memory, abstracts, or unverified claims.
+## Novelty Map
 
-### Novelty Map
+<what appears new, what is already known, what is contradicted, what is unverified>
 
-State what appears new, what is already known, what is contradicted, and what is unverified.
+## Reproduction Target
 
-### Reproduction Target
+<smallest result that should be reproduced and why it is sufficient for the next gate>
 
-Name the smallest result that should be reproduced and why it is sufficient for the next gate.
+## Revised Research Plan
 
-### Revised Research Plan
+<what changed in assumptions, observables, baselines, validation, and claim ceiling>
 
-State what changed in assumptions, observables, baselines, validation, and claim ceiling.
+## Literature Gate Status
 
-### Literature Gate Status
+<one of: `ready` (review complete and plan revised) or `waived` (with explicit reason)>
+```
 
-Set this to one of: `ready` (review complete and plan revised) or `waived` (with explicit reason). Write this section into `docs/literature_review_plan.md` at the project root. The Literature Gate (`python scripts/check_literature_reviewed.py --project <project-dir>`) checks this section before model-specification or seed-design work begins.
+The Literature Gate (`python scripts/check_literature_reviewed.py --project <project-dir>`) checks the `## Literature Gate Status` section before model-specification or seed-design work begins.
 
 ## Cartographer Update
 

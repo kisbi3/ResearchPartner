@@ -351,6 +351,30 @@ def main(argv: list[str] | None = None) -> int:
 
     diagram_path.write_text(content, encoding="utf-8")
     print(f"Updated {diagram_path}")
+
+    # Mirror the change into workflow_map.live.json so the Flow View and the
+    # browser-side dashboard stay in sync with the markdown. Without this,
+    # callers who run update_workflow_diagram.py directly (instead of going
+    # through workflow_hooks.py) would leave live.json stale, exactly
+    # symmetric to the inverse drift fixed in update_live_json._sync_markdown.
+    # Failure is non-fatal: the markdown is already current, and the
+    # researcher can press Refresh in the dashboard.
+    try:
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        import _project_root as project_root_mod  # noqa: PLC0415
+        import update_live_json as ulj  # noqa: PLC0415
+
+        project = project_root_mod.find_project_root(
+            start=diagram_path, require=False
+        )
+        if project is not None:
+            ulj.bootstrap_project_json(project)
+    except Exception as exc:
+        print(
+            f"WORKFLOW WARNING: live.json sync failed: {exc}",
+            file=sys.stderr,
+        )
+
     return 0
 
 

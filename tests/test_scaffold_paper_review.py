@@ -46,7 +46,7 @@ def test_scaffold_paper_review_creates_review_and_updates_index(tmp_path):
     assert "PDF path: [PDF](../pdfs/example.pdf)" in review_text
     assert "Run-relative PDF path: `literature/pdfs/example.pdf`" in review_text
     assert "Paper Review Index: [literature/index.md](../index.md)" in review_text
-    assert "Replanning Memo: [docs/replanning_memo.md](../../docs/replanning_memo.md)" in review_text
+    assert "Replanning Memo: [docs/literature/replanning_memo.md](../../docs/literature/replanning_memo.md)" in review_text
     assert "Figure/Table-by-Figure/Table Review" in review_text
     assert "Reproduction Extraction" in review_text
     assert "Source Text Extraction" in review_text

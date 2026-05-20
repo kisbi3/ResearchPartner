@@ -36,7 +36,7 @@ The Peer-Review Professor rotates through these stances during a meeting:
 
 The Peer-Review Professor reads only:
 
-1. **Live workflow diagram** (`docs/live_workflow_diagram.md`) — always shared. Provides phase context and gate status without full project history.
+1. **Live workflow diagram** (`docs/process/live_workflow_diagram.md`) — always shared. Provides phase context and gate status without full project history.
 2. **Artifact named in `--on`** — whatever the convener identified as the subject of review.
 
 If additional context is needed to evaluate a claim, the Peer-Review Professor requests it explicitly ("I need to see the governing equations before I can assess this"). Whether to share is the convener's decision.

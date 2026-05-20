@@ -15,7 +15,7 @@ Run a multi-turn Socratic dialogue between the Lead Agent and the researcher. Th
 
 Before starting:
 
-1. Read `docs/orient_note.md` at the project root. If it is missing or blank, stop and ask the researcher to complete the Orient phase first by running the task-intake skill.
+1. Read `docs/gates/orient_note.md` at the project root. If it is missing or blank, stop and ask the researcher to complete the Orient phase first by running the task-intake skill.
 2. Note the task classification, responsible role, and the researcher's answer to the first professor question from orient_note.md. These are the starting context for the dialogue.
 
 ## How to Conduct the Dialogue
@@ -60,9 +60,9 @@ When the dialogue is complete, tell the researcher:
 
 Then produce the interview_notes.md artifact as described below.
 
-## Artifact: `docs/interview_notes.md`
+## Artifact: `docs/gates/interview_notes.md`
 
-Write the output below into `docs/interview_notes.md` at the project root. This file is the artifact checked by `scripts/check_interview_recorded.py` before Seed or Execute work may begin.
+Write the output below into `docs/gates/interview_notes.md` at the project root. This file is the artifact checked by `scripts/check_interview_recorded.py` before Seed or Execute work may begin.
 
 Use this structure:
 
@@ -96,7 +96,7 @@ Do not write a full transcript. The goal is a compact, readable record — the c
 
 After the interview is complete, the next skill is always **`literature-review-planning`**.
 
-This applies even if the researcher believes the literature is already known. The literature skill provides an explicit gate and a skip waiver mechanism — if the literature review is truly not needed, the researcher records a one-line reason in `docs/literature_skip_waiver.md` and the gate passes without doing the full review.
+This applies even if the researcher believes the literature is already known. The literature skill provides an explicit gate and a skip waiver mechanism — if the literature review is truly not needed, the researcher records a one-line reason in `docs/literature/literature_skip_waiver.md` and the gate passes without doing the full review.
 
 The full default chain is:
 
@@ -106,8 +106,8 @@ professor-interview → literature-review-planning → model-specification → s
 
 Each step can be skipped with an explicit waiver file and a stated reason:
 
-- `docs/literature_skip_waiver.md` — skips `literature-review-planning`
-- `docs/model_skip_waiver.md` — skips `model-specification`
+- `docs/literature/literature_skip_waiver.md` — skips `literature-review-planning`
+- `docs/plan/model_skip_waiver.md` — skips `model-specification`
 
 Skipping lowers the claim ceiling: literature skip → ceiling at most `interpretation`; model skip → ceiling at most `observation`.
 
@@ -121,5 +121,5 @@ The only exceptions to starting with `literature-review-planning`:
 Do not proceed to Specify, Seed, or Execute before:
 
 1. The researcher has confirmed the crystallized research question.
-2. `docs/interview_notes.md` exists and contains the required sections.
+2. `docs/gates/interview_notes.md` exists and contains the required sections.
 3. If required: `python scripts/check_interview_recorded.py --project <project-dir>` passes.

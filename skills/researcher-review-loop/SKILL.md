@@ -38,7 +38,7 @@ Ask questions that help choose the next scientific step:
 
 ## Decision Logging
 
-When `docs/researcher_review_log.md` exists, record each reviewable result.
+When `docs/process/researcher_review_log.md` exists, record each reviewable result.
 
 When `docs/decision_log.md` exists, record decisions that affect:
 

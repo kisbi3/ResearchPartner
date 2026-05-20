@@ -54,7 +54,7 @@ def build_review_note(
     role: str = "",
     pdf_link_target: str = "",
     index_link_target: str = "../index.md",
-    replanning_link_target: str = "../../docs/replanning_memo.md",
+    replanning_link_target: str = "../../docs/literature/replanning_memo.md",
 ) -> str:
     """Build the reusable detailed review note body."""
     citation = ", ".join(part for part in [authors, year] if part)
@@ -73,7 +73,7 @@ def build_review_note(
 - Run-relative PDF path: {run_relative_pdf}
 - Review note path:
 - Paper Review Index: [literature/index.md]({index_link_target})
-- Replanning Memo: [docs/replanning_memo.md]({replanning_link_target})
+- Replanning Memo: [docs/literature/replanning_memo.md]({replanning_link_target})
 - Review date:
 - Reviewer:
 - Status: reading

@@ -140,11 +140,11 @@ Orient -> Interview -> Specify -> Seed -> Validate -> Execute -> Evaluate -> Rev
 | 논문 PDF 처리 | `python scripts\process_paper_for_review.py --run <run-dir> --paper-id P1 --title "Title" --pdf <pdf-path>` | 리뷰 스캐폴딩, 텍스트 추출, 임시 추출 노트 초안 작성 |
 | 논문 리뷰 확인 | `python scripts\check_paper_review_quality.py <review-path>` | 약한 논문 노트가 참신성이나 재현 주장의 근거가 되기 전에 차단 |
 | 계약 동기화 검증 | `python scripts\check_contract_sync.py` | `AGENTS.md`와 `GEMINI.md`가 바이트 단위로 동일하도록 강제하여 두 런타임이 같은 계약을 따르게 보장 |
-| Orient 게이트 검증 | `python scripts\check_orient_recorded.py --run <run-dir>` | `docs/orient_note.md`에 task-intake 산출물(분류, 역할, 첫 질문, 연구자 답변)이 기록되지 않으면 Seed, Execute, Evaluate 작업 차단 |
+| Orient 게이트 검증 | `python scripts\check_orient_recorded.py --run <run-dir>` | `docs/gates/orient_note.md`에 task-intake 산출물(분류, 역할, 첫 질문, 연구자 답변)이 기록되지 않으면 Seed, Execute, Evaluate 작업 차단 |
 | Interview 게이트 검증 | `python scripts\check_interview_recorded.py --run <run-dir>` | `docs/gates/interview_notes.md`에 professor-interview 산출물(결정화된 연구 질문, 가정, 합의된 방향)이 기록되지 않으면 Seed, Execute 작업 차단 |
-| Literature 게이트 검증 | `python scripts\check_literature_reviewed.py --run <run-dir>` | `docs/literature_review_plan.md`에 `## Literature Gate Status: ready/waived`가 없거나 `docs/literature_skip_waiver.md`가 없으면 model-specification 또는 seed-design 차단 (스킵 시 claim ceiling → `interpretation`) |
-| Model 게이트 검증 | `python scripts\check_model_specified.py --run <run-dir>` | `docs/model_spec.md`에 물리 시스템과 지배 방정식이 없거나 `docs/model_skip_waiver.md`가 없으면 seed-design 또는 execute 차단 (스킵 시 claim ceiling → `observation`) |
-| Baseline Strategy 게이트 검증 | `python scripts\check_baseline_strategy.py --run <run-dir>` | `docs/baseline_strategy.md`에 교수-대학원생 대화 결정(`variation` 또는 `new model`)과 정량적 검증 타겟이 없으면 seed-design 차단. 스킵 불가. |
+| Literature 게이트 검증 | `python scripts\check_literature_reviewed.py --run <run-dir>` | `docs/literature/literature_review_plan.md`에 `## Literature Gate Status: ready/waived`가 없거나 `docs/literature/literature_skip_waiver.md`가 없으면 model-specification 또는 seed-design 차단 (스킵 시 claim ceiling → `interpretation`) |
+| Model 게이트 검증 | `python scripts\check_model_specified.py --run <run-dir>` | `docs/plan/model_spec.md`에 물리 시스템과 지배 방정식이 없거나 `docs/plan/model_skip_waiver.md`가 없으면 seed-design 또는 execute 차단 (스킵 시 claim ceiling → `observation`) |
+| Baseline Strategy 게이트 검증 | `python scripts\check_baseline_strategy.py --run <run-dir>` | `docs/plan/baseline_strategy.md`에 교수-대학원생 대화 결정(`variation` 또는 `new model`)과 정량적 검증 타겟이 없으면 seed-design 차단. 스킵 불가. |
 | Baseline 게이트 검증 | `python scripts\check_baseline_gate.py --run <run-dir>` | `baseline_registry.md`에 `pass` 항목이 없거나, `waived` 항목이 있어도 라이브 워크플로의 claim ceiling이 `observation`으로 강등되지 않으면 후속 작업 차단 |
 | Figure provenance 검증 | `python scripts\check_figure_provenance.py --root <run-dir>` | 모든 figure 파일에 형제 `*.provenance.md` 또는 `figure_provenance.md`의 매칭 엔트리가 없으면 실패 |
 | 세션 재개 가능성 검증 | `python scripts\check_session_resumable.py` | usage limit 등으로 세션이 끊겼다가 재시작될 때, 라이브 워크플로 다이어그램의 `spawned` 상태 in-flight 서브에이전트 작업과 `blocked`/`in_progress` 게이트를 나열해 다음 세션을 이어가기 전 연구자가 처리해야 할 항목을 알려줌. 최신 실행을 자동 탐색하며 `--run <run-dir>`로 특정 실행 지정, `--json`으로 기계 판독 출력 가능 |

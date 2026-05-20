@@ -40,17 +40,17 @@ When a graduate student needs a `review` or `full` meeting, they escalate to the
 ## Shared Context
 
 **Always shared (all scopes):**
-- `docs/live_workflow_diagram.md` — gives every participant a view of the current phase, gate statuses, and claim ceiling without full project history.
+- `docs/process/live_workflow_diagram.md` — gives every participant a view of the current phase, gate statuses, and claim ceiling without full project history.
 
 **Automatically surfaced based on `--on` keywords:**
 
 | Keyword in `--on` | Additional artifact shared |
 |---|---|
-| model, equation, approximation | `docs/model_spec.md` |
-| literature, paper, prior work | `docs/literature_review_plan.md` |
-| baseline, reproduce, variation | `docs/baseline_strategy.md` |
+| model, equation, approximation | `docs/plan/model_spec.md` |
+| literature, paper, prior work | `docs/literature/literature_review_plan.md` |
+| baseline, reproduce, variation | `docs/plan/baseline_strategy.md` |
 | result, figure, output | most recent file in `outputs/` |
-| claim, evidence | `docs/research_plan.md` + `docs/validation_log.md` |
+| claim, evidence | `docs/plan/research_plan.md` + `docs/gates/validation_log.md` |
 
 If the convener wants to share additional or different artifacts, they state them explicitly at the start of the meeting.
 

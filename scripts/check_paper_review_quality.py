@@ -31,7 +31,7 @@ REQUIRED_PATTERNS = (
     ("PDF link", r"PDF path:\s*\[PDF\]\("),
     ("run-relative PDF path", r"Run-relative PDF path:\s*`?literature/pdfs/"),
     ("Paper Review Index link", r"Paper Review Index:\s*\[literature/index\.md\]\("),
-    ("Replanning Memo link", r"Replanning Memo:\s*\[docs/replanning_memo\.md\]\("),
+    ("Replanning Memo link", r"Replanning Memo:\s*\[docs/(?:literature/)?replanning_memo\.md\]\("),
     ("Extracted text link", r"Extracted text path:\s*\[Extracted text\]\("),
     (
         "PDF extraction caveat",

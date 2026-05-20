@@ -226,3 +226,28 @@ Choose the smallest reusable target this paper offers.
 - [ ] Novelty impact is based on direct PDF evidence or explicitly marked unverified.
 - [ ] Reproduction target and pass/fail criterion are explicit.
 - [ ] Unsupported claims are marked as `확인 필요` or `unverified`.
+
+## Literature Gate Status
+
+<!--
+This section is required by scripts/check_literature_reviewed.py before
+model-specification or seed-design work may begin. It applies when this
+template is used as the project's docs/literature/literature_review_plan.md
+(see init_research_project.py — the template is copied to that path).
+
+Set this section's body to one of:
+
+- `ready`   — literature review complete and research plan revised
+- `waived`  — explicit waiver (also create
+              docs/literature/literature_skip_waiver.md with the reason;
+              the project's claim ceiling is lowered to `interpretation`)
+
+Anything else (e.g. `needs PDFs`, `needs review`, or a blank section)
+leaves the Literature Gate blocked. The exact tokens `ready` or `waived`
+must appear inside this section.
+
+For per-paper review notes (literature/reviews/<paper_id>.md), this
+section is harmless — it is ignored by scripts/check_paper_review_quality.py.
+-->
+
+pending

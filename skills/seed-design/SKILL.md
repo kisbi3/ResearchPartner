@@ -16,8 +16,8 @@ Produce the smallest set of concrete, unambiguous tasks that can validate or adv
 Confirm all of the following before running this skill:
 
 1. The Interview Gate passes: `python scripts/check_interview_recorded.py --project <project-dir>`. If not, complete the professor-interview skill first.
-2. The Literature Gate passes: `python scripts/check_literature_reviewed.py --project <project-dir>`. If not, complete literature-review-planning or create `docs/literature_skip_waiver.md` with a reason.
-3. The Model Gate passes: `python scripts/check_model_specified.py --project <project-dir>`. If not, complete model-specification or create `docs/model_skip_waiver.md` with a reason.
+2. The Literature Gate passes: `python scripts/check_literature_reviewed.py --project <project-dir>`. If not, complete literature-review-planning or create `docs/literature/literature_skip_waiver.md` with a reason.
+3. The Model Gate passes: `python scripts/check_model_specified.py --project <project-dir>`. If not, complete model-specification or create `docs/plan/model_skip_waiver.md` with a reason.
 4. The Baseline Strategy Gate passes: `python scripts/check_baseline_strategy.py --project <project-dir>`. If not, complete the baseline-strategy skill first. There is no skip waiver for this gate.
 5. The observables and failure criteria are defined.
 6. The claim-to-evidence path is stated.
@@ -26,7 +26,7 @@ If any gate is unresolved, return to the appropriate skill before proceeding. Wa
 
 ## Task 1 Rule
 
-**Task 1 must always be the verification target defined in `docs/baseline_strategy.md`.**
+**Task 1 must always be the verification target defined in `docs/plan/baseline_strategy.md`.**
 
 - If `Decision = variation`: Task 1 reproduces the key result from the parent model, using the reproduce pass criterion stated in the strategy.
 - If `Decision = new model`: Task 1 verifies code against Analytical Checkpoint 1, using the pass criterion stated in the strategy.
@@ -156,7 +156,7 @@ List the gate statuses, evidence links, and waivers to pass to `cartographer-upd
 For lineage continuity, also emit one `decision` node per task (`node_id="task_<n>_<short_slug>"`, `lineage_kind="decision"`) with:
 
 - `graph_links` mirroring the **Dependency Map**: every `depends_on: [Task K]` becomes a `depends_on` edge from `task_<n>_*` to `task_<k>_*`.
-- For Task 1 specifically: a `reproduces` edge to the verification target identified in `docs/baseline_strategy.md` (the same `paper_<paper_id>` or analytical-limit node ID the strategy referenced). This makes the lineage graph show that Task 1's role is to verify against that target.
+- For Task 1 specifically: a `reproduces` edge to the verification target identified in `docs/plan/baseline_strategy.md` (the same `paper_<paper_id>` or analytical-limit node ID the strategy referenced). This makes the lineage graph show that Task 1's role is to verify against that target.
 - Any task that takes a model_version as input should add a `depends_on` edge to the corresponding `model_<version>` node.
 
 See `skills/cartographer-update/SKILL.md` for the JSON shape and worked examples.

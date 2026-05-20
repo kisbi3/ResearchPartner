@@ -11,21 +11,21 @@ Use this skill after literature-review-planning completes (or is waived).
 
 Before starting:
 
-1. Confirm the Literature Gate passes: `python scripts/check_literature_reviewed.py --project <project-dir>`. If not, either complete the literature-review-planning skill or create `docs/literature_skip_waiver.md` with a one-line reason.
+1. Confirm the Literature Gate passes: `python scripts/check_literature_reviewed.py --project <project-dir>`. If not, either complete the literature-review-planning skill or create `docs/literature/literature_skip_waiver.md` with a one-line reason.
 
 ## Skipping This Step
 
-If the model is already fully specified from prior work (e.g. continuing an existing project with no model changes), the researcher may skip this step by creating `docs/model_skip_waiver.md` with a one-line reason:
+If the model is already fully specified from prior work (e.g. continuing an existing project with no model changes), the researcher may skip this step by creating `docs/plan/model_skip_waiver.md` with a one-line reason:
 
 ```
-Skipping model specification: continuing prior work — model unchanged from docs/model_spec.md dated 2026-05-10.
+Skipping model specification: continuing prior work — model unchanged from docs/plan/model_spec.md dated 2026-05-10.
 ```
 
 The Model Gate (`python scripts/check_model_specified.py --project <project-dir>`) passes on either a completed model_spec.md or a waiver file with content. A skip lowers the claim ceiling to at most `observation` for this iteration.
 
 ## Artifact
 
-Write the model specification output into `docs/model_spec.md` at the project root. This file is the gate artifact checked by `scripts/check_model_specified.py`. Use the template at `docs/run_templates/model_spec_template.md` as the starting structure.
+Write the model specification output into `docs/plan/model_spec.md` at the project root. This file is the gate artifact checked by `scripts/check_model_specified.py`. Use the template at `docs/run_templates/model_spec_template.md` as the starting structure.
 
 ## Goal
 
@@ -50,50 +50,59 @@ Make the model explicit enough that another researcher can reproduce and critiqu
 
 ## Model Specification Template
 
-### Physical System
+Write the following template into `docs/plan/model_spec.md`. The headings
+**must** be level 2 (`##`) with the exact names shown — `check_model_specified.py`
+requires both `## Physical System` and `## Governing Equations` at level 2.
+Using `###` or renaming the headings will cause the Model Gate to fail.
 
-Describe the system being modeled.
+```markdown
+## Physical System
 
-### Degrees of Freedom
+<describe the system being modeled>
 
-List the variables that define the system state.
+## Degrees of Freedom
 
-### Governing Equations
+<list the variables that define the system state>
 
-Write the equations and define every symbol.
+## Governing Equations
 
-### Assumptions
+<write the equations and define every symbol>
 
-List all assumptions explicitly.
+## Assumptions
 
-### Parameters
+<list all assumptions explicitly>
+
+## Parameters
 
 | Parameter | Meaning | Units | Default / Range |
 |---|---|---|---|
 
-### Initial Conditions
+## Initial Conditions
 
-Specify initial state or ensemble.
+<specify initial state or ensemble>
 
-### Boundary Conditions
+## Boundary Conditions
 
-Specify boundary behavior.
+<specify boundary behavior>
 
-### Observables
+## Observables
 
-List measured or computed outputs.
+<list measured or computed outputs>
 
-### Validity Regime
+## Validity Regime
 
-State when the model is expected to hold.
+<state when the model is expected to hold>
 
-### Known Limitations
+## Known Limitations
 
-State what the model excludes.
+<state what the model excludes>
 
-### Model Gate Status
+## Model Gate Status
 
-Set to `ready` when all required components above are filled in `docs/model_spec.md`. The Model Gate (`python scripts/check_model_specified.py --project <project-dir>`) checks this file before seed-design or execute work begins.
+<set to `ready` when all required components above are filled>
+```
+
+The Model Gate (`python scripts/check_model_specified.py --project <project-dir>`) checks this file before seed-design or execute work begins. The canonical template lives at `docs/run_templates/model_spec_template.md`.
 
 ## Cartographer Update
 

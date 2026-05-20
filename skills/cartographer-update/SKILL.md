@@ -76,7 +76,7 @@ Do not unblock a gate without explicit Lead Agent authorization. Unresolved bloc
 
 ## Auto-emission for Signal Artifacts
 
-`scripts/workflow_hooks.py` automatically pushes a lineage node into `workflow_map.live.json` (and appends an event line to `docs/live_workflow_diagram.md`) whenever any of these files are written or edited inside the project:
+`scripts/workflow_hooks.py` automatically pushes a lineage node into `workflow_map.live.json` (and appends an event line to `docs/process/live_workflow_diagram.md`) whenever any of these files are written or edited inside the project:
 
 | Path glob | Auto-derived fields |
 |---|---|

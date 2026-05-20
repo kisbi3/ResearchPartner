@@ -108,7 +108,11 @@ def main(argv: list[str] | None = None) -> int:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 2
     spawn_log = project / "docs" / "gates" / "agent_spawn_log.md"
-    diagram = project / "docs" / "live_workflow_diagram.md"
+    diagram = project / "docs" / "process" / "live_workflow_diagram.md"
+    if not diagram.exists():
+        legacy = project / "docs" / "live_workflow_diagram.md"
+        if legacy.exists():
+            diagram = legacy
 
     rows = parse_spawn_log(spawn_log)
     events = parse_diagram_events(diagram)

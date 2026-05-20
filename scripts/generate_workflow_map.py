@@ -978,6 +978,13 @@ def placeholder_live_workflow_map() -> dict:
             "No live workflow artifact was found. Start or update a run under "
             "ResearchPartner-runs/*/docs/process/live_workflow_diagram.md."
         ),
+        "dashboard": {
+            "title": "Current Run Dashboard",
+            "run_root": "",
+            "document_groups": [],
+            "summary": {},
+            "actions": [],
+        },
         "nodes": [
             {
                 "id": "no_active_run",
