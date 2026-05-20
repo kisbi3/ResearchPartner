@@ -30,7 +30,7 @@ The harness generates a **Project Dashboard** (`<project>/workflow_map.html`) fo
 
   ![Lineage tab showing Papers, Decisions, Model Versions, Results, and Claims](docs/images/lineage_screenshot.png)
 
-  Skill outputs auto-seed the lineage nodes (writing `literature/reviews/<id>.md` seeds a paper node, `docs/model_versions/<v>.md` seeds a model_version node, `docs/claims/<id>.md` seeds a claim node, etc. — handled by `scripts/workflow_hooks.py`); each skill's `Cartographer Update` section then instructs the agent to add the cross-referential edges (`cites_paper`, `evolved_from`, `reproduces`, `supports`, `limits`). The **Lineage Coverage Gate** (`python scripts/check_lineage_coverage.py --project <project-dir>`) warns when an agent skipped that step (claims without `supports`, non-initial model versions without `evolved_from`, orphan paper reviews, unresolved anomalies without `limits`). The **Broken-Edge Linter** (`python scripts/update_live_json.py --project <project-dir> --validate`) catches typos in `graph_links` references that Cytoscape would otherwise silently drop.
+  Lineage nodes are seeded from artifact files with `lineage:` YAML front-matter blocks. Each skill's **Lineage Front-Matter** section instructs the agent to add these blocks (with edges like `cites_paper`, `evolved_from`, `reproduces`, `supports`, `limits`) and then run `/sync-workflow` to rebuild the graph. The **Lineage Coverage Gate** (`python scripts/check_lineage_coverage.py --project <project-dir>`) warns when an agent skipped that step (claims without `supports`, non-initial model versions without `evolved_from`, orphan paper reviews, unresolved anomalies without `limits`). The **Broken-Edge Linter** (`python scripts/sync_workflow.py --project <project-dir> --validate-edges`) catches typos in `graph_links` references that Cytoscape would otherwise silently drop.
 
 ---
 
@@ -179,7 +179,7 @@ The installer copies these skills into the target project's `skills/` directory.
 | `scientific-verification-before-claim` | Making, strengthening, publishing, summarizing, captioning, or editing a claim based on equations, simulations, figures, data, or citations |
 | `anomaly-debugging` | A result, simulation, plot, fit, derivation, unit check, conservation law, or reproduction behaves unexpectedly |
 | `researcher-review-loop` | Presenting intermediate results, deciding next steps, comparing iterations, or recording researcher decisions |
-| `cartographer-update` | Updating live workflow state when the active phase changes, a gate passes or blocks, a waiver is issued, an artifact becomes stale, or a researcher checkpoint is reached |
+| `sync-workflow` | Updating live workflow state — rebuilds gate status and lineage graph from the filesystem. Run after gate steps, stage completion, or after adding `lineage:` front-matter to artifact files |
 | `research-retrospective` | Ending an iteration, validation run, reproduction attempt, anomaly investigation, figure audit, manuscript revision, or review |
 | `existing-research-onboarding` | Adding the harness to a project that already has code, data, figures, simulations, notes, results, or manuscript claims |
 | `literature-review-planning` | Literature access, novelty assessment, researcher-provided PDFs, reproduction targets, or prior methods could change the plan |

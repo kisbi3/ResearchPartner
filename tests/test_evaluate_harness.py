@@ -90,7 +90,6 @@ def test_user_facing_documentation_scenario_is_evaluated():
     assert "README.md" in scenarios["user_facing_documentation_drift"].docs
     assert "README.ko.md" in scenarios["user_facing_documentation_drift"].docs
     scenario = scenarios["live_linked_research_graph"]
-    assert "docs/run_templates/cartographer_update_template.md" in scenario.docs
     assert "docs/run_templates/live_workflow_diagram_template.md" in scenario.docs
     assert "docs/run_templates/research_run_packet_template.md" in scenario.docs
     assert "Link Status" in scenario.rule_terms
@@ -107,7 +106,7 @@ def test_new_skill_scenarios_are_evaluated():
     assert "task_intake_orient_phase" in names
     assert "interview_gate_enforcement" in names
     assert "seed_design_graduate_tasks" in names
-    assert "cartographer_update_waiver_staleness" in names
+    assert "sync_workflow_lineage_frontmatter" in names
 
 
 def test_interview_gate_enforcement_scenario_is_evaluated():

@@ -950,7 +950,7 @@
       if (!hasRealNodes) {
         wrap.innerHTML = `<div class="flow-empty">
           <p>No research artefacts yet.</p>
-          <p style="font-size:12px;margin-top:8px;">Papers, model versions, results, and claims will appear here as the project progresses.<br>Use <code>update_live_json.py</code> to emit lineage nodes.</p>
+          <p style="font-size:12px;margin-top:8px;">Papers, model versions, results, and claims will appear here as the project progresses.<br>Add <code>lineage:</code> front-matter to artifact files and run <code>/sync-workflow</code>.</p>
         </div>`;
         return;
       }

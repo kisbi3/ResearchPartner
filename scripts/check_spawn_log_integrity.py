@@ -155,7 +155,7 @@ def main(argv: list[str] | None = None) -> int:
         )
     print(
         "  fix: investigate whether forged rows were added to docs/gates/agent_spawn_log.md\n"
-        "       (the Cartographer hook auto-logs every Agent() call; mismatches mean\n"
+        "       (workflow_hooks.py auto-logs every Agent() call; mismatches mean\n"
         "        the rows were typed by hand, not produced by a real Implementation\n"
         "        Agent spawn).",
         file=sys.stderr,

@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """Lineage Coverage Gate — warn when skill outputs lack the edges they require.
 
-The Cartographer Update sections in the seven research skills (literature-
+The Lineage Front-Matter sections in the seven research skills (literature-
 review-planning, model-specification, baseline-strategy, baseline-validation,
-seed-design, anomaly-debugging, claim-to-evidence) instruct agents to emit
-specific edges on top of auto-seeded nodes. A skill that quietly drops its
-Cartographer Update step won't fail any other check — its file still appears
+seed-design, anomaly-debugging, claim-to-evidence) instruct agents to add
+``lineage:`` YAML front-matter blocks with specific edges. A skill that skips
+its front-matter block won't fail any other check — its file still appears
 in the live diagram and the Lineage tab still renders the node. This script
 exists to surface that silent failure.
 
@@ -103,9 +103,9 @@ def check(run_root: Path) -> list[dict]:
                     "node_id": node_id,
                     "lineage_kind": kind,
                     "rule": "claim node has no outgoing supports/contradicts edge",
-                    "fix": "Run claim-to-evidence and emit a 'supports' (or 'contradicts') edge "
-                           "from this claim to each result node that backs it. "
-                           "See skills/cartographer-update/SKILL.md → Worked Examples.",
+                    "fix": "Add a 'supports' (or 'contradicts') edge to the lineage: block "
+                           "in docs/claims/<slug>.md, then run /sync-workflow. "
+                           "See skills/sync-workflow/SKILL.md for the front-matter spec.",
                 })
 
         elif kind == "model_version":
@@ -115,9 +115,9 @@ def check(run_root: Path) -> list[dict]:
                     "node_id": node_id,
                     "lineage_kind": kind,
                     "rule": "non-initial model_version has no outgoing evolved_from edge",
-                    "fix": "Run model-specification's Cartographer Update step: emit an "
-                           "'evolved_from' edge to the predecessor model_version, "
-                           "or set first_model_version=true on the packet if this really is v1.",
+                    "fix": "Add an 'evolved_from' edge to the lineage: block "
+                           "in docs/model_versions/<version>.md, then run /sync-workflow. "
+                           "Or set first_model_version: true if this really is the first version.",
                 })
 
         elif kind == "paper":
@@ -141,9 +141,9 @@ def check(run_root: Path) -> list[dict]:
                         "node_id": node_id,
                         "lineage_kind": kind,
                         "rule": "unresolved anomaly has no outgoing limits edge",
-                        "fix": "Run anomaly-debugging's Cartographer Update step: emit a "
-                               "'limits' edge from this anomaly to the result, model, or "
-                               "claim it threatens. Mark status=resolved when fixed.",
+                        "fix": "Add a 'limits' edge to the lineage: block in errors/<slug>.err "
+                               "or docs/logs/anomaly_log.md, then run /sync-workflow. "
+                               "Mark status: resolved when the anomaly is fixed.",
                     })
 
     return violations

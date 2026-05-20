@@ -34,7 +34,7 @@ flowchart LR
 
   ![Lineage 탭 — 실제 실행과 데모 lineage를 나란히 보여주는 Cross-Run 뷰](docs/images/lineage_screenshot.png)
 
-  Skill 출력이 lineage 노드를 자동으로 시드합니다 (`literature/reviews/<id>.md` 작성 → paper 노드, `docs/model_versions/<v>.md` → model_version 노드, `docs/claims/<id>.md` → claim 노드 — `scripts/workflow_hooks.py`가 처리). 각 skill의 `Cartographer Update` 섹션은 그 위에 cross-referential 엣지(`cites_paper`, `evolved_from`, `reproduces`, `supports`, `limits`)를 추가하도록 에이전트에게 지시합니다. **Lineage Coverage Gate**(`python scripts/check_lineage_coverage.py --run <run-dir>`)는 에이전트가 그 단계를 건너뛴 경우 경고합니다 (supports 없는 claim, evolved_from 없는 비초기 model version, 고립된 paper 리뷰, limits 없는 미해결 anomaly). **Broken-Edge Linter**(`python scripts/update_live_json.py --run <run-dir> --validate`)는 Cytoscape가 조용히 무시할 graph_links 오타를 잡아냅니다.
+  Lineage 노드는 artifact 파일의 `lineage:` YAML front-matter 블록에서 시드됩니다. 각 skill의 **Lineage Front-Matter** 섹션은 에이전트에게 이 블록(`cites_paper`, `evolved_from`, `reproduces`, `supports`, `limits` 등의 엣지 포함)을 추가하고 `/sync-workflow`를 실행하여 그래프를 재구성하도록 지시합니다. **Lineage Coverage Gate**(`python scripts/check_lineage_coverage.py --project <project-dir>`)는 에이전트가 그 단계를 건너뛴 경우 경고합니다 (supports 없는 claim, evolved_from 없는 비초기 model version, 고립된 paper 리뷰, limits 없는 미해결 anomaly). **Broken-Edge Linter**(`python scripts/sync_workflow.py --project <project-dir> --validate-edges`)는 Cytoscape가 조용히 무시할 graph_links 오타를 잡아냅니다.
 
 ---
 
@@ -166,7 +166,7 @@ Orient -> Interview -> Specify -> Seed -> Validate -> Execute -> Evaluate -> Rev
 | 연구자 | 코딩을 멈추고 조사를 시작함. | "우리에게 실제로 있는 증거는 무엇입니까?" |
 | 아키텍트 | 구조적 원인을 파악함. | "우리가 처음부터 다시 시작한다면, 이런 방식으로 구축했을까요?" |
 
-이러한 스탠스들은 다섯 가지 운영 역할을 지원합니다. Lead Agent(메인 대화 컨텍스트, *spawn되는 별도 subagent가 아님*)는 과학적 판단과 주장 규율을 담당합니다. 피어 리뷰 교수(Peer-Review Professor)는 `meeting --scope review` 세션에서만 spawn되는 외부 대립 검토자로, 프로젝트 히스토리 없이 라이브 워크플로 다이어그램과 공유된 artifact만 보고 주장의 허점을 찾습니다. 대학원생 테스트 설계 에이전트(Graduate Test-Design Agents)는 계획을 검증 작업으로 변환합니다. 코딩 하위 에이전트(Coding Subagents)는 검증 전략이 명확해진 후에만 제한된 구현을 실행합니다. Cartographer(spawn되지 않음 — `scripts/workflow_hooks.py`와 `cartographer-update` SKILL로 자동 기록)는 의견을 더하거나 주장을 강화하지 않고 워크플로우 상태만 기록합니다.
+이러한 스탠스들은 다섯 가지 운영 역할을 지원합니다. Lead Agent(메인 대화 컨텍스트, *spawn되는 별도 subagent가 아님*)는 과학적 판단과 주장 규율을 담당합니다. 피어 리뷰 교수(Peer-Review Professor)는 `meeting --scope review` 세션에서만 spawn되는 외부 대립 검토자로, 프로젝트 히스토리 없이 라이브 워크플로 다이어그램과 공유된 artifact만 보고 주장의 허점을 찾습니다. 대학원생 테스트 설계 에이전트(Graduate Test-Design Agents)는 계획을 검증 작업으로 변환합니다. 코딩 하위 에이전트(Coding Subagents)는 검증 전략이 명확해진 후에만 제한된 구현을 실행합니다. 워크플로우 상태는 `scripts/workflow_hooks.py`(Agent() spawn 자동 추적)와 `/sync-workflow` 스킬(게이트 완료 후 온디맨드 파일시스템 워크)로 관리됩니다.
 
 큰 작업에서는 Lead Agent 아래의 spawn 역할들이 *실제로 별도의 에이전트를 `Agent()` 도구로 spawn*하면서 강제됩니다 — 하나의 에이전트가 내부 페르소나를 바꿔 가며 흉내 내는 방식이 아닙니다. Lead Agent는 메인 컨텍스트 자체이고, 그 아래 2계층 spawn 구조는 다음과 같습니다: **Lead Agent** → **Graduate Student Agent(s)** (seed task 한 개당 한 명, 독립 task는 병렬 spawn) → **Implementation Agent** + **Scientific Validator** + **Cache-Log Auditor** (각 Graduate Student가 필요에 따라 spawn). Graduate Student는 task *유형*이 아니라 *단일 task instance*에 묶입니다 — "baseline 학생"과 "scan 학생"의 구분은 없습니다. spawn block 템플릿과 cross-tier 금지 규칙은 `docs/orchestration_protocol.md`의 "Agent Spawning Protocol" 섹션을 참조하세요.
 
@@ -187,7 +187,7 @@ Orient -> Interview -> Specify -> Seed -> Validate -> Execute -> Evaluate -> Rev
 | `scientific-verification-before-claim` | 방정식, simulation, figure, data, citation에 의존하는 주장을 만들거나 강화하기 전 |
 | `anomaly-debugging` | 결과, simulation, plot, fit, derivation, unit check, conservation law, reproduction이 예상과 다를 때 |
 | `researcher-review-loop` | 중간 결과를 보여주고 다음 행동을 결정하거나 연구자 결정을 기록할 때 |
-| `cartographer-update` | 활성 단계가 바뀌거나, 게이트 통과/차단, waiver 발행, artifact 오염, 연구자 checkpoint 도달 시 라이브 워크플로우 상태를 업데이트할 때 |
+| `sync-workflow` | 라이브 워크플로우 상태 업데이트 — 파일시스템 워크로 게이트 상태와 lineage 그래프를 재구성. 게이트 완료, 스테이지 완료, 또는 artifact 파일에 `lineage:` front-matter 추가 후 실행 |
 | `research-retrospective` | iteration, validation run, reproduction, anomaly investigation, figure audit, manuscript revision이 끝났을 때 |
 | `existing-research-onboarding` | 이미 code, data, figure, simulation, note, result, manuscript claim이 있는 프로젝트에 하네스를 붙일 때 |
 | `literature-review-planning` | novelty, prior methods, reproduction target, 연구자 제공 PDF가 연구 방향을 바꿀 수 있을 때 |

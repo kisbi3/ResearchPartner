@@ -55,7 +55,7 @@ Assign the primary responsible role based on the task type:
 | Anomaly / bug | Lead Agent (classification) → Graduate Student → Implementation Agent (reproduction) |
 | Existing project onboarding | Lead Agent (inventory) → Graduate Student (retrofit plan) |
 | Maintenance, Harness evaluation | Lead Agent + `harness-evaluation` skill (no code changes), or Graduate Student → Implementation Agent (if files must be edited) |
-| Workflow state update | Cartographer (hook-driven, not spawned) via `cartographer-update` skill |
+| Workflow state update | Lead Agent via `/sync-workflow` (on-demand, not spawned) |
 
 If any part of the task involves a new claim, a baseline gate, or a gate waiver, the Lead Agent must be active.
 

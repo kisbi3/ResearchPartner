@@ -104,17 +104,16 @@ SCENARIOS = [
     ),
     Scenario(
         name="live_workflow_map_scaffold_integration",
-        skills=("skills/cartographer-update/SKILL.md",),
+        skills=("skills/sync-workflow/SKILL.md",),
         docs=(
             "scripts/init_research_project.py",
-            "scripts/generate_workflow_map.py",
-            "tests/test_generate_workflow_map.py",
+            "scripts/sync_workflow.py",
             "docs/workflow_overview.md",
         ),
         rule_terms=(
             "docs\\process\\live_workflow_diagram.md",
-            "generate_workflow_map.py",
-            "fallback",
+            "sync_workflow.py",
+            "sync",
         ),
     ),
     Scenario(
@@ -281,7 +280,6 @@ SCENARIOS = [
         docs=(
             "docs/workflow_overview.md",
             "docs/workflow_diagrams.md",
-            "docs/run_templates/cartographer_update_template.md",
             "docs/run_templates/live_workflow_diagram_template.md",
             "docs/run_templates/research_run_packet_template.md",
         ),
@@ -440,14 +438,14 @@ SCENARIOS = [
         ),
     ),
     Scenario(
-        name="cartographer_update_waiver_staleness",
-        skills=("skills/cartographer-update/SKILL.md",),
-        docs=("docs/run_templates/cartographer_update_template.md",),
+        name="sync_workflow_lineage_frontmatter",
+        skills=("skills/sync-workflow/SKILL.md",),
+        docs=("scripts/sync_workflow.py",),
         rule_terms=(
-            "skills/cartographer-update/SKILL.md",
-            "Cartographer Hook",
-            "waiver persistence",
-            "staleness propagation",
+            "skills/sync-workflow/SKILL.md",
+            "lineage:",
+            "front-matter",
+            "/sync-workflow",
         ),
     ),
     Scenario(
@@ -477,20 +475,19 @@ SCENARIOS = [
     Scenario(
         name="session_resumption_after_interruption",
         skills=(
-            "skills/cartographer-update/SKILL.md",
+            "skills/sync-workflow/SKILL.md",
         ),
         docs=(
             "scripts/check_session_resumable.py",
-            "scripts/update_workflow_diagram.py",
+            "scripts/workflow_hooks.py",
             "docs/run_templates/live_workflow_diagram_template.md",
         ),
         rule_terms=(
             "Session Resumption Hook",
             "check_session_resumable.py",
             "In-Flight Tasks",
-            "--event spawn",
-            "--event resume",
-            "--resume-decision",
+            "spawned",
+            "acknowledged",
             "abandoned",
         ),
     ),

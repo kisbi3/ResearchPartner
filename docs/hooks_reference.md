@@ -50,34 +50,33 @@ A Peer-Review Professor may only be spawned from within a `meeting --scope revie
 - **Decision**: block when the spawn prompt names the Peer-Review role unless either (a) the same prompt references the `meeting` skill with `--scope review`/`--scope full`, or (b) a `<run>/docs/meetings/*.md` artifact was touched within the last 10 minutes.
 - **Bypass**: `RESEARCH_HARNESS_BYPASS_MEETING_GATE=1`.
 
-## Cartographer Artifact Hook
+## Workflow Sync Hook (Cartographer Artifact Hook)
 
-`scripts/workflow_hooks.py` fires on every Agent spawn (PreToolUse + PostToolUse) *and* on Write/Edit of a fixed set of signal artifacts under a run directory. The live workflow diagram automatically appends an event line and (where appropriate) flips the matching gate status.
+Workflow state is maintained by two complementary mechanisms:
 
-- **Hook**: PreToolUse + PostToolUse on `Agent` and `Write|Edit` → `scripts/workflow_hooks.py`
-- **Signal artifacts** (event log only):
-  - Phase notes: `docs/orient_note.md`, `docs/interview_notes.md`, `docs/literature_review_plan.md`, `docs/model_spec.md`, `docs/baseline_strategy.md`, `docs/research_plan.md`, `docs/replanning_memo.md`, `docs/research_retrospective.md`
-  - Gate logs: `docs/gates/agent_spawn_log.md`, `docs/gates/validation_log.md`
-  - Stage / meeting records: `docs/checkpoints/stage_*_checkpoint.md`, `docs/meetings/*.md`
-  - Cache: `cache/*.npy|npz|pkl|pickle|joblib`
-- **Lineage-bearing signal artifacts** (event log **and** auto-seeded lineage node in `workflow_map.live.json` via `update_live_json.apply_updates`):
+**1. `scripts/workflow_hooks.py`** — fires on every Agent spawn (PreToolUse + PostToolUse) only. Records each spawn as an in-flight row in the `## In-Flight Tasks` table and appends to the `## Real-Time Event Log`. Pre-spawn sets status `spawned`; post-spawn marks it `acknowledged`. Silent no-op outside a research project.
+
+- **Hook**: PreToolUse + PostToolUse on `Agent` → `scripts/workflow_hooks.py`
+
+**2. `/sync-workflow` (on-demand)** — run `python scripts/sync_workflow.py --project <project-dir>` after gate steps, stage completion, or when `lineage:` front-matter is added to an artifact file. Performs a deterministic filesystem walk, reads YAML front-matter from artifact files, rebuilds `workflow_map.live.json`, and updates the Gate Status table in `docs/process/live_workflow_diagram.md`.
+
+Lineage nodes and edges are declared in the artifact file itself using `lineage:` YAML front-matter. The script discovers lineage-bearing artifacts at these paths:
 
 | Path glob | Auto-derived fields |
 |---|---|
-| `docs/model_versions/<id>.md`     | `lineage_kind=model_version`, `model_version=<id>`, `node_type=model` |
-| `literature/reviews/<paper_id>.md`| `lineage_kind=paper`, `paper_id=<paper_id>`, `node_type=paper` |
-| `docs/claims/<claim_id>.md`       | `lineage_kind=claim`, `node_type=claim`, `requires_researcher_review=true` |
-| `outputs/figures/*.png|pdf|svg|jpg` | `lineage_kind=figure`, `thumbnail_path=<rel>`, `node_type=figure` |
-| `errors/*.err`                    | `lineage_kind=anomaly`, `node_type=anomaly`, `status=blocked` |
+| `docs/model_versions/<id>.md`     | `lineage_kind=model_version`, `model_version=<id>` |
+| `literature/reviews/<paper_id>.md`| `lineage_kind=paper`, `paper_id=<paper_id>` |
+| `docs/claims/<claim_id>.md`       | `lineage_kind=claim`, `requires_researcher_review=true` |
+| `outputs/figures/*.png|pdf|svg|jpg` | `lineage_kind=figure`, `thumbnail_path=<rel>` |
+| `errors/*.err`                    | `lineage_kind=anomaly`, `status=blocked` |
 
-  The hook only seeds the node fields it can read from the filesystem. **Cross-referential edges** (`evolved_from`, `reproduces`, `cites_paper`, `supports`, `limits`) must still be added by an explicit `cartographer-update` call — see the Worked Examples section in `skills/cartographer-update/SKILL.md` and the Cartographer Update section in each domain skill.
-- The Lead Agent does not need to invoke `cartographer-update` for the well-known artifacts above; explicit packets remain available for non-routine state changes.
+Cross-referential edges (`evolved_from`, `reproduces`, `cites_paper`, `supports`, `limits`) are added via `lineage:` front-matter in the relevant artifact file. See `skills/sync-workflow/SKILL.md` for the full front-matter spec.
 
 ## Lineage Coverage Gate
 
-`scripts/check_lineage_coverage.py` surfaces silent failures where a skill's `Cartographer Update` section was skipped and a node was auto-seeded but its required edges never followed. Advisory by default; the Stage Checkpoint embeds the report and `--strict` exits 2 on any violation.
+`scripts/check_lineage_coverage.py` surfaces silent failures where a skill's Lineage Front-Matter block was skipped and a node was seeded without its required edges. Advisory by default; the Stage Checkpoint embeds the report and `--strict` exits 2 on any violation.
 
-- **Script**: `python scripts/check_lineage_coverage.py --run <run-dir> [--strict] [--json]`
+- **Script**: `python scripts/check_lineage_coverage.py --project <project-dir> [--strict] [--json]`
 - **Rules**:
   - `claim` node must carry ≥1 outgoing `supports` or `contradicts` edge.
   - `model_version` whose id is not `model_v1` (and isn't flagged `first_model_version: true`) must carry an outgoing `evolved_from` edge.
@@ -87,15 +86,10 @@ A Peer-Review Professor may only be spawned from within a `meeting --scope revie
 
 ## Broken-Edge Linter
 
-`scripts/update_live_json.py --validate` scans the run-local `workflow_map.live.json` for `graph_links.from`/`graph_links.to` and `edges` references that point at node ids not present in the same map. Catches typos that the Cytoscape renderer otherwise silently drops.
+`scripts/sync_workflow.py --validate-edges` scans the project-local `workflow_map.live.json` for `graph_links.from`/`graph_links.to` and `edges` references that point at node ids not present in the same map. Catches typos that the Cytoscape renderer otherwise silently drops.
 
-- **Script**: `python scripts/update_live_json.py --run <run-dir> --validate`
+- **Script**: `python scripts/sync_workflow.py --project <project-dir> --validate-edges`
 - **Decision**: exits 2 with a list of dangling endpoints; exits 0 with a clean report when every reference resolves.
-- Combine with update flags: e.g. `--gate "Stage 1" --status pass --note "done" --validate` applies the gate change and then validates the result in one call.
-
-## Cross-Run Lineage Auto-Rebuild
-
-When any Cartographer packet sets `parent_run` on a node, `update_live_json.apply_updates` re-runs `scripts/build_lineage_graph.py` against the same runs-root to refresh `ResearchPartner-runs/_index/lineage_graph.json`. The Cross-Run Lineage tab in `workflow_map.html` picks up the change on its next poll without a manual rebuild step. Best-effort: subprocess errors degrade to a stderr warning rather than blocking the update.
 
 ## Re-spawn Monitoring (not a hook — surfaces in stage checkpoint)
 
@@ -108,9 +102,10 @@ Hook registrations live in `.claude/settings.local.json`. Current shape:
 | Phase | Matcher | Script |
 |---|---|---|
 | PreToolUse | `Agent` | `workflow_hooks.py pre`, `check_peer_review_invocation.py` |
-| PreToolUse | `Write\|Edit` | `check_src_write_authorization.py`, `workflow_hooks.py pre` |
-| PreToolUse | `Bash\|PowerShell` | `check_bash_code_write.py` |
+| PreToolUse | `Write\|Edit` | `check_src_write_authorization.py`, `path_check_hooks.py pre` |
+| PreToolUse | `Bash\|PowerShell` | `check_bash_code_write.py`, `check_seed_before_full_run.py`, `warn_orphan_checkpoints.py` |
 | PostToolUse | `Agent` | `workflow_hooks.py post` |
-| PostToolUse | `Write\|Edit` | `workflow_hooks.py post` |
+| PostToolUse | `Write\|Edit` | `path_check_hooks.py post` |
+| PostToolUse | `Bash\|PowerShell` | `path_check_hooks.py post` |
 
 Adding a new hook: write the script, append it to the appropriate matcher block in `settings.local.json`, and add a short bullet to `AGENTS.md` linking back to this reference file.

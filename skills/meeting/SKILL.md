@@ -95,5 +95,5 @@ The slug is derived from the first 4–5 words of `--on`.
 
 After the meeting:
 - If outcome is **revise**: the specific skill that owns the artifact being revised should be re-run (e.g., `model-specification`, `baseline-strategy`, `claim-to-evidence`).
-- If outcome is **documented disagreement**: invoke `cartographer-update` to record the open question as a visible node in the workflow diagram.
+- If outcome is **documented disagreement**: add a `lineage:` front-matter block to the meeting artifact recording the open question, then run `/sync-workflow` to make it visible in the workflow diagram.
 - If outcome is **proceed**: no action required — the workflow continues from where it was paused.
