@@ -132,6 +132,8 @@ Orient -> Interview -> Specify -> Seed -> Validate -> Execute -> Evaluate -> Rev
 | 하네스 새로고침 | 위 설치 명령어에 `--force` 추가 | 관리되는 하네스 파일을 의도적으로 덮어씀 |
 | 실행 시작 | `python scripts\start_research_run.py --name "topic name"` | 프로젝트 안의 `ResearchPartner-runs\` 루트 아래에 날짜가 지정된 실행 패킷 생성 (`--runs-root`로 변경 가능), `docs\process\live_workflow_diagram.md` 포함 |
 | 기존 프로젝트 감사 | `python scripts\audit_existing_project.py` | 레트로핏 전 스크립트, 그림, 출력, 검증 누락 항목의 인벤토리 작성 |
+| 슬래시 명령어 설치 | `python scripts\install_skills.py` | 연구자용 스킬 7개를 `.claude/commands/`, `.agents/workflows/`, `.codex/skills/`에 복사해 Claude Code, Antigravity CLI, Codex CLI에서 `/task-intake`, `/meeting` 등으로 사용 가능하게 합니다. SKILL.md 수정 후 재실행 필요. |
+| 슬래시 명령어 전역 설치 | `python scripts\install_skills.py --global` | 위와 동일하지만 `~/.claude/commands/`, `~/.gemini/antigravity/global_workflows/`, `~/.codex/skills/`에 설치해 모든 프로젝트에서 사용 가능합니다. |
 | 하네스 평가 | `python scripts\evaluate_harness.py` | 올바른 스킬, 게이트 및 차단된 동작에 대한 현실적인 시나리오 확인 |
 | 링크 검증 | `python scripts\validate_workflow_links.py` | 워크플로우 문서 링크 확인 |
 | 워크플로우 맵 생성 | `python scripts\generate_workflow_map.py` | 최신 실행의 `workflow_map.html` 및 `workflow_map.json`을 새로고침. 중앙 `docs\workflow_map.html`은 `--central` 옵션을 명시할 때만 빌드 |

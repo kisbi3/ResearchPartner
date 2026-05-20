@@ -125,6 +125,8 @@ Use these commands from the installed project root. The assistant should invoke 
 | Init project | `python scripts\init_research_project.py` | Marks the current directory as a research project (creates `.research-harness` and scaffolds `docs\process\live_workflow_diagram.md`, project packet, literature workspace, and `outputs/`) |
 | Audit existing project | `python scripts\audit_existing_project.py` | Inventories scripts, figures, outputs, and validation gaps before retrofit |
 | Evaluate harness | `python scripts\evaluate_harness.py` | Checks realistic scenarios for correct skills, gates, and blocked behaviors |
+| Install slash commands | `python scripts\install_skills.py` | Copies the 7 researcher-facing skills into `.claude/commands/`, `.agents/workflows/`, and `.codex/skills/` so they appear as `/task-intake`, `/meeting`, etc. in Claude Code, Antigravity CLI, and Codex CLI. Re-run after updating a SKILL.md. |
+| Install slash commands (global) | `python scripts\install_skills.py --global` | Same as above but installs to `~/.claude/commands/`, `~/.gemini/antigravity/global_workflows/`, and `~/.codex/skills/` so the commands are available across all projects. |
 | Validate links | `python scripts\validate_workflow_links.py` | Checks workflow-document links |
 | Generate workflow map | `python scripts\generate_workflow_map.py` | Refreshes the project's `workflow_map.html` and `workflow_map.json`. Pass `--central` to also build the harness-source `docs\workflow_map.html` (off by default) |
 | Include paper logic | `python scripts\generate_workflow_map.py --include-paper-logic` | Adds manuscript-logic view when paper planning explicitly starts |
