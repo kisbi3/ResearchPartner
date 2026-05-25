@@ -22,3 +22,5 @@ ResearchPartner-runs/
 
 # Local scheduled-tasks runtime state
 .claude/scheduled_tasks.lock
+
+References/
