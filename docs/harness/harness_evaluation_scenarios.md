@@ -480,3 +480,27 @@ Expected docs:
 Expected blocked behavior:
 
 - Do not treat a harness feature, script, skill, command, workflow, installation behavior, or user-facing capability as complete unless `README.md` and `README.ko.md` were updated in the same checkpoint or the change is explicitly non-user-facing.
+
+## Scenario 8: Capability Manifest and Hook Registry
+
+Task prompt:
+
+> Add or change a hard gate, hook, checker, workflow node, or harness profile.
+
+Risk:
+
+- The harness contract drifts: prose says a rule exists, but no deterministic checker, wired hook, or workflow key actually enforces or displays it.
+
+Expected skills:
+
+- `harness-evaluation`
+
+Expected docs:
+
+- `docs/harness/capability_manifest.json`
+- `scripts/check_harness_manifest.py`
+- `docs/harness/claude_code_unified_implementation_plan.md`
+
+Expected blocked behavior:
+
+- Do not treat the change as complete unless `check_harness_manifest.py` passes: manifest capabilities reference real scripts/docs, `workflow_gate_keys` match the generator's real gate keys, hook commands use `$CLAUDE_PROJECT_DIR`, and wired hooks are present in the hook registry or explicitly listed as known uncovered.

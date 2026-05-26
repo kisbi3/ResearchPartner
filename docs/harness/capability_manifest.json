@@ -1,0 +1,263 @@
+{
+  "schema_version": 1,
+  "description": "Canonical ResearchPartner harness capability and hook registry for deterministic drift checks.",
+  "capabilities": [
+    {
+      "id": "orient-gate",
+      "title": "Orient Gate",
+      "kind": "gate",
+      "enforcement": "hard",
+      "scripts": ["scripts/check_orient_recorded.py"],
+      "docs": ["skills/task-intake/SKILL.md", "docs/hooks_reference.md"],
+      "artifact_paths": ["docs/gates/orient_note.md"],
+      "workflow_gate_keys": ["orient_gate"]
+    },
+    {
+      "id": "interview-gate",
+      "title": "Interview Gate",
+      "kind": "gate",
+      "enforcement": "hard",
+      "scripts": ["scripts/check_interview_recorded.py"],
+      "docs": ["skills/professor-interview/SKILL.md", "docs/hooks_reference.md"],
+      "artifact_paths": ["docs/gates/interview_notes.md"],
+      "workflow_gate_keys": ["interview_gate"]
+    },
+    {
+      "id": "literature-gate",
+      "title": "Literature Gate",
+      "kind": "gate",
+      "enforcement": "hard",
+      "scripts": ["scripts/check_literature_reviewed.py"],
+      "docs": ["skills/literature-review-planning/SKILL.md", "docs/literature/README.md"],
+      "artifact_paths": ["docs/literature/literature_review_plan.md", "docs/literature/literature_skip_waiver.md"],
+      "workflow_gate_keys": ["literature_review_and_replanning"]
+    },
+    {
+      "id": "model-gate",
+      "title": "Model Gate",
+      "kind": "gate",
+      "enforcement": "hard",
+      "scripts": ["scripts/check_model_specified.py"],
+      "docs": ["skills/model-specification/SKILL.md", "docs/run_templates/model_spec_template.md"],
+      "artifact_paths": ["docs/plan/model_spec.md", "docs/plan/model_skip_waiver.md"],
+      "workflow_gate_keys": []
+    },
+    {
+      "id": "baseline-strategy-gate",
+      "title": "Baseline Strategy Gate",
+      "kind": "gate",
+      "enforcement": "hard",
+      "scripts": ["scripts/check_baseline_strategy.py"],
+      "docs": ["skills/baseline-strategy/SKILL.md", "docs/hooks_reference.md"],
+      "artifact_paths": ["docs/plan/baseline_strategy.md"],
+      "workflow_gate_keys": ["baseline"]
+    },
+    {
+      "id": "baseline-validation-gate",
+      "title": "Baseline Validation Gate",
+      "kind": "gate",
+      "enforcement": "hard",
+      "scripts": ["scripts/check_baseline_gate.py"],
+      "docs": ["skills/baseline-validation/SKILL.md", "docs/baseline_registry.md"],
+      "artifact_paths": ["docs/gates/baseline_registry.md", "docs/baseline_registry.md"],
+      "workflow_gate_keys": ["baseline_or_reproduction_target"]
+    },
+    {
+      "id": "cross-tier-write-protection",
+      "title": "Cross-Tier Write Protection",
+      "kind": "hook",
+      "enforcement": "hard",
+      "scripts": [
+        "scripts/check_src_write_authorization.py",
+        "scripts/check_bash_code_write.py",
+        "scripts/check_cross_tier_compliance.py"
+      ],
+      "docs": ["docs/hooks_reference.md", "skills/implementation-agent/SKILL.md"],
+      "artifact_paths": ["docs/gates/agent_spawn_log.md"],
+      "workflow_gate_keys": []
+    },
+    {
+      "id": "workflow-sync",
+      "title": "Workflow Sync",
+      "kind": "workflow",
+      "enforcement": "deterministic",
+      "scripts": ["scripts/sync_workflow.py", "scripts/workflow_hooks.py"],
+      "docs": ["skills/sync-workflow/SKILL.md", "docs/run_templates/live_workflow_diagram_template.md"],
+      "artifact_paths": ["docs/process/live_workflow_diagram.md", "workflow_map.live.json"],
+      "workflow_gate_keys": []
+    },
+    {
+      "id": "spawn-log-integrity",
+      "title": "Spawn Log Integrity",
+      "kind": "hook",
+      "enforcement": "hard",
+      "scripts": ["scripts/check_spawn_log_integrity.py", "scripts/workflow_hooks.py"],
+      "docs": ["docs/hooks_reference.md", "docs/run_templates/live_workflow_diagram_template.md"],
+      "artifact_paths": ["docs/gates/agent_spawn_log.md", "docs/process/live_workflow_diagram.md"],
+      "workflow_gate_keys": []
+    },
+    {
+      "id": "claim-promotion",
+      "title": "Claim Promotion",
+      "kind": "gate",
+      "enforcement": "hard",
+      "scripts": ["scripts/check_claim_promotion.py", "scripts/check_claim_promotion_freshness.py"],
+      "docs": ["skills/claim-to-evidence/SKILL.md", "docs/hooks_reference.md"],
+      "artifact_paths": ["docs/claims/"],
+      "workflow_gate_keys": ["claim_gate"]
+    }
+  ],
+  "hook_registry": [
+    {
+      "id": "agent-gate-sequence",
+      "event": "PreToolUse",
+      "matcher": "Agent",
+      "script": "scripts/enforce_gate_sequence.py",
+      "command": "python \"$CLAUDE_PROJECT_DIR/scripts/enforce_gate_sequence.py\"",
+      "path_base": "CLAUDE_PROJECT_DIR",
+      "interpreter": "python",
+      "enforcement": "hard"
+    },
+    {
+      "id": "agent-workflow-pre",
+      "event": "PreToolUse",
+      "matcher": "Agent",
+      "script": "scripts/workflow_hooks.py",
+      "command": "python \"$CLAUDE_PROJECT_DIR/scripts/workflow_hooks.py\" pre",
+      "path_base": "CLAUDE_PROJECT_DIR",
+      "interpreter": "python",
+      "enforcement": "deterministic"
+    },
+    {
+      "id": "peer-review-invocation",
+      "event": "PreToolUse",
+      "matcher": "Agent",
+      "script": "scripts/check_peer_review_invocation.py",
+      "command": "python \"$CLAUDE_PROJECT_DIR/scripts/check_peer_review_invocation.py\"",
+      "path_base": "CLAUDE_PROJECT_DIR",
+      "interpreter": "python",
+      "enforcement": "hard"
+    },
+    {
+      "id": "write-authorization",
+      "event": "PreToolUse",
+      "matcher": "Write|Edit",
+      "script": "scripts/check_src_write_authorization.py",
+      "command": "python \"$CLAUDE_PROJECT_DIR/scripts/check_src_write_authorization.py\"",
+      "path_base": "CLAUDE_PROJECT_DIR",
+      "interpreter": "python",
+      "enforcement": "hard"
+    },
+    {
+      "id": "write-path-pre",
+      "event": "PreToolUse",
+      "matcher": "Write|Edit",
+      "script": "scripts/path_check_hooks.py",
+      "command": "python \"$CLAUDE_PROJECT_DIR/scripts/path_check_hooks.py\" pre",
+      "path_base": "CLAUDE_PROJECT_DIR",
+      "interpreter": "python",
+      "enforcement": "hard"
+    },
+    {
+      "id": "write-workflow-pre",
+      "event": "PreToolUse",
+      "matcher": "Write|Edit",
+      "script": "scripts/workflow_hooks.py",
+      "command": "python \"$CLAUDE_PROJECT_DIR/scripts/workflow_hooks.py\" pre",
+      "path_base": "CLAUDE_PROJECT_DIR",
+      "interpreter": "python",
+      "enforcement": "deterministic"
+    },
+    {
+      "id": "bash-code-write",
+      "event": "PreToolUse",
+      "matcher": "Bash|PowerShell",
+      "script": "scripts/check_bash_code_write.py",
+      "command": "python \"$CLAUDE_PROJECT_DIR/scripts/check_bash_code_write.py\"",
+      "path_base": "CLAUDE_PROJECT_DIR",
+      "interpreter": "python",
+      "enforcement": "hard"
+    },
+    {
+      "id": "seed-before-full-run",
+      "event": "PreToolUse",
+      "matcher": "Bash|PowerShell",
+      "script": "scripts/check_seed_before_full_run.py",
+      "command": "python \"$CLAUDE_PROJECT_DIR/scripts/check_seed_before_full_run.py\"",
+      "path_base": "CLAUDE_PROJECT_DIR",
+      "interpreter": "python",
+      "enforcement": "hard"
+    },
+    {
+      "id": "orphan-checkpoints-warning",
+      "event": "PreToolUse",
+      "matcher": "Bash|PowerShell",
+      "script": "scripts/warn_orphan_checkpoints.py",
+      "command": "python \"$CLAUDE_PROJECT_DIR/scripts/warn_orphan_checkpoints.py\"",
+      "path_base": "CLAUDE_PROJECT_DIR",
+      "interpreter": "python",
+      "enforcement": "warning"
+    },
+    {
+      "id": "agent-workflow-post",
+      "event": "PostToolUse",
+      "matcher": "Agent",
+      "script": "scripts/workflow_hooks.py",
+      "command": "python \"$CLAUDE_PROJECT_DIR/scripts/workflow_hooks.py\" post",
+      "path_base": "CLAUDE_PROJECT_DIR",
+      "interpreter": "python",
+      "enforcement": "deterministic"
+    },
+    {
+      "id": "agent-spawn-log-integrity",
+      "event": "PostToolUse",
+      "matcher": "Agent",
+      "script": "scripts/check_spawn_log_integrity.py",
+      "command": "python \"$CLAUDE_PROJECT_DIR/scripts/check_spawn_log_integrity.py\"",
+      "path_base": "CLAUDE_PROJECT_DIR",
+      "interpreter": "python",
+      "enforcement": "hard"
+    },
+    {
+      "id": "write-workflow-post",
+      "event": "PostToolUse",
+      "matcher": "Write|Edit",
+      "script": "scripts/workflow_hooks.py",
+      "command": "python \"$CLAUDE_PROJECT_DIR/scripts/workflow_hooks.py\" post",
+      "path_base": "CLAUDE_PROJECT_DIR",
+      "interpreter": "python",
+      "enforcement": "deterministic"
+    },
+    {
+      "id": "write-path-post",
+      "event": "PostToolUse",
+      "matcher": "Write|Edit",
+      "script": "scripts/path_check_hooks.py",
+      "command": "python \"$CLAUDE_PROJECT_DIR/scripts/path_check_hooks.py\" post",
+      "path_base": "CLAUDE_PROJECT_DIR",
+      "interpreter": "python",
+      "enforcement": "hard"
+    },
+    {
+      "id": "bash-workflow-post",
+      "event": "PostToolUse",
+      "matcher": "Bash|PowerShell",
+      "script": "scripts/workflow_hooks.py",
+      "command": "python \"$CLAUDE_PROJECT_DIR/scripts/workflow_hooks.py\" post",
+      "path_base": "CLAUDE_PROJECT_DIR",
+      "interpreter": "python",
+      "enforcement": "deterministic"
+    },
+    {
+      "id": "bash-path-post",
+      "event": "PostToolUse",
+      "matcher": "Bash|PowerShell",
+      "script": "scripts/path_check_hooks.py",
+      "command": "python \"$CLAUDE_PROJECT_DIR/scripts/path_check_hooks.py\" post",
+      "path_base": "CLAUDE_PROJECT_DIR",
+      "interpreter": "python",
+      "enforcement": "hard"
+    }
+  ],
+  "known_uncovered_wired_hooks": []
+}

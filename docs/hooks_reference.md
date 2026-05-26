@@ -91,6 +91,14 @@ Cross-referential edges (`evolved_from`, `reproduces`, `cites_paper`, `supports`
 - **Script**: `python scripts/sync_workflow.py --project <project-dir> --validate-edges`
 - **Decision**: exits 2 with a list of dangling endpoints; exits 0 with a clean report when every reference resolves.
 
+## Capability Manifest Hook
+
+`scripts/check_harness_manifest.py` validates the deterministic contract in `docs/harness/capability_manifest.json`. It keeps prose, checkers, workflow gate keys, and wired local hooks from drifting apart.
+
+- **Script**: `python scripts/check_harness_manifest.py --project <project-dir>`
+- **Decision**: exits 1 when a capability references a missing script/doc, `workflow_gate_keys` do not match the real keys in `scripts/generate_workflow_map.py`, a hook command does not use `$CLAUDE_PROJECT_DIR`, or a wired hook is absent from both `hook_registry` and `known_uncovered_wired_hooks`.
+- **Registry docs**: see `docs/harness/hook_registry.md` for the readable summary; the machine source of truth is `docs/harness/capability_manifest.json`.
+
 ## Re-spawn Monitoring (not a hook — surfaces in stage checkpoint)
 
 `scripts/write_stage_checkpoint.py` reports re-spawn hotspots (files with ≥ 3 Implementation Agent entries in `docs/gates/agent_spawn_log.md`) alongside the cross-tier verdict. Re-spawns are normal (the Graduate Student code review can reject a draft and re-spawn the Implementation Agent), but a hotspot signals a poor spec, an ambiguous task, or a buggy Implementation Agent pass that the researcher should inspect at the stage gate.
@@ -101,11 +109,13 @@ Hook registrations live in `.claude/settings.local.json`. Current shape:
 
 | Phase | Matcher | Script |
 |---|---|---|
-| PreToolUse | `Agent` | `workflow_hooks.py pre`, `check_peer_review_invocation.py` |
-| PreToolUse | `Write\|Edit` | `check_src_write_authorization.py`, `path_check_hooks.py pre` |
+| PreToolUse | `Agent` | `enforce_gate_sequence.py`, `workflow_hooks.py pre`, `check_peer_review_invocation.py` |
+| PreToolUse | `Write\|Edit` | `check_src_write_authorization.py`, `path_check_hooks.py pre`, `workflow_hooks.py pre` |
 | PreToolUse | `Bash\|PowerShell` | `check_bash_code_write.py`, `check_seed_before_full_run.py`, `warn_orphan_checkpoints.py` |
-| PostToolUse | `Agent` | `workflow_hooks.py post` |
-| PostToolUse | `Write\|Edit` | `path_check_hooks.py post` |
-| PostToolUse | `Bash\|PowerShell` | `path_check_hooks.py post` |
+| PostToolUse | `Agent` | `workflow_hooks.py post`, `check_spawn_log_integrity.py` |
+| PostToolUse | `Write\|Edit` | `workflow_hooks.py post`, `path_check_hooks.py post` |
+| PostToolUse | `Bash\|PowerShell` | `workflow_hooks.py post`, `path_check_hooks.py post` |
 
-Adding a new hook: write the script, append it to the appropriate matcher block in `settings.local.json`, and add a short bullet to `AGENTS.md` linking back to this reference file.
+Hook commands should use `python "$CLAUDE_PROJECT_DIR/scripts/<script>.py"` so installed projects run the hook from the project root regardless of the shell's current working directory.
+
+Adding a new hook: write the script, append it to the appropriate matcher block in `settings.local.json`, register it in `docs/harness/capability_manifest.json`, run `python scripts/check_harness_manifest.py --project <project-dir>`, and add a short bullet to `AGENTS.md` linking back to this reference file.

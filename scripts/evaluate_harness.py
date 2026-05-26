@@ -509,6 +509,24 @@ SCENARIOS = [
             "orphaned",
         ),
     ),
+    Scenario(
+        name="capability_manifest_and_hook_registry",
+        skills=(
+            "skills/harness-evaluation/SKILL.md",
+        ),
+        docs=(
+            "docs/harness/capability_manifest.json",
+            "scripts/check_harness_manifest.py",
+            "docs/harness/claude_code_unified_implementation_plan.md",
+        ),
+        rule_terms=(
+            "Capability Manifest Hook",
+            "check_harness_manifest.py",
+            "hook registry",
+            "workflow_gate_keys",
+            "$CLAUDE_PROJECT_DIR",
+        ),
+    ),
 ]
 
 

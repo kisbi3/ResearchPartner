@@ -31,7 +31,7 @@ def test_multi_agent_orchestration_scenarios_are_evaluated():
 def test_harness_evaluator_includes_hook_scenarios():
     evaluator = load_evaluator()
 
-    assert len(evaluator.SCENARIOS) == 26
+    assert len(evaluator.SCENARIOS) == 27
 
 
 def test_orchestration_scenarios_require_run_templates():
@@ -169,3 +169,16 @@ def test_computation_checkpoint_scenario_is_evaluated():
     assert "run_with_checkpoint.py" in scenario.rule_terms
     assert "cache/checkpoint_" in scenario.rule_terms
     assert "orphaned" in scenario.rule_terms
+
+
+def test_capability_manifest_scenario_is_evaluated():
+    evaluator = load_evaluator()
+    scenarios = {scenario.name: scenario for scenario in evaluator.SCENARIOS}
+
+    assert "capability_manifest_and_hook_registry" in scenarios
+    scenario = scenarios["capability_manifest_and_hook_registry"]
+    assert "docs/harness/capability_manifest.json" in scenario.docs
+    assert "scripts/check_harness_manifest.py" in scenario.docs
+    assert "Capability Manifest Hook" in scenario.rule_terms
+    assert "hook registry" in scenario.rule_terms
+    assert "workflow_gate_keys" in scenario.rule_terms

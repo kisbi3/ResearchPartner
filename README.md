@@ -125,6 +125,7 @@ Use these commands from the installed project root. The assistant should invoke 
 | Init project | `python scripts\init_research_project.py` | Marks the current directory as a research project (creates `.research-harness` and scaffolds `docs\process\live_workflow_diagram.md`, project packet, literature workspace, and `outputs/`) |
 | Audit existing project | `python scripts\audit_existing_project.py` | Inventories scripts, figures, outputs, and validation gaps before retrofit |
 | Evaluate harness | `python scripts\evaluate_harness.py` | Checks realistic scenarios for correct skills, gates, and blocked behaviors |
+| Check capability manifest | `python scripts\check_harness_manifest.py --project <project-dir>` | Validates canonical capabilities, hook registry coverage, `$CLAUDE_PROJECT_DIR` hook paths, and real `workflow_gate_keys` |
 | Install slash commands | `python scripts\install_skills.py` | Copies the 7 researcher-facing skills into `.claude/commands/`, `.agents/workflows/`, and `.codex/skills/` so they appear as `/task-intake`, `/meeting`, etc. in Claude Code, Antigravity CLI, and Codex CLI. Re-run after updating a SKILL.md. |
 | Install slash commands (global) | `python scripts\install_skills.py --global` | Same as above but installs to `~/.claude/commands/`, `~/.gemini/antigravity/global_workflows/`, and `~/.codex/skills/` so the commands are available across all projects. |
 | Validate links | `python scripts\validate_workflow_links.py` | Checks workflow-document links |
