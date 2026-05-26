@@ -136,6 +136,7 @@ Orient -> Interview -> Specify -> Seed -> Validate -> Execute -> Evaluate -> Rev
 | 슬래시 명령어 전역 설치 | `python scripts\install_skills.py --global` | 위와 동일하지만 `~/.claude/commands/`, `~/.gemini/antigravity/global_workflows/`, `~/.codex/skills/`에 설치해 모든 프로젝트에서 사용 가능합니다. |
 | 하네스 평가 | `python scripts\evaluate_harness.py` | 올바른 스킬, 게이트 및 차단된 동작에 대한 현실적인 시나리오 확인 |
 | capability manifest 검증 | `python scripts\check_harness_manifest.py --project <project-dir>` | canonical capability, hook registry coverage, `$CLAUDE_PROJECT_DIR` hook 경로, 실제 `workflow_gate_keys` 정합성 확인 |
+| spawn contract 검증 | `python scripts\check_spawn_contracts.py --project <project-dir>` | `.claude/agents/<role>.md`, 역할별 `tools:`, `subagent_type` 이름, Graduate Student evidence write scope, 허용 child role 정합성 확인 |
 | 링크 검증 | `python scripts\validate_workflow_links.py` | 워크플로우 문서 링크 확인 |
 | 워크플로우 맵 생성 | `python scripts\generate_workflow_map.py` | 최신 실행의 `workflow_map.html` 및 `workflow_map.json`을 새로고침. 중앙 `docs\workflow_map.html`은 `--central` 옵션을 명시할 때만 빌드 |
 | 논문 로직 포함 | `python scripts\generate_workflow_map.py --include-paper-logic` | 논문 계획이 명시적으로 시작될 때 논문 로직 뷰 추가 |
@@ -171,7 +172,7 @@ Orient -> Interview -> Specify -> Seed -> Validate -> Execute -> Evaluate -> Rev
 
 이러한 스탠스들은 다섯 가지 운영 역할을 지원합니다. Lead Agent(메인 대화 컨텍스트, *spawn되는 별도 subagent가 아님*)는 과학적 판단과 주장 규율을 담당합니다. 피어 리뷰 교수(Peer-Review Professor)는 `meeting --scope review` 세션에서만 spawn되는 외부 대립 검토자로, 프로젝트 히스토리 없이 라이브 워크플로 다이어그램과 공유된 artifact만 보고 주장의 허점을 찾습니다. 대학원생 테스트 설계 에이전트(Graduate Test-Design Agents)는 계획을 검증 작업으로 변환합니다. 코딩 하위 에이전트(Coding Subagents)는 검증 전략이 명확해진 후에만 제한된 구현을 실행합니다. 워크플로우 상태는 `scripts/workflow_hooks.py`(Agent() spawn 자동 추적)와 `/sync-workflow` 스킬(게이트 완료 후 온디맨드 파일시스템 워크)로 관리됩니다.
 
-큰 작업에서는 Lead Agent 아래의 spawn 역할들이 *실제로 별도의 에이전트를 `Agent()` 도구로 spawn*하면서 강제됩니다 — 하나의 에이전트가 내부 페르소나를 바꿔 가며 흉내 내는 방식이 아닙니다. Lead Agent는 메인 컨텍스트 자체이고, 그 아래 2계층 spawn 구조는 다음과 같습니다: **Lead Agent** → **Graduate Student Agent(s)** (seed task 한 개당 한 명, 독립 task는 병렬 spawn) → **Implementation Agent** + **Scientific Validator** + **Cache-Log Auditor** (각 Graduate Student가 필요에 따라 spawn). Graduate Student는 task *유형*이 아니라 *단일 task instance*에 묶입니다 — "baseline 학생"과 "scan 학생"의 구분은 없습니다. spawn block 템플릿과 cross-tier 금지 규칙은 `docs/orchestration_protocol.md`의 "Agent Spawning Protocol" 섹션을 참조하세요.
+큰 작업에서는 Lead Agent 아래의 spawn 역할들이 *실제로 별도의 에이전트를 `Agent()` 도구로 spawn*하면서 강제됩니다 — 하나의 에이전트가 내부 페르소나를 바꿔 가며 흉내 내는 방식이 아닙니다. Lead Agent는 메인 컨텍스트 자체이고, 그 아래 2계층 spawn 구조는 다음과 같습니다: **Lead Agent** → **Graduate Student Agent(s)** (seed task 한 개당 한 명, 독립 task는 병렬 spawn) → **Implementation Agent** + **Scientific Validator** + **Cache-Log Auditor** (각 Graduate Student가 필요에 따라 spawn). 역할 agent 정의는 `.claude/agents/<role>.md`에 있고, `docs/harness/spawn_contracts.json`이 agent 정의, `tools:` frontmatter, skill 선언, `subagent_type` 이름의 정합성을 유지합니다. Graduate Student는 task *유형*이 아니라 *단일 task instance*에 묶입니다 — "baseline 학생"과 "scan 학생"의 구분은 없습니다. spawn block 템플릿과 cross-tier 금지 규칙은 `docs/orchestration_protocol.md`의 "Agent Spawning Protocol" 섹션을 참조하세요.
 
 ### 설치되는 Skills
 

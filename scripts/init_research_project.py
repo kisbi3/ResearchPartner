@@ -190,6 +190,7 @@ def scaffold_project(project: Path | str = ".") -> Path:
         layout.literature_dir(project),
         layout.meetings_dir(project),
         layout.checkpoints_dir(project),
+        layout.evidence_dir(project),
         layout.claims_dir(project),
         layout.model_versions_dir(project),
         layout.literature_pdf_dir(project),

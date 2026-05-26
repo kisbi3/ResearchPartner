@@ -97,6 +97,24 @@
       "workflow_gate_keys": []
     },
     {
+      "id": "spawn-contracts",
+      "title": "Spawn Contract Consistency Gate",
+      "kind": "gate",
+      "enforcement": "deterministic",
+      "scripts": ["scripts/check_spawn_contracts.py"],
+      "docs": [
+        "docs/harness/spawn_contracts.json",
+        ".claude/agents/graduate-student.md",
+        ".claude/agents/implementation-agent.md",
+        ".claude/agents/scientific-validator.md",
+        ".claude/agents/cache-log-auditor.md",
+        ".claude/agents/peer-review-professor.md",
+        "docs/orchestration_protocol.md"
+      ],
+      "artifact_paths": ["docs/harness/spawn_contracts.json", ".claude/agents/"],
+      "workflow_gate_keys": []
+    },
+    {
       "id": "claim-promotion",
       "title": "Claim Promotion",
       "kind": "gate",

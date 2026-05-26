@@ -1,12 +1,12 @@
 # Orchestration Protocol — Lead Agent + Spawned Tiers
 
-This document holds the multi-agent orchestration mechanics (role definitions, agent spawning protocol, spawn-block templates, live research graph rules, professor stances, completion conference). It is referenced from `AGENTS.md` / `GEMINI.md` so that subagents (Implementation Agent, Scientific Validator, Cache-Log Auditor, Figure Agent, Peer-Review Professor) do not have to load these rules — they receive their role-specific instructions through their spawn block and their own `skills/<role>/SKILL.md`.
+This document holds the multi-agent orchestration mechanics (role definitions, agent spawning protocol, spawn-block templates, live research graph rules, professor stances, completion conference). It is referenced from `AGENTS.md` / `GEMINI.md` so that subagents (Implementation Agent, Scientific Validator, Cache-Log Auditor, Peer-Review Professor) do not have to load these rules — they receive their role-specific instructions through their spawn block and their own `.claude/agents/<role>.md` definition plus `skills/<role>/SKILL.md`.
 
 **Who loads this file**
 
 - **Always**: Lead Agent (main session) — load explicitly at the start of any substantial research iteration.
 - **As needed**: Graduate Student agents when they must spawn additional sub-agents (they may load this file or rely on the spawn-block templates copied into their own prompt).
-- **Never required**: Implementation Agent, Scientific Validator, Cache-Log Auditor, Figure Agent, Peer-Review Professor — their behavior is fully specified by their spawn block + their `skills/<role>/SKILL.md`.
+- **Never required**: Implementation Agent, Scientific Validator, Cache-Log Auditor, Peer-Review Professor — their behavior is fully specified by their spawn block + their `.claude/agents/<role>.md` definition + their `skills/<role>/SKILL.md`.
 
 ## Roles
 
@@ -55,9 +55,9 @@ Lead Agent (main context — not spawned)
     │       │       checks logs/ errors/ cache/ mechanically;
     │       │       does NOT interpret results or modify code
     │       │
-    │       └─ Figure Agent (optional)    ← spawned for publication figures
-    │               generates figures to outputs/figures/; records provenance;
-    │               does NOT interpret results
+    │       └─ Figure generation          ← Implementation Agent work
+    │               writes requested figure-generation code/files to
+    │               outputs/figures/; does NOT interpret results
     │
     └─ Cartographer (hook-driven, not spawned)
             workflow_hooks.py + cartographer-update SKILL packets
@@ -73,14 +73,14 @@ Lead Agent (main context — not spawned)
 | Code needs to be written | Graduate Student | Implementation Agent |
 | Code needs to be run and verified | Graduate Student | Scientific Validator |
 | After Scientific Validator completes | Graduate Student | Cache-Log Auditor |
-| Publication-quality figures needed | Graduate Student | Figure Agent |
+| Publication-quality figures needed | Graduate Student | Implementation Agent |
 | Workflow state changed | (automatic) | Cartographer (hook fires) |
 
 ### Parallel Task Spawning Rule
 
 **One seed task = one Graduate Student.** This is a 1:1 mapping. Never collapse multiple tasks into a single Graduate Student; never split a single task across multiple Graduate Students.
 
-**Graduate Students are not specialized by task type.** Every Graduate Student is a full-stack research executor with identical capabilities. There is no "baseline student", "scan student", "literature student", or "figure student". The student is bound to one task *instance* (e.g. "Task 3: reproduce Fig. 4 of Guo 2026") — not to a task *category*. Whatever sub-agents that task needs (Implementation Agent, Scientific Validator, Cache-Log Auditor, Figure Agent), the same Graduate Student spawns them.
+**Graduate Students are not specialized by task type.** Every Graduate Student is a full-stack research executor with identical capabilities. There is no "baseline student", "scan student", "literature student", or "figure student". The student is bound to one task *instance* (e.g. "Task 3: reproduce Fig. 4 of Guo 2026") — not to a task *category*. Whatever sub-agents that task needs (Implementation Agent, Scientific Validator, Cache-Log Auditor), the same Graduate Student spawns them.
 
 **Anti-pattern (forbidden):**
 
@@ -126,13 +126,27 @@ Spawn each spawned tier with the appropriate model to balance quality and cost. 
 
 **Run-level override**: create `config/agent_models.yaml` in the run directory to override defaults per role. The Lead Agent reads this file before spawning agents. See `scripts/templates/agent_models.yaml` for the template.
 
+### Role Agent Definitions And Tools
+
+Claude Code loads `.claude/agents/<role>.md` for the selected `subagent_type` and applies that file's `tools:` frontmatter at runtime. The harness records the same role contract in `docs/harness/spawn_contracts.json`; `python scripts/check_spawn_contracts.py --project <project-dir>` is the offline consistency gate that verifies the agent file, skill declaration, tools list, allowed child `subagent_type` values, and description hygiene agree. It is not a substitute for runtime tool isolation.
+
+Every role-agent description must start with `Explicitly spawned only` and must not contain auto-trigger examples such as "Use this agent when" or "Trigger when". This reduces opportunistic auto-delegation; it is a hygiene rule, not a hard runtime firewall.
+
+| Role | `subagent_type` | Agent tools | Static scope |
+|---|---|---|---|
+| Graduate Student | `graduate-student` | `Read, Grep, Glob, Write, Edit, Agent` | writes only task evidence under `docs/evidence/`; may spawn only `implementation-agent`, `scientific-validator`, `cache-log-auditor` |
+| Implementation Agent | `implementation-agent` | `Read, Write, Edit, Grep, Glob` | writes code/figure files from a precise spec; no code execution or claim judgment |
+| Scientific Validator | `scientific-validator` | `Read, Grep, Glob, Bash` | runs validation commands and reports exact values; no Write/Edit |
+| Cache-Log Auditor | `cache-log-auditor` | `Read, Grep, Glob, Bash` | runs audit commands and reports artifact sufficiency; no Write/Edit |
+| Peer-Review Professor | `peer-review-professor` | `Read, Grep, Glob` | reads shared artifacts only; invoked only inside `meeting --scope review/full` |
+
 ### Spawn Block Templates
 
 Every spawn block carries only what the *parent* knows that the child does not: the role label, the load instruction, and the run-specific inputs. Constraints, prohibitions, and report formats are owned by each role's `skills/<role>/SKILL.md` — do not duplicate them in the spawn prompt.
 
 #### Graduate Student
 
-Use `model: "sonnet"`.
+Use `model: "sonnet"` and `subagent_type: graduate-student`.
 
 ```
 You are a Graduate Student agent in a physics research group.
@@ -149,7 +163,7 @@ Evidence record: <file to write result into>
 
 #### Implementation Agent
 
-Use `model: "haiku"`.
+Use `model: "haiku"` and `subagent_type: implementation-agent`.
 
 ```
 You are an Implementation Agent.
@@ -168,7 +182,7 @@ Specification:
 
 #### Scientific Validator
 
-Use `model: "sonnet"`.
+Use `model: "sonnet"` and `subagent_type: scientific-validator`.
 
 ```
 You are a Scientific Validator.
@@ -185,7 +199,7 @@ Evidence record: <file to write result into>
 
 #### Cache-Log Auditor
 
-Use `model: "haiku"`. Spawn always after Scientific Validator.
+Use `model: "haiku"` and `subagent_type: cache-log-auditor`. Spawn always after Scientific Validator.
 
 ```
 You are a Cache-Log Auditor.
@@ -202,6 +216,22 @@ Min numeric lines: <N>      ← default 3 if not specified in task
 Run: python scripts/audit_run_outputs.py <run_dir> <stem> --log <log_path> \
      [--expect-cache <rel_path> ...] [--min-numeric <N>]
 Evidence record: docs/gates/validation_log.md
+```
+
+#### Peer-Review Professor
+
+Use `model: "sonnet"` or higher and `subagent_type: peer-review-professor`. Spawn only from `meeting --scope review` or `meeting --scope full`.
+
+```
+You are a Peer-Review Professor.
+Load skills/peer-review-professor/SKILL.md — it defines your adversarial
+review role, evidence limits, and verdict format.
+
+Meeting scope: review
+Shared artifacts:
+  - <live workflow diagram path>
+  - <claim/evidence/figure/manuscript excerpt path>
+Question under review: <specific claim or decision>
 ```
 
 ### Cross-Tier Prohibition

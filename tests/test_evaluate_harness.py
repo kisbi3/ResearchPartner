@@ -31,7 +31,7 @@ def test_multi_agent_orchestration_scenarios_are_evaluated():
 def test_harness_evaluator_includes_hook_scenarios():
     evaluator = load_evaluator()
 
-    assert len(evaluator.SCENARIOS) == 27
+    assert len(evaluator.SCENARIOS) == 28
 
 
 def test_orchestration_scenarios_require_run_templates():
@@ -202,3 +202,36 @@ def test_capability_manifest_scenario_runs_manifest_checker(monkeypatch):
 
     assert result["status"] == "fail"
     assert result["missing_checks"] == ["check_harness_manifest: manifest drift from test"]
+
+
+def test_spawn_contracts_scenario_is_evaluated():
+    evaluator = load_evaluator()
+    scenarios = {scenario.name: scenario for scenario in evaluator.SCENARIOS}
+
+    assert "spawn_contracts_and_agent_definitions" in scenarios
+    scenario = scenarios["spawn_contracts_and_agent_definitions"]
+    assert "docs/harness/spawn_contracts.json" in scenario.docs
+    assert "scripts/check_spawn_contracts.py" in scenario.docs
+    assert ".claude/agents/graduate-student.md" in scenario.docs
+    assert "Spawn Contract Consistency Gate" in scenario.rule_terms
+    assert "subagent_type" in scenario.rule_terms
+    assert "check_spawn_contracts" in scenario.checks
+
+
+def test_spawn_contracts_scenario_runs_checker(monkeypatch):
+    evaluator = load_evaluator()
+    scenario = {
+        scenario.name: scenario for scenario in evaluator.SCENARIOS
+    }["spawn_contracts_and_agent_definitions"]
+
+    monkeypatch.setattr(
+        evaluator,
+        "run_spawn_contracts_check",
+        lambda: ["spawn contract drift from test"],
+        raising=False,
+    )
+
+    result = evaluator.evaluate_scenario(scenario, evaluator.harness_rule_text())
+
+    assert result["status"] == "fail"
+    assert result["missing_checks"] == ["check_spawn_contracts: spawn contract drift from test"]

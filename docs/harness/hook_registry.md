@@ -7,6 +7,7 @@ Run after changing any hook, checker, workflow gate key, skill contract, or prof
 
 ```powershell
 python scripts/check_harness_manifest.py --project <project-dir>
+python scripts/check_spawn_contracts.py --project <project-dir>
 ```
 
 ## Current Wired Hooks
@@ -26,3 +27,4 @@ python scripts/check_harness_manifest.py --project <project-dir>
 - Every wired hook script in `.claude/settings.local.json` must appear in `hook_registry` or in `known_uncovered_wired_hooks`.
 - `known_uncovered_wired_hooks` is a temporary migration escape hatch and should be empty before release.
 - Workflow references use real generator keys such as `interview_gate`, not guessed rendered node ids such as `gate_interview`.
+- Spawn role changes must pass `check_spawn_contracts.py`: required `.claude/agents/<role>.md` files, `tools:` frontmatter, `subagent_type` names, Graduate Student child roles, and explicit-spawn-only descriptions must match `docs/harness/spawn_contracts.json`.

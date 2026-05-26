@@ -530,6 +530,30 @@ SCENARIOS = [
         ),
         checks=("check_harness_manifest",),
     ),
+    Scenario(
+        name="spawn_contracts_and_agent_definitions",
+        skills=(
+            "skills/harness-evaluation/SKILL.md",
+        ),
+        docs=(
+            "docs/harness/spawn_contracts.json",
+            "scripts/check_spawn_contracts.py",
+            ".claude/agents/graduate-student.md",
+            ".claude/agents/implementation-agent.md",
+            ".claude/agents/scientific-validator.md",
+            ".claude/agents/cache-log-auditor.md",
+            ".claude/agents/peer-review-professor.md",
+            "docs/orchestration_protocol.md",
+        ),
+        rule_terms=(
+            "Spawn Contract Consistency Gate",
+            "check_spawn_contracts.py",
+            "subagent_type",
+            "docs/evidence/",
+            "Explicitly spawned only",
+        ),
+        checks=("check_spawn_contracts",),
+    ),
 ]
 
 
@@ -560,11 +584,22 @@ def run_manifest_check() -> list[str]:
     return list(module.validate_project(ROOT))
 
 
+def run_spawn_contracts_check() -> list[str]:
+    module_path = ROOT / "scripts" / "check_spawn_contracts.py"
+    spec = importlib.util.spec_from_file_location("check_spawn_contracts", module_path)
+    module = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    spec.loader.exec_module(module)
+    return list(module.validate_project(ROOT))
+
+
 def run_scenario_checks(scenario: Scenario) -> list[str]:
     failures: list[str] = []
     for check in scenario.checks:
         if check == "check_harness_manifest":
             problems = run_manifest_check()
+        elif check == "check_spawn_contracts":
+            problems = run_spawn_contracts_check()
         else:
             problems = [f"unknown scenario check {check!r}"]
         if problems:

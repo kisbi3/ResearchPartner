@@ -99,6 +99,14 @@ Cross-referential edges (`evolved_from`, `reproduces`, `cites_paper`, `supports`
 - **Decision**: exits 1 when a capability references a missing script/doc, `workflow_gate_keys` do not match the real keys in `scripts/generate_workflow_map.py`, a hook command does not use `$CLAUDE_PROJECT_DIR`, or a wired hook is absent from both `hook_registry` and `known_uncovered_wired_hooks`.
 - **Registry docs**: see `docs/harness/hook_registry.md` for the readable summary; the machine source of truth is `docs/harness/capability_manifest.json`.
 
+## Spawn Contract Consistency Gate
+
+`scripts/check_spawn_contracts.py` validates `docs/harness/spawn_contracts.json` against `.claude/agents/<role>.md`, role skills, and `docs/orchestration_protocol.md`. It is an offline/CI consistency gate: it does not itself block a live tool call, but it catches drift before a PR or checkpoint claims the spawn contract is coherent.
+
+- **Script**: `python scripts/check_spawn_contracts.py --project <project-dir>`
+- **Decision**: exits 1 when a required role is missing, an agent file's frontmatter `name` differs from the `subagent_type`, `tools:` differs from the JSON contract, the Graduate Student loses `Write`/`Edit`/`Agent` or `docs/evidence/` write scope, the allowed child `subagent_type` list differs from the Graduate Student skill declaration, the description is not explicit-spawn-only, or `docs/orchestration_protocol.md` omits a required `subagent_type`.
+- **Layering**: Claude Code's agent loader applies `.claude/agents/<role>.md` `tools:` at runtime; existing path and Bash hooks (`check_src_write_authorization.py`, `check_bash_code_write.py`) still provide hard protection against unauthorized code writes.
+
 ## Re-spawn Monitoring (not a hook — surfaces in stage checkpoint)
 
 `scripts/write_stage_checkpoint.py` reports re-spawn hotspots (files with ≥ 3 Implementation Agent entries in `docs/gates/agent_spawn_log.md`) alongside the cross-tier verdict. Re-spawns are normal (the Graduate Student code review can reject a draft and re-spawn the Implementation Agent), but a hotspot signals a poor spec, an ambiguous task, or a buggy Implementation Agent pass that the researcher should inspect at the stage gate.

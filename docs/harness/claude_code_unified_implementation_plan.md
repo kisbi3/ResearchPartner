@@ -228,19 +228,24 @@ waiver 가능 hook은 waiver artifact + claim-ceiling 강등 경로가 선언될
 
 > 두 계획의 단 하나의 정면 차이를 여기서 해소한다. **강제는 agent 정의, 검사는 JSON 계약 — 둘 다 둔다.**
 
-**(강제) agent 정의 (Claude §4.1 정정)** — `.claude/agents/<role>.md` 신설 + `tools:` frontmatter + `subagent_type` 스폰.
-본문은 기존 skill 위임("Load skills/<role>/SKILL.md"). 권장 tools:
+**(런타임 격리) agent 정의 (Claude §4.1 정정)** — `.claude/agents/<role>.md` 신설 + `tools:` frontmatter + `subagent_type` 스폰.
+본문은 기존 skill 위임("Load skills/<role>/SKILL.md"). Claude Code의 문서화된 agent frontmatter 기능과 Lead/Manager의 라이브 관측을
+런타임 격리 근거로 둔다. 우리 repo의 오프라인 작업은 이 기능을 호출해 실연하지 않고, 아래 JSON/checker로 정합성만 결정론적으로 검사한다.
+권장 tools:
 
 | 역할 | tools | 효과 |
 |---|---|---|
+| Graduate Student | `Read, Grep, Glob, Write, Edit, Agent` | evidence 작성 가능; code write는 기존 cross-tier hooks가 차단 |
 | Scientific Validator | `Read, Grep, Glob, Bash` | Write/Edit 없음 → 코드 수정 *불가* |
 | Cache-Log Auditor | `Read, Grep, Glob, Bash` | 단일 audit 명령만 |
-| Implementation Agent | `Read, Write, Edit, Grep, Glob, Bash(pytest:*), Bash(python scripts/check_*:*)` 또는 validator handoff | 무제한 실행 *불가* |
+| Implementation Agent | `Read, Write, Edit, Grep, Glob` | code/figure file 작성만; 실행은 validator handoff |
 | Peer-Review Professor | `Read, Grep, Glob` | 읽기 전용 |
 
-**선결(§5)**: 스폰이 `subagent_type`을 지원해야 효력. 불가하면 Lead/Graduate의 스폰 호출도 함께 변경.
+**계층 정리(§5 정정)**: `subagent_type` → `.claude/agents/<name>.md` 바인딩과 `tools:` 적용은 타깃 Claude Code 런타임의 속성이다.
+로컬 `claude -p` smoke는 이 harness PR의 선결이 아니다. 남은 실연은 Manager/Lead가 별도 라이브 spawn으로 확인하며 PR2의 오프라인
+정합성 구현을 막지 않는다.
 추가 선결: `.claude/agents/`의 `description`이 오케스트레이션 밖 자동 호출을 유발하지 않는지 확인한다. 해결책은
-description을 "explicitly spawned only"로 좁히거나, 자동 trigger 예시를 제거하거나, agent 정의를 별도 namespace/비공개 위치에 두는 것이다.
+description을 "Explicitly spawned only"로 시작하고 자동 trigger 예시를 제거하는 것이다.
 `check_spawn_contracts.py`는 각 역할 description에 명시 스폰 전용 문구가 있는지 검사한다.
 
 **(생성, L2) agent 정의 작성 — Claude Code 메타프롬프트 차용** — `.claude/agents/*.md`를 손으로 산발 작성하지 않고,
@@ -249,23 +254,24 @@ self-verification/fallback→identifier→트리거 예시)으로 일관 생성�
 가정(전체 코드베이스 X)"** 규칙을 Scientific Validator에 적용(해당 task 산출물만 검증). **단, 생성 결과를 신뢰하지
 않는다** — 아래 `check_spawn_contracts.py`가 `allowed_tools`·`write_scope`·명시-스폰-전용 description을 *재검증*해야 통과(생성은 편의, 강제는 checker).
 
-**(검사) `spawn_contracts.json` + `scripts/check_spawn_contracts.py` (Codex)** — 정의가 *무엇을 강제하는지*를 기계검사·drift 방지.
+**(정합성 검사) `spawn_contracts.json` + `scripts/check_spawn_contracts.py` (Codex)** — 정의가 무엇을 선언하는지 기계검사·drift 방지.
+실시간 도구 차단은 agent-file `tools:`의 런타임 속성이고, `spawn_contracts`는 오프라인/CI 정합성 게이트다.
 
 ```json
 { "schema_version": 1, "contracts": [
   { "role": "implementation-agent",
-    "allowed_tools": ["Read","Write","Edit","Grep","Glob","Bash(pytest:*)","Bash(python scripts/check_*:*)"],
-    "forbidden_tools": ["WebSearch","WebFetch","unrestricted Bash"],
-    "write_scope": ["src/","tests/"],
+    "allowed_tools": ["Read","Write","Edit","Grep","Glob"],
+    "forbidden_tools": ["WebSearch","WebFetch","Bash","Agent"],
+    "write_scope": ["src/","outputs/figures/"],
     "must_report": ["changed_files","validation_commands","evidence_paths"],
-    "validator_handoff_required_if_no_bash": true,
+    "validator_handoff_required": true,
     "completion_promise": ["증거 파일이 실재하지 않으면 완료 선언 금지",
                            "검증 미실행 시 'not run'으로 보고하고 claim은 provisional 유지"] } ] }
 ```
 
-checker fail: 필수 role 누락; `allowed_tools` 비어 있음; write 역할에 `write_scope` 없음; write 구현역할이
-좁은 test Bash allowlist도 `validator_handoff_required_if_no_bash`도 없음; `completion_promise` 없음;
-`orchestration_protocol.md`가 명명한 스폰 역할이 계약에 없음.
+checker fail: 필수 role 누락; agent file 부재; `name`이 `subagent_type`과 불일치; frontmatter `tools`와 JSON `allowed_tools` 불일치;
+Graduate Student가 `Write/Edit/Agent` 또는 `docs/evidence/` write scope를 잃음; skill의 canonical child `subagent_type` 목록과 JSON 허용 목록 불일치;
+description이 `Explicitly spawned only`로 시작하지 않거나 trigger 문구를 포함; `orchestration_protocol.md`가 명명한 `subagent_type`이 빠짐.
 
 ```powershell
 python scripts/check_spawn_contracts.py --project C:\ResearchPartner

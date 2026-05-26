@@ -504,3 +504,32 @@ Expected docs:
 Expected blocked behavior:
 
 - Do not treat the change as complete unless `check_harness_manifest.py` passes: manifest capabilities reference real scripts/docs, `workflow_gate_keys` match the generator's real gate keys, hook commands use `$CLAUDE_PROJECT_DIR`, and wired hooks are present in the hook registry or explicitly listed as known uncovered.
+
+## Scenario 9: Spawn Contracts and Agent Definitions
+
+Task prompt:
+
+> Add or change a spawned research role, role agent definition, or subagent spawning protocol.
+
+Risk:
+
+- The harness appears to have role isolation, but `.claude/agents/<role>.md`, `tools:` frontmatter, skill text, `subagent_type` names, and orchestration templates drift apart.
+
+Expected skills:
+
+- `harness-evaluation`
+
+Expected docs:
+
+- `docs/harness/spawn_contracts.json`
+- `scripts/check_spawn_contracts.py`
+- `.claude/agents/graduate-student.md`
+- `.claude/agents/implementation-agent.md`
+- `.claude/agents/scientific-validator.md`
+- `.claude/agents/cache-log-auditor.md`
+- `.claude/agents/peer-review-professor.md`
+- `docs/orchestration_protocol.md`
+
+Expected blocked behavior:
+
+- Do not treat a spawn-role change as complete unless `check_spawn_contracts.py` passes: required agent files exist, frontmatter `name` equals `subagent_type`, tools match the JSON contract, Graduate Student retains `Write/Edit/Agent` and `docs/evidence/` scope, child roles match the skill declaration, and descriptions stay explicit-spawn-only.

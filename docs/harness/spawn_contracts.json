@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "description": "Static consistency registry for Claude Code role agents. Runtime tool isolation is provided by Claude Code agent frontmatter; this file keeps role definitions, skill declarations, and orchestration templates from drifting.",
+  "contracts": [
+    {
+      "role": "graduate-student",
+      "agent_file": ".claude/agents/graduate-student.md",
+      "skill": "skills/graduate-student/SKILL.md",
+      "allowed_tools": ["Read", "Grep", "Glob", "Write", "Edit", "Agent"],
+      "write_scope": ["docs/evidence/"],
+      "forbidden_write_globs": ["src/**/*.py", "**/*.ipynb", "**/*.sh", "**/*.R"],
+      "allowed_spawn_subagent_types": [
+        "implementation-agent",
+        "scientific-validator",
+        "cache-log-auditor"
+      ],
+      "must_report": ["evidence_path", "child_subagents_spawned", "pass_fail_status"],
+      "runtime_enforcement": "Claude Code loads .claude/agents/graduate-student.md and applies its tools frontmatter; check_spawn_contracts.py enforces static consistency only."
+    },
+    {
+      "role": "implementation-agent",
+      "agent_file": ".claude/agents/implementation-agent.md",
+      "skill": "skills/implementation-agent/SKILL.md",
+      "allowed_tools": ["Read", "Write", "Edit", "Grep", "Glob"],
+      "write_scope": ["src/", "outputs/figures/"],
+      "forbidden_tools": ["Agent", "unrestricted Bash", "WebSearch", "WebFetch"],
+      "allowed_spawn_subagent_types": [],
+      "validator_handoff_required": true,
+      "must_report": ["changed_files", "implementation_decisions", "validator_handoff_required"],
+      "runtime_enforcement": "Claude Code loads .claude/agents/implementation-agent.md and applies its tools frontmatter; check_spawn_contracts.py enforces static consistency only."
+    },
+    {
+      "role": "scientific-validator",
+      "agent_file": ".claude/agents/scientific-validator.md",
+      "skill": "skills/scientific-validator/SKILL.md",
+      "allowed_tools": ["Read", "Grep", "Glob", "Bash"],
+      "write_scope": [],
+      "forbidden_tools": ["Write", "Edit", "Agent", "WebSearch", "WebFetch"],
+      "allowed_spawn_subagent_types": [],
+      "must_report": ["run_command", "log_path", "criterion_verdict"],
+      "runtime_enforcement": "Claude Code loads .claude/agents/scientific-validator.md and applies its tools frontmatter; check_spawn_contracts.py enforces static consistency only."
+    },
+    {
+      "role": "cache-log-auditor",
+      "agent_file": ".claude/agents/cache-log-auditor.md",
+      "skill": "skills/cache-log-auditor/SKILL.md",
+      "allowed_tools": ["Read", "Grep", "Glob", "Bash"],
+      "write_scope": [],
+      "forbidden_tools": ["Write", "Edit", "Agent", "WebSearch", "WebFetch"],
+      "allowed_spawn_subagent_types": [],
+      "must_report": ["audit_command", "audit_verdict", "cache_and_log_paths"],
+      "runtime_enforcement": "Claude Code loads .claude/agents/cache-log-auditor.md and applies its tools frontmatter; check_spawn_contracts.py enforces static consistency only."
+    },
+    {
+      "role": "peer-review-professor",
+      "agent_file": ".claude/agents/peer-review-professor.md",
+      "skill": "skills/peer-review-professor/SKILL.md",
+      "allowed_tools": ["Read", "Grep", "Glob"],
+      "write_scope": [],
+      "forbidden_tools": ["Write", "Edit", "Bash", "Agent", "WebSearch", "WebFetch"],
+      "allowed_spawn_subagent_types": [],
+      "must_report": ["claim_verdict", "evidence_gaps", "required_narrowing"],
+      "runtime_enforcement": "Claude Code loads .claude/agents/peer-review-professor.md and applies its tools frontmatter; check_spawn_contracts.py enforces static consistency only."
+    }
+  ]
+}
