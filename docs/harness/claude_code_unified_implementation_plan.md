@@ -326,13 +326,14 @@ write될 때 stale/candidate-only 상태를 조용히 통과시키지 않게 한
 
 **승격 규칙(`check_claim_promotion.py`)** — mechanism/generalization 타깃에서 `candidate` 증거 거부.
 인정 조건: `independently_checked` + `evidence_linked` + **비어있지 않은 `Evidence Paths Read Directly`** + `false_alarm` 아님.
-mechanism/generalization은 **Lead가 직접 읽은 구체 artifact 경로**가 최소 1개 있어야 하며(§4.5), 직접읽기 기록 누락은 *warning이 아니라 blocker*.
+mechanism/generalization은 **Lead가 직접 읽었다고 선언한 구체 artifact 경로**가 최소 1개 있어야 하며(§4.5), 직접읽기 기록 누락은 *warning이 아니라 blocker*.
+단, checker가 검증하는 것은 선언된 state와 경로 존재뿐이다. 실제로 읽었는지는 skill prose의 정직성 요구이지 기계검증 대상이 아니다.
 
 **reviewer 산출물 4절 강제**: `## High-Signal Findings` / `## Rejected False Positives` /
 `## Needs Researcher Judgment` / `## Evidence Paths Read Directly`. reviewer엔 false-positive 제외 목록 명시(이미 면제된 가정, caveat의 한계, 범위 밖 사전존재 이슈, 표기 취향 등).
 
 **confidence threshold (L10)** — peer-review/reviewer는 "**confidence ≥ 임계(예: 80) AND scientific impact AND evidence path**"만 raise
-(`feature-dev/agents/code-reviewer.md`). **단 임계값은 soft/advisory가 *surface*하는 것만 좌우 — hard 차단은 deterministic checker가**(§3.2). 모든 의심을 쏟으면 연구 흐름을 망침.
+(`feature-dev/agents/code-reviewer.md`). **단 임계값은 soft/advisory가 *surface*하는 것만 좌우 — hard 차단은 deterministic checker가**(§3.2). confidence checker를 만들지 않는다. 모든 의심을 쏟으면 연구 흐름을 망침.
 
 **테스트(named)**: `test_candidate_finding_cannot_promote_mechanism` /
 `test_validated_finding_without_direct_evidence_paths_fails` / `test_validated_evidence_linked_directly_read_finding_can_promote`.

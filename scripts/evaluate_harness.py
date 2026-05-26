@@ -6,8 +6,11 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 import argparse
+import contextlib
 import importlib.util
+import io
 import sys
+import tempfile
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -342,6 +345,29 @@ SCENARIOS = [
         rule_terms=("No scientific claim", "weakest", "evidence"),
     ),
     Scenario(
+        name="finding_lifecycle_claim_promotion",
+        skills=(
+            "skills/claim-to-evidence/SKILL.md",
+            "skills/anomaly-debugging/SKILL.md",
+            "skills/peer-review-professor/SKILL.md",
+            "skills/scientific-verification-before-claim/SKILL.md",
+        ),
+        docs=(
+            "docs/harness/finding_lifecycle.md",
+            "docs/run_templates/finding_lifecycle_template.md",
+            "scripts/check_claim_promotion.py",
+            "scripts/check_claim_promotion_freshness.py",
+        ),
+        rule_terms=(
+            "Finding Lifecycle Hook",
+            "Evidence Paths Read Directly",
+            "candidate findings cannot promote",
+            "checker validates only declared structure",
+            "confidence threshold is reviewer surface guidance",
+        ),
+        checks=("check_claim_promotion_lifecycle",),
+    ),
+    Scenario(
         name="anomalous_simulation",
         skills=(
             "skills/anomaly-debugging/SKILL.md",
@@ -593,6 +619,52 @@ def run_spawn_contracts_check() -> list[str]:
     return list(module.validate_project(ROOT))
 
 
+def run_claim_promotion_lifecycle_check() -> list[str]:
+    module_path = ROOT / "scripts" / "check_claim_promotion.py"
+    spec = importlib.util.spec_from_file_location("check_claim_promotion", module_path)
+    module = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    sys.modules["check_claim_promotion"] = module
+    spec.loader.exec_module(module)
+
+    with tempfile.TemporaryDirectory() as tmp:
+        project = Path(tmp) / "project"
+        (project / "docs" / "gates").mkdir(parents=True)
+        (project / "docs" / "claims").mkdir(parents=True)
+        (project / "outputs" / "data").mkdir(parents=True)
+        (project / ".research-harness").write_text("evaluator fixture\n", encoding="utf-8")
+        (project / "outputs" / "data" / "direct_read.csv").write_text(
+            "evidence\n",
+            encoding="utf-8",
+        )
+        (project / "docs" / "gates" / "validation_log.md").write_text(
+            "# Validation Log\n\n"
+            "| Date | Check | Target | Status | Evidence |\n"
+            "|---|---|---|---|---|\n"
+            "| 2026-05-26 | toy_model | claim_alpha | pass | outputs/data/direct_read.csv |\n"
+            "| 2026-05-26 | conservation | claim_alpha | pass | outputs/data/direct_read.csv |\n",
+            encoding="utf-8",
+        )
+        (project / "docs" / "claims" / "claim_alpha.md").write_text(
+            "ceiling: mechanism\n\n"
+            "## Claim\n\n"
+            "outputs/data/direct_read.csv supports the mechanism.\n\n"
+            "## Finding Lifecycle\n\n"
+            "### Finding\n\n"
+            "Status: independently_checked\n\n"
+            "### Independent Check\n\n"
+            "Result: independently_checked\n\n"
+            "### Evidence Link\n\n"
+            "Status: evidence_linked\n\n"
+            "### Evidence Paths Read Directly\n\n"
+            "- outputs/data/direct_read.csv\n",
+            encoding="utf-8",
+        )
+        with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+            code = module.main(["--project", str(project), "--target", "mechanism"])
+    return [] if code == 0 else [f"fixture mechanism promotion exited {code}"]
+
+
 def run_scenario_checks(scenario: Scenario) -> list[str]:
     failures: list[str] = []
     for check in scenario.checks:
@@ -600,6 +672,8 @@ def run_scenario_checks(scenario: Scenario) -> list[str]:
             problems = run_manifest_check()
         elif check == "check_spawn_contracts":
             problems = run_spawn_contracts_check()
+        elif check == "check_claim_promotion_lifecycle":
+            problems = run_claim_promotion_lifecycle_check()
         else:
             problems = [f"unknown scenario check {check!r}"]
         if problems:

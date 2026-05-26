@@ -31,7 +31,7 @@ def test_multi_agent_orchestration_scenarios_are_evaluated():
 def test_harness_evaluator_includes_hook_scenarios():
     evaluator = load_evaluator()
 
-    assert len(evaluator.SCENARIOS) == 28
+    assert len(evaluator.SCENARIOS) == 29
 
 
 def test_orchestration_scenarios_require_run_templates():
@@ -236,3 +236,36 @@ def test_spawn_contracts_scenario_runs_checker(monkeypatch):
 
     assert result["status"] == "fail"
     assert result["missing_checks"] == ["check_spawn_contracts: spawn contract drift from test"]
+
+
+def test_finding_lifecycle_claim_promotion_scenario_is_evaluated():
+    evaluator = load_evaluator()
+    scenarios = {scenario.name: scenario for scenario in evaluator.SCENARIOS}
+
+    assert "finding_lifecycle_claim_promotion" in scenarios
+    scenario = scenarios["finding_lifecycle_claim_promotion"]
+    assert "docs/harness/finding_lifecycle.md" in scenario.docs
+    assert "docs/run_templates/finding_lifecycle_template.md" in scenario.docs
+    assert "Evidence Paths Read Directly" in scenario.rule_terms
+    assert "check_claim_promotion_lifecycle" in scenario.checks
+
+
+def test_finding_lifecycle_scenario_runs_checker(monkeypatch):
+    evaluator = load_evaluator()
+    scenario = {
+        scenario.name: scenario for scenario in evaluator.SCENARIOS
+    }["finding_lifecycle_claim_promotion"]
+
+    monkeypatch.setattr(
+        evaluator,
+        "run_claim_promotion_lifecycle_check",
+        lambda: ["claim lifecycle drift from test"],
+        raising=False,
+    )
+
+    result = evaluator.evaluate_scenario(scenario, evaluator.harness_rule_text())
+
+    assert result["status"] == "fail"
+    assert result["missing_checks"] == [
+        "check_claim_promotion_lifecycle: claim lifecycle drift from test"
+    ]

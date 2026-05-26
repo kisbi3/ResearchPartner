@@ -119,7 +119,15 @@
       "kind": "gate",
       "enforcement": "hard",
       "scripts": ["scripts/check_claim_promotion.py", "scripts/check_claim_promotion_freshness.py"],
-      "docs": ["skills/claim-to-evidence/SKILL.md", "docs/hooks_reference.md"],
+      "docs": [
+        "skills/claim-to-evidence/SKILL.md",
+        "docs/hooks_reference.md",
+        "docs/harness/finding_lifecycle.md",
+        "docs/run_templates/finding_lifecycle_template.md",
+        "skills/scientific-verification-before-claim/SKILL.md",
+        "skills/peer-review-professor/SKILL.md",
+        "skills/anomaly-debugging/SKILL.md"
+      ],
       "artifact_paths": ["docs/claims/"],
       "workflow_gate_keys": ["claim_gate"]
     }

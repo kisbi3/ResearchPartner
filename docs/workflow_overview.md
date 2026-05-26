@@ -70,7 +70,7 @@ The hooks are grouped by the risk they control:
 - Physical specification: Assumption/Units Hook, Unit Conversion Hook, Approximation Regime Hook.
 - Validation and execution: Baseline Gate Hook, Graduate Student role, Code-before-Test Hook, Numerical Stability Hook, Waiver Hook.
 - Provenance and reproducibility: Parameter Change Hook, Randomness/Reproducibility Hook, Data Lineage Hook, Figure Provenance Hook, Environment Capture Hook.
-- Evidence and claims: Claim Strength Hook, Manuscript Drift Hook, Artifact Freshness Hook, Reviewer Simulation Hook.
+- Evidence and claims: Claim Strength Hook, Finding Lifecycle Hook, Manuscript Drift Hook, Artifact Freshness Hook, Reviewer Simulation Hook.
 - Failure and memory: Anomaly Hook, Negative Result Hook, Cartographer Hook, Retrospective Hook.
 
 ## Live Linked Research Graph

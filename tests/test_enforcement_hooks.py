@@ -71,6 +71,47 @@ def write_validation_log(run_dir: Path, rows: list[tuple[str, str, str, str, str
     )
 
 
+def write_valid_claim_lifecycle(run_dir: Path, ceiling: str) -> None:
+    """Write a claim file satisfying mechanism/generalization lifecycle checks."""
+    evidence = run_dir / "outputs" / "data" / "direct_read.csv"
+    evidence.parent.mkdir(parents=True, exist_ok=True)
+    evidence.write_text("evidence\n", encoding="utf-8")
+    claims = run_dir / "docs" / "claims"
+    claims.mkdir(parents=True, exist_ok=True)
+    (claims / f"claim_{ceiling}.md").write_text(
+        f"""\
+ceiling: {ceiling}
+
+## Claim
+
+outputs/data/direct_read.csv supports this {ceiling} claim.
+
+## Finding Lifecycle
+
+### Finding
+
+Status: independently_checked
+Claim affected: claim_{ceiling}
+Evidence paths:
+- outputs/data/direct_read.csv
+
+### Independent Check
+
+Checker: scientific-validator
+Result: independently_checked
+
+### Evidence Link
+
+Status: evidence_linked
+
+### Evidence Paths Read Directly
+
+- outputs/data/direct_read.csv
+""",
+        encoding="utf-8",
+    )
+
+
 # ---------------------------------------------------------------------------
 # check_src_write_authorization.py
 # ---------------------------------------------------------------------------
@@ -338,6 +379,7 @@ class TestClaimPromotion:
             ("2026-05-17", "convergence", "t1", "pass", "a"),
             ("2026-05-17", "toy_model",   "t2", "pass", "b"),
         ])
+        write_valid_claim_lifecycle(run_dir, "mechanism")
         rc, _, _ = run_hook(self.SCRIPT, args=["--run", str(run_dir), "--target", "mechanism"])
         assert rc == 0
 
@@ -357,6 +399,7 @@ class TestClaimPromotion:
             ("2026-05-17", "reproduction", "t2", "pass", "b"),
             ("2026-05-17", "conservation", "t3", "pass", "c"),
         ])
+        write_valid_claim_lifecycle(run_dir, "generalization")
         rc, _, _ = run_hook(self.SCRIPT, args=["--run", str(run_dir), "--target", "generalization"])
         assert rc == 0
 

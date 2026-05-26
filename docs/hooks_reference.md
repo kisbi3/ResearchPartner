@@ -40,6 +40,9 @@ Run before the Lead Agent promotes the run's claim ceiling above `observation`.
 - **Input**: `<run>/docs/gates/validation_log.md` rows (`| Date | Check | Target | Status | Evidence |`).
 - **Count gate**: interpretation ≥ 1 pass; mechanism ≥ 2 pass; generalization ≥ 3 pass.
 - **Diversity gate**: `mechanism` requires ≥ 1 baseline-class pass (Check matching `toy_model | reproduction | analytical | conservation | dimensional | known_limit`). `generalization` requires ≥ 2 distinct Check categories.
+- **Finding Lifecycle Hook**: for `mechanism` and `generalization`, the affected `docs/claims/<claim_id>.md` must include a `## Finding Lifecycle` section. Candidate findings cannot promote; `independently_checked` and `evidence_linked` must be declared; `false_alarm` cannot promote; and `## Evidence Paths Read Directly` must contain at least one existing project path.
+- **Direct-read boundary**: the checker validates only declared structure and path existence. It cannot prove the Lead actually read a file.
+- **Wired freshness layer**: `scripts/path_check_hooks.py` invokes `scripts/check_claim_promotion_freshness.py` for `docs/claims/*.md` writes. That path keeps the existing stale-output check and adds the same candidate/direct-read structural check for mechanism/generalization claim files.
 - **Bypass**: lower the target ceiling or add a waivered validation row.
 
 ## Peer-Review Invocation Hook (HARD ENFORCED)
