@@ -144,7 +144,7 @@
         "scripts/evaluate_harness.py"
       ],
       "docs": ["docs/hooks_reference.md", "docs/harness/hook_registry.md"],
-      "artifact_paths": [".github/workflows/harness-checks.yml"],
+      "artifact_paths": [".github/workflows/harness-checks.yml", "requirements.txt"],
       "workflow_gate_keys": []
     }
   ],

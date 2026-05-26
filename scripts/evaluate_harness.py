@@ -613,6 +613,7 @@ def harness_rule_text() -> str:
         "GEMINI.md",
         "PHYSICS.md",
         "README.md",
+        "docs/hooks_reference.md",
         "docs/orchestration_protocol.md",
     ]
     return "\n".join(read_text(path) for path in files)
@@ -695,7 +696,7 @@ def run_ci_enforcement_check() -> list[str]:
         "windows-latest",
         "actions/checkout@v4",
         "actions/setup-python@v5",
-        "python -m pip install pytest",
+        "python -m pip install -r requirements.txt",
         "python -m pytest tests -q",
         "python scripts/check_harness_manifest.py",
         "python scripts/check_spawn_contracts.py",

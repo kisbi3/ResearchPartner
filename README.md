@@ -126,6 +126,7 @@ Use these commands from the installed project root. The assistant should invoke 
 | Audit existing project | `python scripts\audit_existing_project.py` | Inventories scripts, figures, outputs, and validation gaps before retrofit |
 | Evaluate harness | `python scripts\evaluate_harness.py` | Checks realistic scenarios for correct skills, gates, and blocked behaviors |
 | CI harness checks | `.github/workflows/harness-checks.yml` | Runs pytest, manifest, spawn-contract, contract-sync, and evaluator repo-state checker commands on push and pull request; it does not replace live Claude Code hook firing |
+| Install test dependencies | `python -m pip install -r requirements.txt` | Installs the small dependency set used by tests and CI (`pytest`, `PyYAML`) |
 | Check capability manifest | `python scripts\check_harness_manifest.py --project <project-dir>` | Validates canonical capabilities, hook registry coverage, `$CLAUDE_PROJECT_DIR` hook paths, and real `workflow_gate_keys` |
 | Check spawn contracts | `python scripts\check_spawn_contracts.py --project <project-dir>` | Validates leaf `.claude/agents/<role>.md`, role `tools:`, `subagent_type` names, absence of nested spawns, and explicit-spawn-only descriptions |
 | Install slash commands | `python scripts\install_skills.py` | Copies the 7 researcher-facing skills into `.claude/commands/`, `.agents/workflows/`, and `.codex/skills/` so they appear as `/task-intake`, `/meeting`, etc. in Claude Code, Antigravity CLI, and Codex CLI. Re-run after updating a SKILL.md. |
@@ -136,7 +137,7 @@ Use these commands from the installed project root. The assistant should invoke 
 | Scaffold paper review | `python scripts\scaffold_paper_review.py --project <project-dir> --paper-id P1 --title "Title"` | Creates a reusable paper review note and updates the literature index |
 | Process paper PDF | `python scripts\process_paper_for_review.py --project <project-dir> --paper-id P1 --title "Title" --pdf <pdf-path>` | Scaffolds review, extracts text, and drafts provisional extraction notes |
 | Check paper review | `python scripts\check_paper_review_quality.py <review-path>` | Blocks weak paper notes before they support novelty or reproduction claims |
-| Check contract sync | `python scripts\check_contract_sync.py` | Enforces byte-identical `AGENTS.md` and `GEMINI.md` so both runtimes follow the same contract |
+| Check contract sync | `python scripts\check_contract_sync.py` | Enforces byte-identical `AGENTS.md` and `GEMINI.md`, plus the resident word budget |
 | Check orient gate | `python scripts\check_orient_recorded.py --project <project-dir>` | Blocks Seed, Execute, or Evaluate work unless `docs/gates/orient_note.md` contains the task-intake output (classification, role, first question, researcher answer) |
 | Check interview gate | `python scripts\check_interview_recorded.py --project <project-dir>` | Blocks Seed or Execute work unless `docs/gates/interview_notes.md` contains the professor-interview output (crystallized question, assumptions, agreed direction) |
 | Check literature gate | `python scripts\check_literature_reviewed.py --project <project-dir>` | Blocks model-specification or seed-design unless `docs/literature/literature_review_plan.md` has `## Literature Gate Status: ready/waived`, or `docs/literature/literature_skip_waiver.md` exists with a reason (lowers claim ceiling to `interpretation`) |
@@ -201,7 +202,7 @@ The installer copies these skills into the target project's `skills/` directory.
 ### 1. Prerequisites
 
 - A local research project directory where the harness should run, for example `C:\MyPhysicsProject`.
-- Python 3.10 or newer available as `python` from the terminal. The bundled helper scripts use the Python standard library only; no `pip install` step is required for the harness itself.
+- Python 3.10 or newer available as `python` from the terminal. Core helper scripts use the Python standard library; tests and CI dependencies are declared in `requirements.txt`.
 - An AI assistant that reads repository instructions:
   - **Codex / Copilot-style agents** read `AGENTS.md`.
   - **Gemini CLI** reads `GEMINI.md`.

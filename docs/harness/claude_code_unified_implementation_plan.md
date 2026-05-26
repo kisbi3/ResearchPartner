@@ -441,6 +441,11 @@ claim ceiling 강등) — progressive disclosure ≠ 은닉. `GEMINI.md` 동시 
 
 **AGENTS/GEMINI 갱신**: 지침/필수 gate가 바뀔 때만. 바꾸면 양쪽 동일 텍스트 + `check_contract_sync.py`.
 
+**CP6 결과(2026-05-27)**: `docs/hooks_reference.md`가 `evaluate_harness.py`의 `harness_rule_text()` 코퍼스에 포함됨. hook 상세는
+`docs/hooks_reference.md#scientific-loop-hook-catalog`로 이동했고, `AGENTS.md`/`GEMINI.md`는 hard gate·필수 skill 순서·waiver claim-ceiling
+강등·single-spawner 요약만 상시 보존한다. `check_contract_sync.py`는 byte-identical 동기화와 2,200단어 resident budget을 함께 강제한다.
+테스트/CI 의존성은 `requirements.txt`(`pytest`, `PyYAML`)로 선언하고 `harness-checks.yml`은 `python -m pip install -r requirements.txt`를 사용한다.
+
 ```powershell
 python scripts/check_contract_sync.py
 python scripts/check_harness_manifest.py --project C:\ResearchPartner
