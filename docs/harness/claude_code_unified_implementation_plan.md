@@ -205,6 +205,8 @@ hook path fix, current `.claude/settings.local.json` sync, README/README.ko, AGE
 and regression tests were implemented. `check_harness_manifest.py --project C:\ResearchPartner`, `check_contract_sync.py`,
 and `pytest tests -q` pass. `evaluate_harness.py` passes in normal mode and the new `capability_manifest_and_hook_registry`
 scenario passes; `--fail-on-partial` still fails on pre-existing partial scenarios outside CP1 scope.
+Manager review follow-up: the evaluator scenario now calls `check_harness_manifest.validate_project()` directly rather than only checking file/keyword presence.
+In PR1 this is a local deterministic gate through pytest/evaluator; PR-by-PR automatic enforcement belongs to CP7 CI (`harness-checks.yml`).
 
 ---
 

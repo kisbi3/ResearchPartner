@@ -182,3 +182,23 @@ def test_capability_manifest_scenario_is_evaluated():
     assert "Capability Manifest Hook" in scenario.rule_terms
     assert "hook registry" in scenario.rule_terms
     assert "workflow_gate_keys" in scenario.rule_terms
+    assert "check_harness_manifest" in scenario.checks
+
+
+def test_capability_manifest_scenario_runs_manifest_checker(monkeypatch):
+    evaluator = load_evaluator()
+    scenario = {
+        scenario.name: scenario for scenario in evaluator.SCENARIOS
+    }["capability_manifest_and_hook_registry"]
+
+    monkeypatch.setattr(
+        evaluator,
+        "run_manifest_check",
+        lambda: ["manifest drift from test"],
+        raising=False,
+    )
+
+    result = evaluator.evaluate_scenario(scenario, evaluator.harness_rule_text())
+
+    assert result["status"] == "fail"
+    assert result["missing_checks"] == ["check_harness_manifest: manifest drift from test"]

@@ -6,6 +6,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 import argparse
+import importlib.util
 import sys
 
 
@@ -18,6 +19,7 @@ class Scenario:
     skills: tuple[str, ...]
     docs: tuple[str, ...]
     rule_terms: tuple[str, ...]
+    checks: tuple[str, ...] = ()
 
 
 SCENARIOS = [
@@ -526,6 +528,7 @@ SCENARIOS = [
             "workflow_gate_keys",
             "$CLAUDE_PROJECT_DIR",
         ),
+        checks=("check_harness_manifest",),
     ),
 ]
 
@@ -548,18 +551,52 @@ def harness_rule_text() -> str:
     return "\n".join(read_text(path) for path in files)
 
 
+def run_manifest_check() -> list[str]:
+    module_path = ROOT / "scripts" / "check_harness_manifest.py"
+    spec = importlib.util.spec_from_file_location("check_harness_manifest", module_path)
+    module = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    spec.loader.exec_module(module)
+    return list(module.validate_project(ROOT))
+
+
+def run_scenario_checks(scenario: Scenario) -> list[str]:
+    failures: list[str] = []
+    for check in scenario.checks:
+        if check == "check_harness_manifest":
+            problems = run_manifest_check()
+        else:
+            problems = [f"unknown scenario check {check!r}"]
+        if problems:
+            failures.append(f"{check}: {'; '.join(problems)}")
+    return failures
+
+
 def evaluate_scenario(scenario: Scenario, rule_text: str) -> dict[str, object]:
     missing_skills = [path for path in scenario.skills if not (ROOT / path).exists()]
     missing_docs = [path for path in scenario.docs if not (ROOT / path).exists()]
     missing_terms = [
         term for term in scenario.rule_terms if term.lower() not in rule_text.lower()
     ]
+    missing_checks = run_scenario_checks(scenario)
 
-    total = len(scenario.skills) + len(scenario.docs) + len(scenario.rule_terms)
-    missing = len(missing_skills) + len(missing_docs) + len(missing_terms)
+    total = (
+        len(scenario.skills)
+        + len(scenario.docs)
+        + len(scenario.rule_terms)
+        + len(scenario.checks)
+    )
+    missing = (
+        len(missing_skills)
+        + len(missing_docs)
+        + len(missing_terms)
+        + len(missing_checks)
+    )
     score = 100 if total == 0 else round(100 * (total - missing) / total)
 
-    if missing == 0:
+    if missing_checks:
+        status = "fail"
+    elif missing == 0:
         status = "pass"
     elif score >= 75:
         status = "partial"
@@ -573,6 +610,7 @@ def evaluate_scenario(scenario: Scenario, rule_text: str) -> dict[str, object]:
         "missing_skills": missing_skills,
         "missing_docs": missing_docs,
         "missing_rule_terms": missing_terms,
+        "missing_checks": missing_checks,
     }
 
 
@@ -601,6 +639,7 @@ def format_report(results: list[dict[str, object]]) -> str:
             ("missing_skills", "skills"),
             ("missing_docs", "docs"),
             ("missing_rule_terms", "rules"),
+            ("missing_checks", "checks"),
         ):
             values = result[key]
             if values:

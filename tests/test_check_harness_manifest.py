@@ -99,3 +99,24 @@ def test_manifest_requires_project_dir_hook_paths(tmp_path):
     problems = checker.validate_manifest(ROOT, manifest_path)
 
     assert any("CLAUDE_PROJECT_DIR" in problem for problem in problems)
+
+
+def test_wired_hook_missing_from_registry_or_known_uncovered_fails(tmp_path):
+    checker = load_checker()
+    manifest = json.loads((ROOT / "docs" / "harness" / "capability_manifest.json").read_text())
+    manifest["hook_registry"] = [
+        hook
+        for hook in manifest["hook_registry"]
+        if hook["script"] != "scripts/check_spawn_log_integrity.py"
+    ]
+    manifest["known_uncovered_wired_hooks"] = []
+    manifest_path = tmp_path / "capability_manifest.json"
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+    problems = checker.validate_manifest(ROOT, manifest_path)
+
+    assert any(
+        "not in hook_registry" in problem
+        and "scripts/check_spawn_log_integrity.py" in problem
+        for problem in problems
+    )
