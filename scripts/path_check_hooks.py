@@ -139,12 +139,14 @@ def _check_claim_freshness_pre(
         bits.append("missing: " + ", ".join(result.missing[:3]))
     detail = "; ".join(bits) if bits else result.reason
     return 2, [
-        f"PROMOTED CLAIM BLOCKED — cited outputs are not fresh ({detail}).\n"
+        f"PROMOTED CLAIM BLOCKED — freshness/finding lifecycle check failed ({detail}).\n"
         "  Rule: a promoted claim (ceiling > observation) must cite outputs/\n"
-        "        artifacts that have been modified within the last 24 hours.\n"
-        "  Fix:  re-run the figure/data generator so the cited file's mtime\n"
-        "        is recent, then retry the claim Write. If the older artifact\n"
-        "        is intentional, lower the ceiling to 'observation'."
+        "        artifacts modified within the last 24 hours. Mechanism and\n"
+        "        generalization claims must also have a resolved Finding Lifecycle\n"
+        "        with Evidence Paths Read Directly.\n"
+        "  Fix:  re-run stale figure/data generators or update the claim file with\n"
+        "        independently_checked + evidence_linked finding state and direct\n"
+        "        evidence paths. If the evidence is weaker, lower the ceiling."
     ]
 
 

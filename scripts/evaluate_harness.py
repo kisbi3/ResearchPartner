@@ -6,7 +6,11 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 import argparse
+import contextlib
+import importlib.util
+import io
 import sys
+import tempfile
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -18,6 +22,7 @@ class Scenario:
     skills: tuple[str, ...]
     docs: tuple[str, ...]
     rule_terms: tuple[str, ...]
+    checks: tuple[str, ...] = ()
 
 
 SCENARIOS = [
@@ -155,9 +160,9 @@ SCENARIOS = [
             "docs/validation_log.md",
         ),
         rule_terms=(
-            "Graduate Test-Design Agents",
-            "interview the professor",
-            "interview coding subagents",
+            "Graduate Student role",
+            "Lead-loaded task orchestration",
+            "leaf Coding Subagents",
             "observables",
             "failure criteria",
         ),
@@ -173,7 +178,7 @@ SCENARIOS = [
             "docs/decision_log.md",
         ),
         rule_terms=(
-            "Coding Subagents",
+            "leaf Coding Subagents",
             "bounded implementation",
             "should not decide",
             "stronger scientific claim",
@@ -218,7 +223,7 @@ SCENARIOS = [
             "Ambiguity Hook",
             "Assumption/Units Hook",
             "Baseline Gate Hook",
-            "Graduate Test-Design Hook",
+            "Graduate Student Role Hook",
             "Code-before-Test Hook",
             "Numerical Stability Hook",
             "Waiver Hook",
@@ -340,6 +345,29 @@ SCENARIOS = [
         rule_terms=("No scientific claim", "weakest", "evidence"),
     ),
     Scenario(
+        name="finding_lifecycle_claim_promotion",
+        skills=(
+            "skills/claim-to-evidence/SKILL.md",
+            "skills/anomaly-debugging/SKILL.md",
+            "skills/peer-review-professor/SKILL.md",
+            "skills/scientific-verification-before-claim/SKILL.md",
+        ),
+        docs=(
+            "docs/harness/finding_lifecycle.md",
+            "docs/run_templates/finding_lifecycle_template.md",
+            "scripts/check_claim_promotion.py",
+            "scripts/check_claim_promotion_freshness.py",
+        ),
+        rule_terms=(
+            "Finding Lifecycle Hook",
+            "Evidence Paths Read Directly",
+            "candidate findings cannot promote",
+            "checker validates only declared structure",
+            "confidence threshold is reviewer surface guidance",
+        ),
+        checks=("check_claim_promotion_lifecycle",),
+    ),
+    Scenario(
         name="anomalous_simulation",
         skills=(
             "skills/anomaly-debugging/SKILL.md",
@@ -431,8 +459,8 @@ SCENARIOS = [
         docs=("docs/research_plan.md",),
         rule_terms=(
             "skills/seed-design/SKILL.md",
-            "Graduate Test-Design Hook",
-            "concrete graduate-agent tasks",
+            "Graduate Student Role Hook",
+            "Lead-managed seed task packets",
             "pass/fail criteria",
             "Seed phase",
         ),
@@ -464,10 +492,10 @@ SCENARIOS = [
         ),
         rule_terms=(
             "Agent Spawning Protocol",
-            "2-Tier Spawn Hierarchy",
-            "Parallel Task Spawning Rule",
-            "One seed task = one Graduate Student",
-            "Graduate Students are not specialized by task type",
+            "Single-Spawner Hierarchy",
+            "Parallel Task Coordination Rule",
+            "One seed task = one Lead-managed Graduate Student role pass",
+            "Graduate Student is not a subagent type",
             "Cache-Log Auditor",
             "Cross-Tier Prohibition",
         ),
@@ -509,6 +537,66 @@ SCENARIOS = [
             "orphaned",
         ),
     ),
+    Scenario(
+        name="capability_manifest_and_hook_registry",
+        skills=(
+            "skills/harness-evaluation/SKILL.md",
+        ),
+        docs=(
+            "docs/harness/capability_manifest.json",
+            "scripts/check_harness_manifest.py",
+            "docs/harness/claude_code_unified_implementation_plan.md",
+        ),
+        rule_terms=(
+            "Capability Manifest Hook",
+            "check_harness_manifest.py",
+            "hook registry",
+            "workflow_gate_keys",
+            "$CLAUDE_PROJECT_DIR",
+        ),
+        checks=("check_harness_manifest",),
+    ),
+    Scenario(
+        name="spawn_contracts_and_agent_definitions",
+        skills=(
+            "skills/harness-evaluation/SKILL.md",
+        ),
+        docs=(
+            "docs/harness/spawn_contracts.json",
+            "scripts/check_spawn_contracts.py",
+            ".claude/agents/implementation-agent.md",
+            ".claude/agents/scientific-validator.md",
+            ".claude/agents/cache-log-auditor.md",
+            ".claude/agents/peer-review-professor.md",
+            "docs/orchestration_protocol.md",
+        ),
+        rule_terms=(
+            "Spawn Contract Consistency Gate",
+            "check_spawn_contracts.py",
+            "single-spawner model",
+            "subagent_type",
+            "Agent tool is reserved for the Lead Agent",
+            "Explicitly spawned only",
+        ),
+        checks=("check_spawn_contracts",),
+    ),
+    Scenario(
+        name="ci_enforcement",
+        skills=(
+            "skills/harness-evaluation/SKILL.md",
+        ),
+        docs=(
+            ".github/workflows/harness-checks.yml",
+            "docs/hooks_reference.md",
+            "docs/harness/capability_manifest.json",
+        ),
+        rule_terms=(
+            "CI Enforcement Gate",
+            "repo-state checker",
+            "does not replace live Claude Code hook firing",
+        ),
+        checks=("check_ci_enforcement",),
+    ),
 ]
 
 
@@ -530,18 +618,151 @@ def harness_rule_text() -> str:
     return "\n".join(read_text(path) for path in files)
 
 
+def run_manifest_check() -> list[str]:
+    module_path = ROOT / "scripts" / "check_harness_manifest.py"
+    spec = importlib.util.spec_from_file_location("check_harness_manifest", module_path)
+    module = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    spec.loader.exec_module(module)
+    return list(module.validate_project(ROOT))
+
+
+def run_spawn_contracts_check() -> list[str]:
+    module_path = ROOT / "scripts" / "check_spawn_contracts.py"
+    spec = importlib.util.spec_from_file_location("check_spawn_contracts", module_path)
+    module = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    spec.loader.exec_module(module)
+    return list(module.validate_project(ROOT))
+
+
+def run_claim_promotion_lifecycle_check() -> list[str]:
+    module_path = ROOT / "scripts" / "check_claim_promotion.py"
+    spec = importlib.util.spec_from_file_location("check_claim_promotion", module_path)
+    module = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    sys.modules["check_claim_promotion"] = module
+    spec.loader.exec_module(module)
+
+    with tempfile.TemporaryDirectory() as tmp:
+        project = Path(tmp) / "project"
+        (project / "docs" / "gates").mkdir(parents=True)
+        (project / "docs" / "claims").mkdir(parents=True)
+        (project / "outputs" / "data").mkdir(parents=True)
+        (project / ".research-harness").write_text("evaluator fixture\n", encoding="utf-8")
+        (project / "outputs" / "data" / "direct_read.csv").write_text(
+            "evidence\n",
+            encoding="utf-8",
+        )
+        (project / "docs" / "gates" / "validation_log.md").write_text(
+            "# Validation Log\n\n"
+            "| Date | Check | Target | Status | Evidence |\n"
+            "|---|---|---|---|---|\n"
+            "| 2026-05-26 | toy_model | claim_alpha | pass | outputs/data/direct_read.csv |\n"
+            "| 2026-05-26 | conservation | claim_alpha | pass | outputs/data/direct_read.csv |\n",
+            encoding="utf-8",
+        )
+        (project / "docs" / "claims" / "claim_alpha.md").write_text(
+            "ceiling: mechanism\n\n"
+            "## Claim\n\n"
+            "outputs/data/direct_read.csv supports the mechanism.\n\n"
+            "## Finding Lifecycle\n\n"
+            "### Finding\n\n"
+            "Status: independently_checked\n\n"
+            "### Independent Check\n\n"
+            "Result: independently_checked\n\n"
+            "### Evidence Link\n\n"
+            "Status: evidence_linked\n\n"
+            "### Evidence Paths Read Directly\n\n"
+            "- outputs/data/direct_read.csv\n",
+            encoding="utf-8",
+        )
+        with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+            code = module.main(["--project", str(project), "--target", "mechanism"])
+    return [] if code == 0 else [f"fixture mechanism promotion exited {code}"]
+
+
+def run_ci_enforcement_check() -> list[str]:
+    workflow = ROOT / ".github" / "workflows" / "harness-checks.yml"
+    if not workflow.is_file():
+        return ["missing .github/workflows/harness-checks.yml"]
+
+    text = workflow.read_text(encoding="utf-8", errors="ignore")
+    required_terms = [
+        "push:",
+        "pull_request:",
+        "ubuntu-latest",
+        "windows-latest",
+        "actions/checkout@v4",
+        "actions/setup-python@v5",
+        "python -m pip install pytest",
+        "python -m pytest tests -q",
+        "python scripts/check_harness_manifest.py",
+        "python scripts/check_spawn_contracts.py",
+        "python scripts/check_contract_sync.py",
+        "python scripts/evaluate_harness.py",
+    ]
+    problems = [
+        f"workflow missing {term!r}"
+        for term in required_terms
+        if term not in text
+    ]
+    forbidden_terms = [
+        "python scripts/evaluate_harness.py --fail-on-partial",
+        "check_claim_promotion.py --project",
+        "check_claim_promotion_freshness.py --project",
+    ]
+    problems.extend(
+        f"workflow must not include {term!r}"
+        for term in forbidden_terms
+        if term in text
+    )
+    return problems
+
+
+def run_scenario_checks(scenario: Scenario) -> list[str]:
+    failures: list[str] = []
+    for check in scenario.checks:
+        if check == "check_harness_manifest":
+            problems = run_manifest_check()
+        elif check == "check_spawn_contracts":
+            problems = run_spawn_contracts_check()
+        elif check == "check_claim_promotion_lifecycle":
+            problems = run_claim_promotion_lifecycle_check()
+        elif check == "check_ci_enforcement":
+            problems = run_ci_enforcement_check()
+        else:
+            problems = [f"unknown scenario check {check!r}"]
+        if problems:
+            failures.append(f"{check}: {'; '.join(problems)}")
+    return failures
+
+
 def evaluate_scenario(scenario: Scenario, rule_text: str) -> dict[str, object]:
     missing_skills = [path for path in scenario.skills if not (ROOT / path).exists()]
     missing_docs = [path for path in scenario.docs if not (ROOT / path).exists()]
     missing_terms = [
         term for term in scenario.rule_terms if term.lower() not in rule_text.lower()
     ]
+    missing_checks = run_scenario_checks(scenario)
 
-    total = len(scenario.skills) + len(scenario.docs) + len(scenario.rule_terms)
-    missing = len(missing_skills) + len(missing_docs) + len(missing_terms)
+    total = (
+        len(scenario.skills)
+        + len(scenario.docs)
+        + len(scenario.rule_terms)
+        + len(scenario.checks)
+    )
+    missing = (
+        len(missing_skills)
+        + len(missing_docs)
+        + len(missing_terms)
+        + len(missing_checks)
+    )
     score = 100 if total == 0 else round(100 * (total - missing) / total)
 
-    if missing == 0:
+    if missing_checks:
+        status = "fail"
+    elif missing == 0:
         status = "pass"
     elif score >= 75:
         status = "partial"
@@ -555,6 +776,7 @@ def evaluate_scenario(scenario: Scenario, rule_text: str) -> dict[str, object]:
         "missing_skills": missing_skills,
         "missing_docs": missing_docs,
         "missing_rule_terms": missing_terms,
+        "missing_checks": missing_checks,
     }
 
 
@@ -583,6 +805,7 @@ def format_report(results: list[dict[str, object]]) -> str:
             ("missing_skills", "skills"),
             ("missing_docs", "docs"),
             ("missing_rule_terms", "rules"),
+            ("missing_checks", "checks"),
         ):
             values = result[key]
             if values:

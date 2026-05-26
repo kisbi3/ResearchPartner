@@ -9,7 +9,7 @@ Use this packet for substantial research plans, reproduction attempts, validatio
 - Research question:
 - Physical system, model, or dataset:
 - Lead Agent:
-- Graduate Test-Design Agents:
+- Graduate Student role passes:
 - Coding Subagents:
 - Cartographer (hook-driven, not spawned):
 
@@ -23,7 +23,7 @@ Record only decision-relevant dialogue, not a full transcript.
 - Missing definition:
 - Risk or contradiction:
 
-### Graduate Test-Design Notes
+### Graduate Student Role Notes
 
 - Validation target:
 - Observables:
@@ -125,7 +125,7 @@ Convene this after a reproduction, validation, figure-generation, or other subst
 | Agent | Reported Evidence | Concern | Decision Needed |
 |---|---|---|---|
 | Lead Agent |  |  |  |
-| Graduate Test-Design Agents |  |  |  |
+| Graduate Student role passes |  |  |  |
 | Coding Subagents |  |  |  |
 | Cartographer (hook-driven, not spawned) |  |  |  |
 

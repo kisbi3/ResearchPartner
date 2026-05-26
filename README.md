@@ -65,7 +65,7 @@ After one disciplined research loop, a loose physics idea becomes a traceable re
 | Orient | "Analyze this model" | Task classified as model specification, validation, simulation, figure audit, manuscript claim, anomaly debugging, or adoption work |
 | Interview | Hidden assumptions | Physical object, observable, boundary conditions, approximation regime, units, and review checkpoint surfaced before execution |
 | Specify | No stable research contract | Research plan with assumptions, validation target, observables, failure criteria, and claim-to-evidence path |
-| Seed | Vague next action | Graduate test-design task with files, commands, inputs, outputs, pass/fail criteria, and failure handling |
+| Seed | Vague next action | Lead-managed Graduate Student role task with files, commands, inputs, outputs, pass/fail criteria, and failure handling |
 | Validate | "Looks plausible" | Baseline gate: toy model, known limit, reproduction target, conservation check, dimensional sanity case, or explicit waiver |
 | Execute | Unbounded coding or plotting | Bounded implementation that reports parameters, seeds, commands, outputs, and validation status |
 | Evaluate | Interpretation drifts from output | Professor-led review separates observation, interpretation, speculation, and unsupported claims |
@@ -105,7 +105,7 @@ Each cycle should change the research state: a stronger validation gate, a clear
 | Orient | Classify the task and identify the responsible research role |
 | Interview | Ask the first professor question and expose ambiguity |
 | Specify | Record model meaning, assumptions, units, observables, and failure criteria |
-| Seed | Convert the research seed into testable graduate-agent tasks |
+| Seed | Convert the research seed into Lead-managed task packets |
 | Validate | Check baseline, numerical stability, units, data lineage, or reproduction target |
 | Execute | Run bounded coding, analysis, plotting, or literature-processing work |
 | Evaluate | Separate supported observations from interpretation and speculation |
@@ -125,6 +125,9 @@ Use these commands from the installed project root. The assistant should invoke 
 | Init project | `python scripts\init_research_project.py` | Marks the current directory as a research project (creates `.research-harness` and scaffolds `docs\process\live_workflow_diagram.md`, project packet, literature workspace, and `outputs/`) |
 | Audit existing project | `python scripts\audit_existing_project.py` | Inventories scripts, figures, outputs, and validation gaps before retrofit |
 | Evaluate harness | `python scripts\evaluate_harness.py` | Checks realistic scenarios for correct skills, gates, and blocked behaviors |
+| CI harness checks | `.github/workflows/harness-checks.yml` | Runs pytest, manifest, spawn-contract, contract-sync, and evaluator repo-state checker commands on push and pull request; it does not replace live Claude Code hook firing |
+| Check capability manifest | `python scripts\check_harness_manifest.py --project <project-dir>` | Validates canonical capabilities, hook registry coverage, `$CLAUDE_PROJECT_DIR` hook paths, and real `workflow_gate_keys` |
+| Check spawn contracts | `python scripts\check_spawn_contracts.py --project <project-dir>` | Validates leaf `.claude/agents/<role>.md`, role `tools:`, `subagent_type` names, absence of nested spawns, and explicit-spawn-only descriptions |
 | Install slash commands | `python scripts\install_skills.py` | Copies the 7 researcher-facing skills into `.claude/commands/`, `.agents/workflows/`, and `.codex/skills/` so they appear as `/task-intake`, `/meeting`, etc. in Claude Code, Antigravity CLI, and Codex CLI. Re-run after updating a SKILL.md. |
 | Install slash commands (global) | `python scripts\install_skills.py --global` | Same as above but installs to `~/.claude/commands/`, `~/.gemini/antigravity/global_workflows/`, and `~/.codex/skills/` so the commands are available across all projects. |
 | Validate links | `python scripts\validate_workflow_links.py` | Checks workflow-document links |
@@ -140,6 +143,7 @@ Use these commands from the installed project root. The assistant should invoke 
 | Check model gate | `python scripts\check_model_specified.py --project <project-dir>` | Blocks seed-design or execute unless `docs/plan/model_spec.md` has physical system and governing equations, or `docs/plan/model_skip_waiver.md` exists with a reason (lowers claim ceiling to `observation`) |
 | Check baseline strategy gate | `python scripts\check_baseline_strategy.py --project <project-dir>` | Blocks seed-design unless `docs/plan/baseline_strategy.md` records the professor-graduate student decision (`variation` or `new model`) and a quantitative verification target. No skip waiver. |
 | Check baseline gate | `python scripts\check_baseline_gate.py --project <project-dir>` | Blocks downstream work unless `baseline_registry.md` has a `pass` entry, or a `waived` entry with claim ceiling lowered to `observation` in the live workflow |
+| Check claim promotion | `python scripts\check_claim_promotion.py --project <project-dir> --target mechanism` | Blocks mechanism/generalization promotion unless validation count/diversity passes and `docs/claims/<claim_id>.md` has a resolved Finding Lifecycle with `Evidence Paths Read Directly` |
 | Check figure provenance | `python scripts\check_figure_provenance.py --project <project-dir>` | Fails if any figure file lacks a sibling `*.provenance.md` or a matching entry in `figure_provenance.md` |
 | Check session resumption | `python scripts\check_session_resumable.py` | After a usage-limit cutoff or other interruption, lists in-flight sub-agent tasks (`spawned` rows in the live workflow diagram) and blocked or `in_progress` gates that the researcher must resolve before the next session continues. Auto-discovers the project root via the `.research-harness` marker; pass `--project <project-dir>` to target a specific project, `--json` for machine-readable output |
 | Check computation checkpoints | `python scripts\check_computation_resumable.py --project <project-dir>` | Lists `cache/checkpoint_*.pkl` files left by interrupted long-running scripts. A likely-orphaned checkpoint (no matching log file) can be resumed via `CheckpointManager.load()` in the src/ script or discarded with `--clear <stem>` |
@@ -160,9 +164,9 @@ For substantial work, the harness behaves like a professor-led research group ra
 | Researcher | Stops coding and starts investigating | What evidence do we actually have? |
 | Architect | Identifies structural causes | If we started over, would we build it this way? |
 
-These stances support five operational roles: the Lead Agent owns scientific judgment and claim discipline; the Peer-Review Professor is an adversarial external reviewer invoked only within `meeting` sessions, with no project history, whose sole job is to find holes in claims; Graduate Test-Design Agents turn the plan into validation tasks; Coding Subagents execute bounded implementation only after the validation strategy is clear; the Cartographer (hook-driven, not spawned) records workflow state without adding opinions or strengthening claims.
+These stances support a single-spawner operating model: the Lead Agent owns scientific judgment, claim discipline, and all `Agent()` spawns; the Graduate Student role is a Lead-loaded task-orchestration mode for one seed task; the Peer-Review Professor is an adversarial external reviewer invoked only within `meeting` sessions; leaf Coding Subagents execute bounded implementation, validation, and audit work only after the Lead's validation strategy is clear; the Cartographer (hook-driven, not spawned) records workflow state without adding opinions or strengthening claims.
 
-For substantial work, the spawned roles below the Lead Agent are enforced by *actually spawning separate agents* using the `Agent()` tool — not by one agent switching personas internally. The Lead Agent itself is the main conversation context (not a spawned subagent); the concrete 2-tier spawn hierarchy beneath it is: **Lead Agent** → **Graduate Student Agent(s)** (one per seed task, spawned in parallel when independent) → **Implementation Agent** + **Scientific Validator** + **Cache-Log Auditor** (spawned by each Graduate Student as needed). Graduate Students are bound to a single task instance, not to a task type — there is no "baseline student" vs "scan student". See the "Agent Spawning Protocol" section of `docs/orchestration_protocol.md` for the spawn block templates and cross-tier prohibitions.
+For substantial work, the Lead Agent is the only spawner. It does not spawn Graduate Student agents; instead it loads `skills/graduate-student/SKILL.md` as a role for one seed task, performs the mandatory code review itself, and directly spawns leaf agents: **Implementation Agent**, **Scientific Validator**, **Cache-Log Auditor**, and **Peer-Review Professor**. Role agent definitions live in `.claude/agents/<role>.md`, and `docs/harness/spawn_contracts.json` keeps those leaf definitions, `tools:` frontmatter, skill declarations, and `subagent_type` names synchronized. See the "Agent Spawning Protocol" section of `docs/orchestration_protocol.md` for the task-orchestration template, leaf spawn blocks, and cross-tier prohibitions.
 
 ### Installed Skills
 
@@ -175,7 +179,7 @@ The installer copies these skills into the target project's `skills/` directory.
 | `model-specification` | Defining or reviewing a physical model, variables, equations, assumptions, parameters, constraints, or validity regime |
 | `dimensional-analysis` | Equations, units, scaling laws, nondimensionalization, or dimensionless groups are involved |
 | `baseline-validation` | A model, solver, analysis pipeline, figure workflow, or interpretation needs a toy model, known limit, benchmark, or reproduction check |
-| `seed-design` | Converting an approved research plan into concrete graduate-agent tasks with files, commands, inputs, outputs, pass/fail criteria, and failure handling (Seed phase) |
+| `seed-design` | Converting an approved research plan into concrete Lead-managed seed tasks with files, commands, inputs, outputs, pass/fail criteria, and failure handling (Seed phase) |
 | `numerical-validation` | Running, modifying, or interpreting simulations, solvers, convergence checks, stability checks, or computational validation |
 | `claim-to-evidence` | Reviewing manuscript text, captions, abstracts, conclusions, or any scientific claim that needs evidence mapping |
 | `scientific-verification-before-claim` | Making, strengthening, publishing, summarizing, captioning, or editing a claim based on equations, simulations, figures, data, or citations |
@@ -188,7 +192,7 @@ The installer copies these skills into the target project's `skills/` directory.
 | `baseline-strategy` | After model-specification — professor-graduate student dialogue to decide variation vs. new model and fix the first verification target before seed-design begins |
 | `meeting` | "Does this make sense?" needs an outside perspective — convenes a structured multi-agent review (`--scope quick/review/full`, `--on "<question>"`). Invocable at any point in the workflow. |
 | `peer-review-professor` | Adversarial reviewer role used inside `meeting` sessions — fresh eyes only, no project history, finds holes in claims using five stances |
-| `graduate-student` | Loaded by a spawned Graduate Student agent — owns one seed task's execution strategy, sub-agent coordination, anomaly escalation, and evidence reporting |
+| `graduate-student` | Loaded by the Lead Agent while coordinating one seed task — owns task strategy, Lead code review, leaf-agent coordination, anomaly escalation, and evidence reporting |
 | `implementation-agent` | Loaded by a spawned Implementation Agent — writes code to `src/` only; does not run code, judge results, or interpret physics |
 | `scientific-validator` | Loaded by a spawned Scientific Validator — runs scripts via `run_with_capture.py`, applies pre-set pass/fail criteria mechanically, does not modify code or strengthen claims |
 | `cache-log-auditor` | Loaded by a spawned Cache-Log Auditor (always after Scientific Validator) — runs `audit_run_outputs.py` to verify that `logs/`, `errors/`, and `cache/` contain sufficient artifacts |

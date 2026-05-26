@@ -5,7 +5,8 @@ When a claim file under ``docs/claims/`` is written/edited with a non-
 ``observation`` ceiling (or ``status: promoted``), every output artifact it
 cites (``outputs/figures/...``, ``outputs/data/...``, ``outputs/tables/...``)
 must exist on disk and have been modified within the freshness window
-(default 24 h).
+(default 24 h). Mechanism/generalization claim files must also contain a
+resolved finding lifecycle with direct-read evidence paths.
 
 Why
 ---
@@ -25,8 +26,8 @@ Public API (used by ``path_check_hooks.py``)::
     # result.status in {"pass", "skip", "fail"}; result.stale is list[str].
 
 Exit codes (CLI)::
-    0 — pass / skip (no promoted claim, or all citations fresh)
-    1 — fail (one or more stale / missing references)
+    0 — pass / skip (no promoted claim, all citations fresh, lifecycle valid)
+    1 — fail (stale/missing references or invalid finding lifecycle)
 """
 
 from __future__ import annotations
@@ -48,6 +49,10 @@ PROMOTED_CEILING_RE = re.compile(
     r"(?im)^\s*(?:ceiling|claim[-_\s]?ceiling|status)\s*:\s*"
     r"(interpretation|mechanism|generalization|promoted)\b"
 )
+CLAIM_CEILING_RE = re.compile(
+    r"(?im)^\s*(?:ceiling|claim[-_\s]?ceiling)\s*:\s*"
+    r"(observation|interpretation|mechanism|generalization)\b"
+)
 
 # References to output artifacts. Accepts ./outputs/... or outputs/... with
 # either forward or back slashes.
@@ -65,8 +70,24 @@ class FreshnessResult:
     reason: str = ""
 
 
+@dataclass
+class LifecycleResult:
+    status: str  # "pass" | "skip" | "fail"
+    reason: str = ""
+    direct_paths: list[str] = field(default_factory=list)
+
+
 def _is_promoted(text: str) -> bool:
     return bool(PROMOTED_CEILING_RE.search(text))
+
+
+def claim_ceiling(text: str) -> str | None:
+    match = CLAIM_CEILING_RE.search(text)
+    return match.group(1).lower() if match else None
+
+
+def finding_lifecycle_required(text: str) -> bool:
+    return claim_ceiling(text) in {"mechanism", "generalization"}
 
 
 def _find_output_refs(text: str) -> list[str]:
@@ -78,6 +99,138 @@ def _find_output_refs(text: str) -> list[str]:
     return list(seen.keys())
 
 
+FINDING_STATES = {
+    "candidate",
+    "independently_checked",
+    "validated_blocker",
+    "validated_limitation",
+    "false_alarm",
+    "needs_researcher_judgment",
+    "evidence_linked",
+    "researcher_reviewed",
+}
+
+STATE_RE = re.compile(r"(?im)^\s*(?:status|result|decision)\s*:\s*([A-Za-z0-9_ -]+)")
+DIRECT_READ_HEADING_RE = re.compile(r"(?im)^#{2,6}\s+Evidence Paths Read Directly\s*$")
+HEADING_RE = re.compile(r"^#{1,6}\s+")
+
+
+def _state_tokens(text: str) -> set[str]:
+    states: set[str] = set()
+    for match in STATE_RE.finditer(text):
+        normalized = match.group(1).strip().lower().replace("-", "_").replace(" ", "_")
+        if normalized in FINDING_STATES:
+            states.add(normalized)
+    return states
+
+
+def _clean_path_token(value: str) -> str:
+    token = value.strip().strip("`").strip()
+    link = re.match(r"\[[^\]]+\]\(([^)]+)\)", token)
+    if link:
+        token = link.group(1)
+    return token.strip().strip("`").strip()
+
+
+def evidence_paths_read_directly(text: str) -> list[str]:
+    lines = text.splitlines()
+    start: int | None = None
+    for index, line in enumerate(lines):
+        if DIRECT_READ_HEADING_RE.match(line):
+            start = index + 1
+            break
+    if start is None:
+        return []
+
+    paths: list[str] = []
+    for line in lines[start:]:
+        if HEADING_RE.match(line):
+            break
+        stripped = line.strip()
+        if not stripped.startswith("-"):
+            continue
+        token = _clean_path_token(stripped[1:])
+        if token and "FILL IN" not in token and not token.startswith("http"):
+            paths.append(token.replace("\\", "/").lstrip("./"))
+    return paths
+
+
+def _path_resolves_inside_project(project: Path, rel_path: str) -> bool:
+    target = (project / rel_path).resolve()
+    try:
+        target.relative_to(project.resolve())
+    except ValueError:
+        return False
+    return target.is_file()
+
+
+def check_finding_lifecycle(
+    file_path: Path,
+    content: str,
+    project: Path,
+) -> LifecycleResult:
+    """Validate the declarative finding lifecycle for mechanism/generalization.
+
+    This intentionally verifies only structure: state tokens, declared direct-read
+    paths, and whether those paths resolve to files under the project. It cannot
+    and does not claim to prove that the Lead actually read the files.
+    """
+    if not finding_lifecycle_required(content):
+        return LifecycleResult(status="skip", reason="finding lifecycle not required")
+
+    if "Evidence Paths Read Directly" not in content or "Finding Lifecycle" not in content:
+        return LifecycleResult(
+            status="fail",
+            reason=(
+                "mechanism/generalization claims require a ## Finding Lifecycle "
+                "section with ## Evidence Paths Read Directly"
+            ),
+        )
+
+    states = _state_tokens(content)
+    if "candidate" in states:
+        return LifecycleResult(status="fail", reason="candidate finding cannot promote")
+    if "false_alarm" in states:
+        return LifecycleResult(status="fail", reason="false_alarm finding cannot promote")
+    if "independently_checked" not in states:
+        return LifecycleResult(
+            status="fail",
+            reason="finding lifecycle missing independently_checked state",
+        )
+    if "evidence_linked" not in states:
+        return LifecycleResult(
+            status="fail",
+            reason="finding lifecycle missing evidence_linked state",
+        )
+
+    direct_paths = evidence_paths_read_directly(content)
+    if not direct_paths:
+        return LifecycleResult(
+            status="fail",
+            reason="Evidence Paths Read Directly must contain at least one project path",
+        )
+
+    unresolved = [
+        path for path in direct_paths
+        if not _path_resolves_inside_project(project, path)
+    ]
+    if unresolved:
+        return LifecycleResult(
+            status="fail",
+            reason=(
+                "Evidence Paths Read Directly contains unresolved project path(s): "
+                + ", ".join(unresolved[:3])
+            ),
+            direct_paths=direct_paths,
+        )
+
+    return LifecycleResult(
+        status="pass",
+        reason=f"{len(direct_paths)} direct-read path(s) declared and resolved",
+        direct_paths=direct_paths,
+    )
+
+
 def check_claim_freshness(
     file_path: Path,
     content: str,
@@ -87,6 +240,10 @@ def check_claim_freshness(
     """Return a FreshnessResult for *content* (intended write/edit body)."""
     if not _is_promoted(content):
         return FreshnessResult(status="skip", reason="not a promoted claim")
+
+    lifecycle = check_finding_lifecycle(file_path, content, project)
+    if lifecycle.status == "fail":
+        return FreshnessResult(status="fail", reason=lifecycle.reason)
 
     refs = _find_output_refs(content)
     if not refs:

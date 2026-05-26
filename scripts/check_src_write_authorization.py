@@ -3,8 +3,8 @@
 
 Cross-tier rule (from docs/orchestration_protocol.md): every executable
 code file inside a research run must be written by a spawned Implementation
-Agent — not by the Lead Agent and not by a Graduate Student (who reviews
-code but does not author it). This hook enforces that at write time.
+Agent — not by the Lead Agent, including while the Lead is wearing the
+Graduate Student role to review code. This hook enforces that at write time.
 
 Covered extensions: ``.py`` and ``.ipynb`` anywhere under a
 ``ResearchPartner-runs/<run>/`` directory, except inside ``<run>/docs/``
@@ -127,7 +127,7 @@ def main() -> int:
         f"CROSS-TIER BLOCK: refused to {tool_name} {file_path}\n"
         f"  run: {run_dir}\n"
         f"  reason: {reason}\n"
-        f"  rule: Graduate Students and the Lead Agent do not write code.\n"
+        f"  rule: the Lead Agent, including Graduate Student role passes, does not write code.\n"
         f"        Only spawned Implementation Agents write .py/.ipynb files\n"
         f"        inside a run directory (docs/ and literature/ are exempt).\n"
         f"  fix: spawn an Implementation Agent (skills/implementation-agent/SKILL.md)\n"

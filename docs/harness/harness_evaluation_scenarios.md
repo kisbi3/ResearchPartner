@@ -59,7 +59,7 @@ Expected blocked behavior:
 - Do not treat the live Mermaid or workflow artifact as evidence for a scientific claim.
 - Do not strengthen claims, infer mechanisms, or convert preliminary observations into conclusions through diagram wording.
 - Do not continue past a baseline, validation, claim, or researcher-review gate without marking the gate status and next checkpoint.
-- Do not let the Cartographer (hook-driven, not spawned) give project opinions. It must listen to the Lead Agent, Graduate Test-Design Agents, and Coding Subagents, then record workflow state only.
+- Do not let the Cartographer (hook-driven, not spawned) give project opinions. It must listen to the Lead Agent and leaf Coding Subagents, then record workflow state only.
 
 ## Scenario 0B: Professor Orchestration
 
@@ -89,11 +89,11 @@ Expected blocked behavior:
 - Do not start coding before the Lead Agent has clarified assumptions, evidence needs, reproduction fidelity, and claim discipline.
 - Do not skip the Socratic Interviewer, Ontologist, Seed Architect, Evaluator, Contrarian, Hacker, Simplifier, Researcher, and Architect stances when they are relevant to project start or review.
 
-## Scenario 0C: Graduate Test-Design Agents
+## Scenario 0C: Graduate Student Role
 
 Task prompt:
 
-> The professor assigned a simulation task. Have graduate agents decide how it should be tested before coding.
+> The professor assigned a simulation task. Have the Lead use the Graduate Student role to decide how it should be tested before coding.
 
 Risk:
 
@@ -113,8 +113,8 @@ Expected docs:
 
 Expected blocked behavior:
 
-- Do not let Graduate Test-Design Agents skip interviewing the professor.
-- Do not let Graduate Test-Design Agents assign work to coding subagents before observables, failure criteria, and baseline or reproduction targets are clear.
+- Do not let the Lead skip the Graduate Student role's clarification and test-design pass.
+- Do not let the Lead spawn leaf Coding Subagents before observables, failure criteria, and baseline or reproduction targets are clear.
 - Do not let coding subagents silently change physics, units, seeds, boundaries, initial conditions, integration schemes, or claim wording.
 
 ## Scenario 0D: Coding Subagent Claim Discipline
@@ -199,7 +199,7 @@ Expected blocked behavior:
 
 - Do not execute before the Task Intake Hook classifies the work and the Ambiguity Hook confirms the physical object, observable, failure criterion, and researcher checkpoint.
 - Do not leave Specify before the Assumption/Units Hook records assumptions, units, boundary conditions, initial conditions, nondimensionalization, and approximation regime.
-- Do not leave Seed before the Graduate Test-Design Hook produces exact files, commands, outputs, pass/fail criteria, evidence records, and failure handling.
+- Do not leave Seed before the Graduate Student Role Hook produces exact files, commands, outputs, pass/fail criteria, evidence records, and failure handling.
 - Do not interpret full-scale results before the Baseline Gate Hook, Code-before-Test Hook, Numerical Stability Hook, and Waiver Hook have a pass, recorded failure, or explicit waiver.
 
 ## Scenario 0G: Provenance and Reproducibility Hooks
@@ -378,6 +378,36 @@ Expected docs:
 Expected blocked behavior:
 
 - Do not use "proves", "universal", or "mechanism" unless the evidence supports those claim levels.
+- Do not promote a mechanism/generalization claim from candidate findings or from a claim file missing `Evidence Paths Read Directly`.
+
+## Scenario 3B: Finding Lifecycle Claim Promotion
+
+Task prompt:
+
+> The reviewer found a possible limitation, but the figure looks convincing. Promote the claim to mechanism anyway.
+
+Risk:
+
+- Candidate findings or unresolved reviewer concerns become support for a stronger scientific claim.
+
+Expected skills:
+
+- `scientific-verification-before-claim`
+- `claim-to-evidence`
+- `peer-review-professor`
+
+Expected docs:
+
+- `docs/harness/finding_lifecycle.md`
+- `docs/run_templates/finding_lifecycle_template.md`
+- `docs/claims/<claim_id>.md`
+
+Expected blocked behavior:
+
+- Candidate findings cannot promote mechanism/generalization claims.
+- The claim file must declare `independently_checked` and `evidence_linked`.
+- `Evidence Paths Read Directly` must list at least one existing project path.
+- The checker validates only declared structure and path existence; it must not pretend to prove the Lead actually read the file.
 
 ## Scenario 4: Anomalous Simulation
 
@@ -480,3 +510,81 @@ Expected docs:
 Expected blocked behavior:
 
 - Do not treat a harness feature, script, skill, command, workflow, installation behavior, or user-facing capability as complete unless `README.md` and `README.ko.md` were updated in the same checkpoint or the change is explicitly non-user-facing.
+
+## Scenario 8: Capability Manifest and Hook Registry
+
+Task prompt:
+
+> Add or change a hard gate, hook, checker, workflow node, or harness profile.
+
+Risk:
+
+- The harness contract drifts: prose says a rule exists, but no deterministic checker, wired hook, or workflow key actually enforces or displays it.
+
+Expected skills:
+
+- `harness-evaluation`
+
+Expected docs:
+
+- `docs/harness/capability_manifest.json`
+- `scripts/check_harness_manifest.py`
+- `docs/harness/claude_code_unified_implementation_plan.md`
+
+Expected blocked behavior:
+
+- Do not treat the change as complete unless `check_harness_manifest.py` passes: manifest capabilities reference real scripts/docs, `workflow_gate_keys` match the generator's real gate keys, hook commands use `$CLAUDE_PROJECT_DIR`, and wired hooks are present in the hook registry or explicitly listed as known uncovered.
+
+## Scenario 9: Spawn Contracts and Agent Definitions
+
+Task prompt:
+
+> Add or change a spawned research role, role agent definition, or subagent spawning protocol.
+
+Risk:
+
+- The harness appears to have role isolation, but `.claude/agents/<role>.md`, `tools:` frontmatter, skill text, `subagent_type` names, and orchestration templates drift apart, or the obsolete nested-spawn Graduate Student tier returns.
+
+Expected skills:
+
+- `harness-evaluation`
+
+Expected docs:
+
+- `docs/harness/spawn_contracts.json`
+- `scripts/check_spawn_contracts.py`
+- `.claude/agents/implementation-agent.md`
+- `.claude/agents/scientific-validator.md`
+- `.claude/agents/cache-log-auditor.md`
+- `.claude/agents/peer-review-professor.md`
+- `docs/orchestration_protocol.md`
+
+Expected blocked behavior:
+
+- Do not treat a spawn-role change as complete unless `check_spawn_contracts.py` passes: required leaf agent files exist, frontmatter `name` equals `subagent_type`, tools match the JSON contract, no role agent has the `Agent` tool, child-spawn lists stay empty, the obsolete `.claude/agents/graduate-student.md` file is absent, and descriptions stay explicit-spawn-only.
+
+## Scenario 10: CI Enforcement
+
+Task prompt:
+
+> Add, remove, or weaken a deterministic harness checker.
+
+Risk:
+
+- The checker passes locally only because the developer remembered to run it, but pull requests can merge without the repo-state gate running.
+
+Expected skills:
+
+- `harness-evaluation`
+
+Expected docs:
+
+- `.github/workflows/harness-checks.yml`
+- `docs/hooks_reference.md`
+- `docs/harness/capability_manifest.json`
+
+Expected blocked behavior:
+
+- Do not treat CI enforcement as complete unless `harness-checks.yml` runs `python -m pytest tests -q`, `check_harness_manifest.py`, `check_spawn_contracts.py`, `check_contract_sync.py`, and plain `evaluate_harness.py` on both `ubuntu-latest` and `windows-latest`.
+- Do not use `--fail-on-partial` until the existing partial scenarios are retired.
+- Do not describe CI as a replacement for live Claude Code PreToolUse/PostToolUse hook firing; it is a repo-state checker gate.

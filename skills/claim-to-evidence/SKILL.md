@@ -101,3 +101,16 @@ lineage:
 ```
 
 Then run `/sync-workflow` to update the live workflow map. Note: `limits` edges belong on the anomaly node pointing to this claim, not here. See `skills/sync-workflow/SKILL.md` for the full front-matter spec.
+
+## Finding Lifecycle
+
+For any claim whose ceiling may become `mechanism` or `generalization`, include a
+`## Finding Lifecycle` section in `docs/claims/<claim_slug>.md`. Candidate
+findings cannot promote strong claims. Promotion requires declared
+`independently_checked` and `evidence_linked` states, no `false_alarm` state,
+and a non-empty `## Evidence Paths Read Directly` section with project paths
+that exist on disk.
+
+This is a structural gate. The checker verifies the declared lifecycle and
+resolvable paths; it cannot prove that the Lead Agent actually read the files.
+Do not present the checker result as proof of reading.

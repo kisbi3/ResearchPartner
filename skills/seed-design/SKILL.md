@@ -1,6 +1,6 @@
 ---
 name: seed-design
-description: Use after a research plan is approved by research-plan-review to convert it into concrete graduate-agent tasks with files, commands, inputs, outputs, pass/fail criteria, and failure handling. This is the Seed phase — do not begin coding or simulation before this skill produces a complete task specification.
+description: Use after a research plan is approved by research-plan-review to convert it into concrete Lead-coordinated seed tasks with files, commands, inputs, outputs, pass/fail criteria, and failure handling. This is the Seed phase — do not begin coding or simulation before this skill produces a complete task specification.
 ---
 
 # Seed Design Skill
@@ -38,7 +38,7 @@ Do not design Task 1 as any other kind of work (e.g., parameter sweep, new featu
 Each seed task must specify:
 
 1. **Title**: a short imperative description of the task.
-2. **Role**: Graduate Student Agent (owns execution), Implementation Agent (code), Scientific Validator (run+check), or Lead Agent.
+2. **Role**: Lead Agent acting in the Graduate Student role (owns orchestration), Implementation Agent (code), Scientific Validator (run+check), or Lead Agent.
 3. **Input files**: exact paths to code, data, parameter files, or prior output files.
 4. **Script to write**: exact path under `src/` for the Implementation Agent.
 5. **Expected output**: exact file names, log entries, figure paths, or printed values.
@@ -46,11 +46,11 @@ Each seed task must specify:
 7. **Fail criterion**: the specific condition that means this task failed and must not proceed.
 8. **On failure**: what to do when the fail criterion is met — stop and escalate, log and continue, or retry with a stated change.
 9. **Evidence record**: the file or log entry that will document the result for the Cartographer.
-10. **Graduate Student Spawn Block**: the pre-formatted Agent() prompt the Professor uses to spawn a Graduate Student for this task (see format below).
+10. **Lead Task-Orchestration Block**: the pre-formatted task packet the Lead Agent uses while loading `skills/graduate-student/SKILL.md` for this task (see format below).
 
-### Graduate Student Spawn Block Format
+### Lead Task-Orchestration Block Format
 
-Each task ends with a Graduate Student spawn block that Professor uses directly as the `prompt` argument to `Agent()`. Use the canonical template in [`docs/orchestration_protocol.md`](../../docs/orchestration_protocol.md) under **Spawn Block Templates → Graduate Student** — do not duplicate it here. Seed-design's job is to fill in the task-specific fields and append the **Implementation spec** block the Graduate Student needs in order to spawn its Implementation Agent:
+Each task ends with a Lead task-orchestration block. This is not an `Agent()` prompt and must not spawn a Graduate Student subagent. Use the canonical template in [`docs/orchestration_protocol.md`](../../docs/orchestration_protocol.md) under **Task-Orchestration Template → Graduate Student Role** — do not duplicate it here. Seed-design's job is to fill in the task-specific fields and append the **Implementation spec** block the Lead needs in order to spawn its leaf Implementation Agent:
 
 ```
 Implementation spec:
@@ -61,7 +61,7 @@ Implementation spec:
 - Outputs: <file paths the script must produce>
 ```
 
-Do not paste prohibitions ("Do NOT...") or the "Report back:" line into the spawn block — those are owned by [`skills/graduate-student/SKILL.md`](../graduate-student/SKILL.md) and would only re-inject duplicate context into every spawn.
+Do not paste prohibitions ("Do NOT...") or the "Report back:" line into the block — those are owned by [`skills/graduate-student/SKILL.md`](../graduate-student/SKILL.md) and would only re-inject duplicate context into every task packet.
 
 ## Sizing Rule
 
@@ -73,16 +73,16 @@ The first seed task must be the **smallest possible** executable step. Reject a 
 
 If the plan requires multiple tasks, list them in dependency order. Mark which tasks may run in parallel and which must be sequential.
 
-## Task-Student Mapping Rule
+## Task-Orchestration Mapping Rule
 
-**Each task in this seed corresponds to exactly one Graduate Student instance.** A Graduate Student is never reused across tasks, and a task is never split across multiple Graduate Students. Do not categorize tasks by "student type" (e.g. "baseline student tasks", "literature student tasks") — every Graduate Student has identical capabilities and is bound only to the single task they were spawned with.
+**Each task in this seed corresponds to exactly one Lead-managed Graduate Student role pass.** Do not spawn Graduate Student subagents. Do not categorize tasks by "student type" (e.g. "baseline student tasks", "literature student tasks") — the Lead loads the same `graduate-student` role skill for each task and keeps orchestration in the main context.
 
-When Lead Agent reads this seed and spawns Graduate Students, the spawning protocol is:
+When the Lead Agent reads this seed, the orchestration protocol is:
 
-- For every task with `depends_on: []` (no inbound dependency), Professor must spawn its Graduate Student in the **same assistant message** as every other independent task, using parallel `Agent()` tool calls in that one message.
-- A task with `depends_on: [Task K]` is spawned only after Task K's Graduate Student reports back.
+- For every task with `depends_on: []` (no inbound dependency), the Lead may coordinate the task packets as one batch, then directly spawn the needed leaf agents (`implementation-agent`, `scientific-validator`, `cache-log-auditor`) from the Lead context as task order permits.
+- A task with `depends_on: [Task K]` begins only after Task K's Lead-managed role pass has produced its evidence and decision.
 
-If your seed yields three independent tasks plus one dependent task, the expected spawning pattern is: one parallel batch of 3 Graduate Students, wait for those to return, then one more Graduate Student for the dependent task.
+If your seed yields three independent tasks plus one dependent task, the expected pattern is: one Lead-managed batch of 3 task packets, wait for their required leaf-agent reports and Lead code reviews, then begin the dependent task.
 
 ## Waiver Visibility
 
@@ -118,7 +118,7 @@ For each task:
 
 #### Task N: [Title]
 
-- **Role**: Graduate Student Agent
+- **Role**: Lead Agent acting in the Graduate Student role
 - **Inputs**:
 - **Script to write**: `src/<filename>.py`
 - **Expected output**:
@@ -127,9 +127,9 @@ For each task:
 - **On failure**:
 - **Evidence record**:
 
-#### Graduate Student Spawn Block — Task N
+#### Lead Task-Orchestration Block — Task N
 
-Fill in the canonical Graduate Student template from [`docs/orchestration_protocol.md`](../../docs/orchestration_protocol.md) with this task's `Task:` description, `Pass criterion:`, `Fail criterion:`, `On failure:`, and `Evidence record:` values, then append the **Implementation spec** block (Script to write / Equations / Parameters / Algorithm / Outputs). Do not re-inject prohibitions or the report format — those belong to `skills/graduate-student/SKILL.md`.
+Fill in the canonical Graduate Student Role template from [`docs/orchestration_protocol.md`](../../docs/orchestration_protocol.md) with this task's `Task:` description, `Pass criterion:`, `Fail criterion:`, `On failure:`, and `Evidence record:` values, then append the **Implementation spec** block (Script to write / Equations / Parameters / Algorithm / Outputs). Do not re-inject prohibitions or the report format — those belong to `skills/graduate-student/SKILL.md`.
 
 ### Dependency Map
 
@@ -143,7 +143,7 @@ Task 4  depends_on: [Task 1]     parallel_batch: B
 Task 5  depends_on: [Task 1, Task 2]   parallel_batch: B
 ```
 
-**Spawning rule:** all tasks in `parallel_batch: A` MUST be spawned by Professor in a single assistant message with multiple parallel `Agent()` calls. `parallel_batch: B` is spawned only after batch A's Graduate Students all report back. Sequential single-task spawning across messages, when no dependency forces it, is a workflow violation.
+**Spawning rule:** the Lead Agent is the only spawner. Do not create Graduate Student subagents. For tasks in `parallel_batch: A`, the Lead may launch independent leaf agents in parallel only where their task dependencies permit; `parallel_batch: B` begins only after batch A's evidence and Lead decisions are recorded. Sequential single-task handling is acceptable when the Lead must preserve context or researcher review checkpoints.
 
 ### Researcher Checkpoint
 

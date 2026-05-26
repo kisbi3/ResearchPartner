@@ -80,3 +80,16 @@ Give the strongest wording justified by the evidence.
 ### Missing Work
 
 Name the smallest validation or citation needed to strengthen the claim.
+
+### Finding Lifecycle
+
+If the claim ceiling is `mechanism` or `generalization`, verify that the claim
+file at `docs/claims/<claim_id>.md` contains a `## Finding Lifecycle` section.
+The lifecycle must no longer be `candidate`, must include
+`independently_checked` and `evidence_linked`, must not be `false_alarm`, and
+must list at least one existing project path under `## Evidence Paths Read
+Directly`.
+
+This check is structural. It confirms declared evidence paths exist; it does not
+prove that the Lead Agent read them. The Lead remains responsible for direct
+reading before strengthening the claim.

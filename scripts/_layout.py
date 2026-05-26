@@ -20,6 +20,7 @@ Directory tree produced by `init_research_project.py`::
     │   ├── literature/          ← literature-review metadata
     │   ├── meetings/            ← meeting notes
     │   ├── checkpoints/         ← stage checkpoints
+    │   ├── evidence/            ← Graduate Student task evidence
     │   ├── claims/              ← per-claim notes (lineage-bearing)
     │   └── model_versions/      ← per-model-version notes (lineage-bearing)
     ├── literature/              ← PDF files, reviews, extracted text
@@ -181,6 +182,10 @@ def meetings_dir(project: Path) -> Path:
 
 def checkpoints_dir(project: Path) -> Path:
     return project / "docs" / "checkpoints"
+
+
+def evidence_dir(project: Path) -> Path:
+    return project / "docs" / "evidence"
 
 
 # ── Runtime directories ───────────────────────────────────────────────────────

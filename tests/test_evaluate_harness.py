@@ -31,7 +31,7 @@ def test_multi_agent_orchestration_scenarios_are_evaluated():
 def test_harness_evaluator_includes_hook_scenarios():
     evaluator = load_evaluator()
 
-    assert len(evaluator.SCENARIOS) == 26
+    assert len(evaluator.SCENARIOS) == 30
 
 
 def test_orchestration_scenarios_require_run_templates():
@@ -169,3 +169,137 @@ def test_computation_checkpoint_scenario_is_evaluated():
     assert "run_with_checkpoint.py" in scenario.rule_terms
     assert "cache/checkpoint_" in scenario.rule_terms
     assert "orphaned" in scenario.rule_terms
+
+
+def test_capability_manifest_scenario_is_evaluated():
+    evaluator = load_evaluator()
+    scenarios = {scenario.name: scenario for scenario in evaluator.SCENARIOS}
+
+    assert "capability_manifest_and_hook_registry" in scenarios
+    scenario = scenarios["capability_manifest_and_hook_registry"]
+    assert "docs/harness/capability_manifest.json" in scenario.docs
+    assert "scripts/check_harness_manifest.py" in scenario.docs
+    assert "Capability Manifest Hook" in scenario.rule_terms
+    assert "hook registry" in scenario.rule_terms
+    assert "workflow_gate_keys" in scenario.rule_terms
+    assert "check_harness_manifest" in scenario.checks
+
+
+def test_capability_manifest_scenario_runs_manifest_checker(monkeypatch):
+    evaluator = load_evaluator()
+    scenario = {
+        scenario.name: scenario for scenario in evaluator.SCENARIOS
+    }["capability_manifest_and_hook_registry"]
+
+    monkeypatch.setattr(
+        evaluator,
+        "run_manifest_check",
+        lambda: ["manifest drift from test"],
+        raising=False,
+    )
+
+    result = evaluator.evaluate_scenario(scenario, evaluator.harness_rule_text())
+
+    assert result["status"] == "fail"
+    assert result["missing_checks"] == ["check_harness_manifest: manifest drift from test"]
+
+
+def test_spawn_contracts_scenario_is_evaluated():
+    evaluator = load_evaluator()
+    scenarios = {scenario.name: scenario for scenario in evaluator.SCENARIOS}
+
+    assert "spawn_contracts_and_agent_definitions" in scenarios
+    scenario = scenarios["spawn_contracts_and_agent_definitions"]
+    assert "docs/harness/spawn_contracts.json" in scenario.docs
+    assert "scripts/check_spawn_contracts.py" in scenario.docs
+    assert "Spawn Contract Consistency Gate" in scenario.rule_terms
+    assert "single-spawner model" in scenario.rule_terms
+    assert "subagent_type" in scenario.rule_terms
+    assert "check_spawn_contracts" in scenario.checks
+    assert ".claude/agents/graduate-student.md" not in scenario.docs
+
+
+def test_spawn_contracts_scenario_runs_checker(monkeypatch):
+    evaluator = load_evaluator()
+    scenario = {
+        scenario.name: scenario for scenario in evaluator.SCENARIOS
+    }["spawn_contracts_and_agent_definitions"]
+
+    monkeypatch.setattr(
+        evaluator,
+        "run_spawn_contracts_check",
+        lambda: ["spawn contract drift from test"],
+        raising=False,
+    )
+
+    result = evaluator.evaluate_scenario(scenario, evaluator.harness_rule_text())
+
+    assert result["status"] == "fail"
+    assert result["missing_checks"] == ["check_spawn_contracts: spawn contract drift from test"]
+
+
+def test_finding_lifecycle_claim_promotion_scenario_is_evaluated():
+    evaluator = load_evaluator()
+    scenarios = {scenario.name: scenario for scenario in evaluator.SCENARIOS}
+
+    assert "finding_lifecycle_claim_promotion" in scenarios
+    scenario = scenarios["finding_lifecycle_claim_promotion"]
+    assert "docs/harness/finding_lifecycle.md" in scenario.docs
+    assert "docs/run_templates/finding_lifecycle_template.md" in scenario.docs
+    assert "Evidence Paths Read Directly" in scenario.rule_terms
+    assert "check_claim_promotion_lifecycle" in scenario.checks
+
+
+def test_finding_lifecycle_scenario_runs_checker(monkeypatch):
+    evaluator = load_evaluator()
+    scenario = {
+        scenario.name: scenario for scenario in evaluator.SCENARIOS
+    }["finding_lifecycle_claim_promotion"]
+
+    monkeypatch.setattr(
+        evaluator,
+        "run_claim_promotion_lifecycle_check",
+        lambda: ["claim lifecycle drift from test"],
+        raising=False,
+    )
+
+    result = evaluator.evaluate_scenario(scenario, evaluator.harness_rule_text())
+
+    assert result["status"] == "fail"
+    assert result["missing_checks"] == [
+        "check_claim_promotion_lifecycle: claim lifecycle drift from test"
+    ]
+
+
+def test_ci_enforcement_scenario_is_evaluated():
+    evaluator = load_evaluator()
+    scenarios = {scenario.name: scenario for scenario in evaluator.SCENARIOS}
+
+    assert "ci_enforcement" in scenarios
+    scenario = scenarios["ci_enforcement"]
+    assert ".github/workflows/harness-checks.yml" in scenario.docs
+    assert "docs/hooks_reference.md" in scenario.docs
+    assert "CI Enforcement Gate" in scenario.rule_terms
+    assert "repo-state checker" in scenario.rule_terms
+    assert "check_ci_enforcement" in scenario.checks
+
+
+def test_ci_enforcement_scenario_runs_checker(monkeypatch):
+    evaluator = load_evaluator()
+    scenario = {
+        scenario.name: scenario for scenario in evaluator.SCENARIOS
+    }["ci_enforcement"]
+
+    monkeypatch.setattr(
+        evaluator,
+        "run_ci_enforcement_check",
+        lambda: ["ci workflow drift from test"],
+        raising=False,
+    )
+
+    result = evaluator.evaluate_scenario(scenario, evaluator.harness_rule_text())
+
+    assert result["status"] == "fail"
+    assert result["missing_checks"] == [
+        "check_ci_enforcement: ci workflow drift from test"
+    ]

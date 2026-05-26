@@ -40,6 +40,9 @@ Run before the Lead Agent promotes the run's claim ceiling above `observation`.
 - **Input**: `<run>/docs/gates/validation_log.md` rows (`| Date | Check | Target | Status | Evidence |`).
 - **Count gate**: interpretation ≥ 1 pass; mechanism ≥ 2 pass; generalization ≥ 3 pass.
 - **Diversity gate**: `mechanism` requires ≥ 1 baseline-class pass (Check matching `toy_model | reproduction | analytical | conservation | dimensional | known_limit`). `generalization` requires ≥ 2 distinct Check categories.
+- **Finding Lifecycle Hook**: for `mechanism` and `generalization`, the affected `docs/claims/<claim_id>.md` must include a `## Finding Lifecycle` section. Candidate findings cannot promote; `independently_checked` and `evidence_linked` must be declared; `false_alarm` cannot promote; and `## Evidence Paths Read Directly` must contain at least one existing project path.
+- **Direct-read boundary**: the checker validates only declared structure and path existence. It cannot prove the Lead actually read a file.
+- **Wired freshness layer**: `scripts/path_check_hooks.py` invokes `scripts/check_claim_promotion_freshness.py` for `docs/claims/*.md` writes. That path keeps the existing stale-output check and adds the same candidate/direct-read structural check for mechanism/generalization claim files.
 - **Bypass**: lower the target ceiling or add a waivered validation row.
 
 ## Peer-Review Invocation Hook (HARD ENFORCED)
@@ -91,6 +94,31 @@ Cross-referential edges (`evolved_from`, `reproduces`, `cites_paper`, `supports`
 - **Script**: `python scripts/sync_workflow.py --project <project-dir> --validate-edges`
 - **Decision**: exits 2 with a list of dangling endpoints; exits 0 with a clean report when every reference resolves.
 
+## Capability Manifest Hook
+
+`scripts/check_harness_manifest.py` validates the deterministic contract in `docs/harness/capability_manifest.json`. It keeps prose, checkers, workflow gate keys, and wired local hooks from drifting apart.
+
+- **Script**: `python scripts/check_harness_manifest.py --project <project-dir>`
+- **Decision**: exits 1 when a capability references a missing script/doc, `workflow_gate_keys` do not match the real keys in `scripts/generate_workflow_map.py`, a hook command does not use `$CLAUDE_PROJECT_DIR`, or a wired hook is absent from both `hook_registry` and `known_uncovered_wired_hooks`.
+- **Registry docs**: see `docs/harness/hook_registry.md` for the readable summary; the machine source of truth is `docs/harness/capability_manifest.json`.
+
+## Spawn Contract Consistency Gate
+
+`scripts/check_spawn_contracts.py` validates `docs/harness/spawn_contracts.json` against `.claude/agents/<role>.md`, role skills, and `docs/orchestration_protocol.md`. It is an offline/CI consistency gate for the single-spawner model: the Lead Agent is the only spawner, and all spawned role agents are leaf agents. The script does not itself block a live tool call, but it catches drift before a PR or checkpoint claims the spawn contract is coherent.
+
+- **Script**: `python scripts/check_spawn_contracts.py --project <project-dir>`
+- **Decision**: exits 1 when a required leaf role is missing, an agent file's frontmatter `name` differs from the `subagent_type`, `tools:` differs from the JSON contract, any role agent includes the `Agent` tool, any role declares child spawns, the obsolete `.claude/agents/graduate-student.md` file exists, the description is not explicit-spawn-only, or `docs/orchestration_protocol.md` omits a required leaf `subagent_type`.
+- **Layering**: Claude Code's agent loader applies `.claude/agents/<role>.md` `tools:` at runtime; existing path and Bash hooks (`check_src_write_authorization.py`, `check_bash_code_write.py`) still provide hard protection against unauthorized code writes.
+
+## CI Enforcement Gate
+
+`.github/workflows/harness-checks.yml` runs deterministic repo-state checker commands on `push` and `pull_request` across `ubuntu-latest` and `windows-latest`.
+
+- **Workflow**: `.github/workflows/harness-checks.yml`
+- **Commands**: `python -m pytest tests -q`; `python scripts/check_harness_manifest.py`; `python scripts/check_spawn_contracts.py`; `python scripts/check_contract_sync.py`; `python scripts/evaluate_harness.py`.
+- **Decision**: any command exit code fails CI. `evaluate_harness.py` is run without `--fail-on-partial` until the existing partial scenarios are retired.
+- **Layering**: CI complements `--upgrade-hooks` and local hook installation by enforcing repository-state drift. It cannot prove live Claude Code PreToolUse/PostToolUse hook firing.
+
 ## Re-spawn Monitoring (not a hook — surfaces in stage checkpoint)
 
 `scripts/write_stage_checkpoint.py` reports re-spawn hotspots (files with ≥ 3 Implementation Agent entries in `docs/gates/agent_spawn_log.md`) alongside the cross-tier verdict. Re-spawns are normal (the Graduate Student code review can reject a draft and re-spawn the Implementation Agent), but a hotspot signals a poor spec, an ambiguous task, or a buggy Implementation Agent pass that the researcher should inspect at the stage gate.
@@ -101,11 +129,13 @@ Hook registrations live in `.claude/settings.local.json`. Current shape:
 
 | Phase | Matcher | Script |
 |---|---|---|
-| PreToolUse | `Agent` | `workflow_hooks.py pre`, `check_peer_review_invocation.py` |
-| PreToolUse | `Write\|Edit` | `check_src_write_authorization.py`, `path_check_hooks.py pre` |
+| PreToolUse | `Agent` | `enforce_gate_sequence.py`, `workflow_hooks.py pre`, `check_peer_review_invocation.py` |
+| PreToolUse | `Write\|Edit` | `check_src_write_authorization.py`, `path_check_hooks.py pre`, `workflow_hooks.py pre` |
 | PreToolUse | `Bash\|PowerShell` | `check_bash_code_write.py`, `check_seed_before_full_run.py`, `warn_orphan_checkpoints.py` |
-| PostToolUse | `Agent` | `workflow_hooks.py post` |
-| PostToolUse | `Write\|Edit` | `path_check_hooks.py post` |
-| PostToolUse | `Bash\|PowerShell` | `path_check_hooks.py post` |
+| PostToolUse | `Agent` | `workflow_hooks.py post`, `check_spawn_log_integrity.py` |
+| PostToolUse | `Write\|Edit` | `workflow_hooks.py post`, `path_check_hooks.py post` |
+| PostToolUse | `Bash\|PowerShell` | `workflow_hooks.py post`, `path_check_hooks.py post` |
 
-Adding a new hook: write the script, append it to the appropriate matcher block in `settings.local.json`, and add a short bullet to `AGENTS.md` linking back to this reference file.
+Hook commands should use `python "$CLAUDE_PROJECT_DIR/scripts/<script>.py"` so installed projects run the hook from the project root regardless of the shell's current working directory.
+
+Adding a new hook: write the script, append it to the appropriate matcher block in `settings.local.json`, register it in `docs/harness/capability_manifest.json`, run `python scripts/check_harness_manifest.py --project <project-dir>`, and add a short bullet to `AGENTS.md` linking back to this reference file.

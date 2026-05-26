@@ -20,6 +20,11 @@ claim is stronger than aggregated observations only when it survives at
 least one principled sanity check, and a "generalization" claim should
 survive on more than one kind of test.
 
+For mechanism/generalization, the affected ``docs/claims/<claim_id>.md`` file
+must also contain a resolved Finding Lifecycle. This script verifies only the
+declared lifecycle structure and path existence; it cannot prove the Lead Agent
+actually read the referenced files.
+
 The validation log row format:
     | Date | Check | Target | Status | Evidence |
     | YYYY-MM-DD | toy_model | linear_limit | pass | outputs/toy.png |
@@ -42,6 +47,10 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import _project_root as project_root_mod  # noqa: E402
+from check_claim_promotion_freshness import (  # noqa: E402
+    check_finding_lifecycle,
+    claim_ceiling,
+)
 
 THRESHOLDS = {
     "observation": 0,
@@ -79,6 +88,43 @@ def has_baseline_class(checks: list[str]) -> bool:
 
 def distinct_check_count(checks: list[str]) -> int:
     return len({c for c in checks if c})
+
+
+def finding_lifecycle_problems(project: Path, target: str) -> list[str]:
+    """Return lifecycle blockers for mechanism/generalization promotions.
+
+    The checker validates declarative structure only: claim docs must record a
+    non-candidate finding, independent check, evidence link, and direct-read
+    project paths that resolve. It cannot prove the Lead actually read a file.
+    """
+    if target not in {"mechanism", "generalization"}:
+        return []
+
+    claims_dir = project / "docs" / "claims"
+    if not claims_dir.is_dir():
+        return [
+            "mechanism/generalization promotion requires docs/claims/<claim_id>.md "
+            "with a Finding Lifecycle section"
+        ]
+
+    relevant_claims: list[Path] = []
+    problems: list[str] = []
+    for path in sorted(claims_dir.glob("*.md")):
+        text = path.read_text(encoding="utf-8", errors="replace")
+        if claim_ceiling(text) != target:
+            continue
+        relevant_claims.append(path)
+        result = check_finding_lifecycle(path, text, project)
+        if result.status != "pass":
+            rel = path.relative_to(project).as_posix()
+            problems.append(f"{rel}: {result.reason}")
+
+    if not relevant_claims:
+        return [
+            f"target='{target}' requires at least one docs/claims/<claim_id>.md "
+            f"with ceiling: {target} and a valid Finding Lifecycle section"
+        ]
+    return problems
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -146,6 +192,19 @@ def main(argv: list[str] | None = None) -> int:
             f"  fix: add a pass entry from a different check category (e.g. add a "
             f"conservation check on top of a toy-model reproduction), or lower the "
             f"target ceiling to 'mechanism'.",
+            file=sys.stderr,
+        )
+        return 2
+
+    lifecycle_problems = finding_lifecycle_problems(project, target)
+    if lifecycle_problems:
+        print(
+            f"CLAIM PROMOTION BLOCKED: target='{target}' finding lifecycle "
+            f"requirements are not satisfied.\n"
+            + "\n".join(f"  - {problem}" for problem in lifecycle_problems)
+            + "\n  fix: update docs/claims/<claim_id>.md with a non-candidate "
+            "Finding Lifecycle, independently_checked + evidence_linked states, "
+            "and a non-empty Evidence Paths Read Directly list whose paths exist.",
             file=sys.stderr,
         )
         return 2

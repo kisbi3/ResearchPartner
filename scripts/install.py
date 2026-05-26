@@ -13,11 +13,19 @@ from pathlib import Path
 
 
 REPO_ZIP_URL = "https://github.com/kisbi3/ResearchPartner/archive/refs/heads/main.zip"
-MANAGED_ITEMS = ("AGENTS.md", "GEMINI.md", "PHYSICS.md", "skills", "docs", "scripts")
+MANAGED_ITEMS = (
+    "AGENTS.md",
+    "GEMINI.md",
+    "PHYSICS.md",
+    "skills",
+    "docs",
+    "scripts",
+    ".claude/agents",
+)
 
 
 def display_name(item: str) -> str:
-    return f"{item}/" if item in {"skills", "docs", "scripts"} else item
+    return f"{item}/" if item in {"skills", "docs", "scripts", ".claude/agents"} else item
 
 
 def install_from_source(source_root: Path, target_root: Path, force: bool = False) -> list[str]:

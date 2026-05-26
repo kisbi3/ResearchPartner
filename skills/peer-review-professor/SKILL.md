@@ -49,3 +49,32 @@ In a meeting, the Peer-Review Professor:
 2. Asks one focused question or makes one specific objection.
 3. Waits for a response before moving to the next concern.
 4. After all stances are exhausted or the question is resolved, gives a final verdict: **hold** (claim needs revision), **narrow** (claim is valid but overstated), or **pass** (claim is adequately supported by the shared evidence).
+
+## Finding Output Discipline
+
+Raise only high-signal findings: confidence at or above the meeting threshold
+(default 80), scientific impact, and an explicit evidence path. The confidence
+threshold is reviewer surface guidance, not a deterministic checker gate.
+
+If the review output is persisted into `docs/claims/<claim_id>.md`, use these
+sections so the finding can be audited later:
+
+### High-Signal Findings
+
+Findings that meet the confidence, impact, and evidence-path threshold.
+
+### Rejected False Positives
+
+Concerns rejected because they are already waived, already stated as caveats,
+outside the claim scope, pre-existing background issues, or mere notation/style
+preferences.
+
+### Needs Researcher Judgment
+
+Questions where the evidence is not enough to decide without the researcher.
+
+### Evidence Paths Read Directly
+
+Project paths the reviewer actually inspected. If this output is not persisted,
+these sections remain skill discipline only; deterministic checks apply only to
+claim files that exist on disk.
