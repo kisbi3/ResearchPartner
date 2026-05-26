@@ -16,14 +16,14 @@ For substantial research plans, existing-project reviews, reproduction attempts,
 - **Peer-Review Professor** (spawned subagent, `meeting --scope review` only): adversarial external reviewer with no project history; reads only the live workflow diagram and whatever artifact is explicitly shared. Uses adversarial stances (Adversarial, Domain Expert, Skeptic, Gap Finder, Simplifier) to find holes in claims. Load `skills/peer-review-professor/SKILL.md`. Single-shot critique, then done.
 - **Graduate Student role** (not spawned): a Lead-Agent operating mode loaded from `skills/graduate-student/SKILL.md` for one seed task. It owns task execution strategy, Lead code review, anomaly escalation, and evidence reporting in the main context. The Lead directly spawns any leaf agents this role needs.
 - **Leaf Coding Subagents** (spawned directly by the Lead Agent): Implementation Agent, Scientific Validator, and Cache-Log Auditor perform bounded implementation, validation, audit, analysis, or plotting tasks only after the Lead's task strategy is clear. They report commands, parameters, seeds, files, outputs, validation status, and failures. They never spawn other agents or decide that a result supports a stronger scientific claim.
-- **Diagram/Cartographer** (*not* a spawned agent — hook-driven automation): the live workflow artifact is maintained automatically by `scripts/workflow_hooks.py` (registered as PreToolUse/PostToolUse on the `Agent` tool) and by explicit `cartographer-update` SKILL packets that any agent can emit. There is no separate Cartographer agent to spawn. The role exists as a contract (record process state only; never strengthen claims, infer mechanisms, or judge meaning), implemented by hooks + SKILL.
+- **Workflow state automation** (*not* a spawned agent): the live workflow artifact is maintained automatically by `scripts/workflow_hooks.py` (registered as PreToolUse/PostToolUse on the `Agent` tool) and by explicit `/sync-workflow` refreshes. There is no separate diagram agent to spawn. The contract is to record process state only; never strengthen claims, infer mechanisms, or judge meaning.
 
 Role ownership across the loop (the loop itself is defined in `AGENTS.md`):
 
 - **Lead Agent** owns Orient, Interview, Specify, Evaluate, Review, claim discipline, waiver judgment, and completion conference decisions.
 - **Lead Agent in the Graduate Student role** owns Seed and Validate planning for one task: converting the research seed into testable files, commands, inputs, outputs, pass/fail criteria, and required records.
 - **Leaf Coding Subagents** own bounded Execute tasks after the validation strategy is clear. They may implement, validate, audit, analyze, or plot, but they only report commands, parameters, seeds, files, outputs, validation status, and failures.
-- **Cartographer (automated)** records live workflow state only: active step, gate status, evidence links, blocked behaviors, waivers, stale artifacts, and next researcher review checkpoint.
+- **workflow_hooks.py (hook-driven, not spawned)** records spawn events automatically; `/sync-workflow` refreshes active step, gate status, evidence links, blocked behaviors, waivers, stale artifacts, and next researcher review checkpoint.
 
 ## Agent Spawning Protocol
 
@@ -56,8 +56,8 @@ Lead Agent (main context — not spawned)
     │       writes requested figure-generation code/files to outputs/figures/;
     │       does NOT interpret results
     │
-    └─ Cartographer (hook-driven, not spawned)
-            workflow_hooks.py + cartographer-update SKILL packets
+    └─ workflow_hooks.py (hook-driven, not spawned)
+            automatic Agent spawn records + /sync-workflow refreshes
 ```
 
 ### When to Spawn
@@ -71,7 +71,7 @@ Lead Agent (main context — not spawned)
 | Code needs to be run and verified | Lead Agent | Scientific Validator |
 | After Scientific Validator completes | Lead Agent | Cache-Log Auditor |
 | Publication-quality figures needed | Lead Agent | Implementation Agent |
-| Workflow state changed | (automatic) | Cartographer (hook fires) |
+| Workflow state changed | Automatic + Lead-triggered | `workflow_hooks.py` records Agent spawns; `/sync-workflow` refreshes state |
 
 ### Parallel Task Coordination Rule
 
@@ -242,12 +242,12 @@ Question under review: <specific claim or decision>
 
 ## Live Linked Research Graph
 
-The Cartographer automation must maintain a **Live Linked Research Graph**, not just a static loop diagram. The Lead Agent and leaf Coding Subagents emit workflow update packets when progress or evidence changes; PreToolUse/PostToolUse hooks supplement these with automatic activity records. The graph should expose Code links, Result links, and Interpretation links for every important node when those artifacts exist.
+The workflow automation must maintain a **Live Linked Research Graph**, not just a static loop diagram. The Lead Agent and leaf Coding Subagents leave evidence and lineage records when progress changes; `workflow_hooks.py` supplements these with automatic Agent activity records, and `/sync-workflow` rebuilds the visible state. The graph should expose Code links, Result links, and Interpretation links for every important node when those artifacts exist.
 
 Live graph records must include:
 
 - **Link Status**: `fresh`, `stale`, `missing`, `broken`, `pending_review`, or `superseded`.
-- **Evidence Strength**: `none`, `weak`, `moderate`, `strong`, or `contradictory`, supplied by the Lead Agent rather than inferred by the Cartographer automation.
+- **Evidence Strength**: `none`, `weak`, `moderate`, `strong`, or `contradictory`, supplied by the Lead Agent rather than inferred by workflow automation.
 - **Claim ceiling**: `observation`, `interpretation`, `mechanism`, `generalization`, or `unsupported`.
 - **Researcher Checkpoint Marker**: whether the researcher must inspect a figure, claim, waiver, anomaly, or stale artifact before progress continues.
 - **Artifact Preview**: thumbnail, table-head, or log-tail hints for result inspection.
@@ -273,4 +273,4 @@ The Lead Agent holds these stances (the "professor stances") when starting or re
 
 ## Completion Conference
 
-When a reproduction, validation, figure-generation, or other substantial task is complete and visualization artifacts are ready, the Lead Agent must convene a completion conference summarizing all spawned agents' reports: Graduate Students, Coding Subagents, and the latest Cartographer state. The final report to the user must summarize the meeting, the workflow state, the visualization materials, evidence links, supported claims, unsupported claims, validation status, and remaining uncertainty.
+When a reproduction, validation, figure-generation, or other substantial task is complete and visualization artifacts are ready, the Lead Agent must convene a completion conference summarizing all leaf-agent reports, Graduate Student role output, and the latest workflow state. The final report to the user must summarize the meeting, the workflow state, the visualization materials, evidence links, supported claims, unsupported claims, validation status, and remaining uncertainty.

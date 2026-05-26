@@ -45,7 +45,7 @@ Each seed task must specify:
 6. **Pass criterion**: the specific condition that means this task succeeded.
 7. **Fail criterion**: the specific condition that means this task failed and must not proceed.
 8. **On failure**: what to do when the fail criterion is met — stop and escalate, log and continue, or retry with a stated change.
-9. **Evidence record**: the file or log entry that will document the result for the Cartographer.
+9. **Evidence record**: the file or log entry that `/sync-workflow` will use to refresh live workflow state.
 10. **Lead Task-Orchestration Block**: the pre-formatted task packet the Lead Agent uses while loading `skills/graduate-student/SKILL.md` for this task (see format below).
 
 ### Lead Task-Orchestration Block Format

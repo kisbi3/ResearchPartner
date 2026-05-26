@@ -53,7 +53,7 @@ A Peer-Review Professor may only be spawned from within a `meeting --scope revie
 - **Decision**: block when the spawn prompt names the Peer-Review role unless either (a) the same prompt references the `meeting` skill with `--scope review`/`--scope full`, or (b) a `<run>/docs/meetings/*.md` artifact was touched within the last 10 minutes.
 - **Bypass**: `RESEARCH_HARNESS_BYPASS_MEETING_GATE=1`.
 
-## Workflow Sync Hook (Cartographer Artifact Hook)
+## Workflow Sync Hook
 
 Workflow state is maintained by two complementary mechanisms:
 
@@ -251,9 +251,9 @@ Failed baselines, null results, disappearing effects, and invalidated hypotheses
 
 For important runs, record command, OS, Python/package versions, relevant environment, and git state when available.
 
-### Cartographer Hook
+### Workflow State Hook
 
-The Cartographer (hook-driven, not spawned) listens to the Lead Agent, records process state in the live workflow artifact, tracks active step, gates, evidence links, must not strengthen scientific claims, and does not give project opinions.
+workflow_hooks.py (hook-driven, not spawned) listens to the Lead Agent and leaf Coding Subagents, records process state in the live workflow artifact, tracks active step, gates, and evidence links, must not strengthen scientific claims, and does not give project opinions. `/sync-workflow` is the on-demand deterministic refresh path.
 
 ### Coding Subagent Claim Discipline
 
@@ -261,7 +261,7 @@ Leaf Coding Subagents do bounded implementation, validation, audit, or figure wo
 
 ### Completion Conference Reporting
 
-At major completion points, the Lead Agent performs a completion conference across all agents, gathers visualization materials and validation evidence, then reports to the user with claim limits and caveats.
+At major completion points, the Lead Agent performs a completion conference across all agents' reports, Graduate Student role output, and the latest workflow state, gathers visualization materials and validation evidence, then reports to the user with claim limits and caveats.
 
 ### Retrospective Hook
 
