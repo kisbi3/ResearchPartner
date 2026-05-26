@@ -473,7 +473,7 @@ python -m pytest tests -q
 python scripts/check_harness_manifest.py
 python scripts/check_spawn_contracts.py
 python scripts/check_contract_sync.py
-python scripts/evaluate_harness.py
+python scripts/evaluate_harness.py --fail-on-partial
 ```
 
 **계층/한계(중요)** — CI는 repo-state checker만 강제한다. live Claude Code PreToolUse/PostToolUse hook의 발화는
@@ -482,7 +482,8 @@ python scripts/evaluate_harness.py
 `docs/logs/anomaly_log.md` 중복제거·자동 분류에 이식.
 
 **수용 기준**: PR이 pytest/manifest/spawn/contract/evaluator 중 하나라도 깨면 CI red, fixture 기반이라 머신 독립.
-기존 partial 시나리오가 0이 될 때까지 `evaluate_harness.py --fail-on-partial`은 후속 backlog로 둔다.
+**마무리 결과(2026-05-27)**: CP6로 partial 0을 달성했으므로 CI evaluator 명령을
+`python scripts/evaluate_harness.py --fail-on-partial`로 격상했다. 이후 새 partial은 CI red가 된다.
 (§4 매핑표·§13 PR표에 CP7/PR7 행 반영됨.)
 
 ---
@@ -603,7 +604,7 @@ Checkpoint 0 (선행, 모든 PR 전)
 - [ ] 하위 implementation plan 문서들은 `SUPERSEDED` 포인터를 갖고 통합본을 유일한 편집 대상으로 가리킴.
 - [ ] README·README.ko가 새 공개 동작과 동기화; 지침 변경 시 AGENTS≡GEMINI.
 - [ ] (L7) PreToolUse hook은 싼 hard 차단만; lineage-coverage·manifest-completeness·spawn-log-reconciliation 같은 무거운 검사는 Stage Checkpoint/CI에서 실행.
-- [ ] (L5/CP7) `harness-checks.yml` CI가 PR마다 pytest/manifest/spawn/contract/evaluator를 실행하고 repo-state checker 정합을 검증(live hook 발화·머신 로컬 settings 미수정 → `--upgrade-hooks`와 분담). Partial 0 달성 전까지 `--fail-on-partial`은 후속 backlog.
+- [x] (L5/CP7) `harness-checks.yml` CI가 PR마다 pytest/manifest/spawn/contract/evaluator를 실행하고 repo-state checker 정합을 검증(live hook 발화·머신 로컬 settings 미수정 → `--upgrade-hooks`와 분담). CP6로 partial 0을 달성한 뒤 CI evaluator를 `--fail-on-partial`로 격상.
 - [ ] (L8) profile state를 `active_profile.json`(repo) + `.claude/research-harness.local.md`(머신 override, quick-exit)로 읽되, override가 hard 과학 게이트를 floor 아래로 완화 못 함.
 - [ ] (L1) researcher-decision-point 프로토콜이 가정/claim ceiling/waiver/anomaly 해석 지점에서 자동결정 대신 "추천+확인"을 요청(전역 output style 아님).
 - [ ] (L10) peer-review/reviewer가 "confidence≥임계 AND scientific impact AND evidence path"만 raise(임계는 surface만, hard 차단은 deterministic).

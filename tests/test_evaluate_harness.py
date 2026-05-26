@@ -305,6 +305,20 @@ def test_ci_enforcement_scenario_runs_checker(monkeypatch):
     ]
 
 
+def test_ci_enforcement_uses_fail_on_partial_workflow_gate():
+    workflow = (ROOT / ".github" / "workflows" / "harness-checks.yml").read_text(
+        encoding="utf-8"
+    )
+
+    assert "python scripts/evaluate_harness.py --fail-on-partial" in workflow
+
+
+def test_ci_enforcement_checker_accepts_fail_on_partial_workflow():
+    evaluator = load_evaluator()
+
+    assert evaluator.run_ci_enforcement_check() == []
+
+
 def test_harness_rule_text_includes_hooks_reference():
     evaluator = load_evaluator()
 
