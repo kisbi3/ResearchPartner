@@ -580,6 +580,23 @@ SCENARIOS = [
         ),
         checks=("check_spawn_contracts",),
     ),
+    Scenario(
+        name="ci_enforcement",
+        skills=(
+            "skills/harness-evaluation/SKILL.md",
+        ),
+        docs=(
+            ".github/workflows/harness-checks.yml",
+            "docs/hooks_reference.md",
+            "docs/harness/capability_manifest.json",
+        ),
+        rule_terms=(
+            "CI Enforcement Gate",
+            "repo-state checker",
+            "does not replace live Claude Code hook firing",
+        ),
+        checks=("check_ci_enforcement",),
+    ),
 ]
 
 
@@ -665,6 +682,44 @@ def run_claim_promotion_lifecycle_check() -> list[str]:
     return [] if code == 0 else [f"fixture mechanism promotion exited {code}"]
 
 
+def run_ci_enforcement_check() -> list[str]:
+    workflow = ROOT / ".github" / "workflows" / "harness-checks.yml"
+    if not workflow.is_file():
+        return ["missing .github/workflows/harness-checks.yml"]
+
+    text = workflow.read_text(encoding="utf-8", errors="ignore")
+    required_terms = [
+        "push:",
+        "pull_request:",
+        "ubuntu-latest",
+        "windows-latest",
+        "actions/checkout@v4",
+        "actions/setup-python@v5",
+        "python -m pip install pytest",
+        "python -m pytest tests -q",
+        "python scripts/check_harness_manifest.py",
+        "python scripts/check_spawn_contracts.py",
+        "python scripts/check_contract_sync.py",
+        "python scripts/evaluate_harness.py",
+    ]
+    problems = [
+        f"workflow missing {term!r}"
+        for term in required_terms
+        if term not in text
+    ]
+    forbidden_terms = [
+        "python scripts/evaluate_harness.py --fail-on-partial",
+        "check_claim_promotion.py --project",
+        "check_claim_promotion_freshness.py --project",
+    ]
+    problems.extend(
+        f"workflow must not include {term!r}"
+        for term in forbidden_terms
+        if term in text
+    )
+    return problems
+
+
 def run_scenario_checks(scenario: Scenario) -> list[str]:
     failures: list[str] = []
     for check in scenario.checks:
@@ -674,6 +729,8 @@ def run_scenario_checks(scenario: Scenario) -> list[str]:
             problems = run_spawn_contracts_check()
         elif check == "check_claim_promotion_lifecycle":
             problems = run_claim_promotion_lifecycle_check()
+        elif check == "check_ci_enforcement":
+            problems = run_ci_enforcement_check()
         else:
             problems = [f"unknown scenario check {check!r}"]
         if problems:

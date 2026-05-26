@@ -110,6 +110,15 @@ Cross-referential edges (`evolved_from`, `reproduces`, `cites_paper`, `supports`
 - **Decision**: exits 1 when a required leaf role is missing, an agent file's frontmatter `name` differs from the `subagent_type`, `tools:` differs from the JSON contract, any role agent includes the `Agent` tool, any role declares child spawns, the obsolete `.claude/agents/graduate-student.md` file exists, the description is not explicit-spawn-only, or `docs/orchestration_protocol.md` omits a required leaf `subagent_type`.
 - **Layering**: Claude Code's agent loader applies `.claude/agents/<role>.md` `tools:` at runtime; existing path and Bash hooks (`check_src_write_authorization.py`, `check_bash_code_write.py`) still provide hard protection against unauthorized code writes.
 
+## CI Enforcement Gate
+
+`.github/workflows/harness-checks.yml` runs deterministic repo-state checker commands on `push` and `pull_request` across `ubuntu-latest` and `windows-latest`.
+
+- **Workflow**: `.github/workflows/harness-checks.yml`
+- **Commands**: `python -m pytest tests -q`; `python scripts/check_harness_manifest.py`; `python scripts/check_spawn_contracts.py`; `python scripts/check_contract_sync.py`; `python scripts/evaluate_harness.py`.
+- **Decision**: any command exit code fails CI. `evaluate_harness.py` is run without `--fail-on-partial` until the existing partial scenarios are retired.
+- **Layering**: CI complements `--upgrade-hooks` and local hook installation by enforcing repository-state drift. It cannot prove live Claude Code PreToolUse/PostToolUse hook firing.
+
 ## Re-spawn Monitoring (not a hook — surfaces in stage checkpoint)
 
 `scripts/write_stage_checkpoint.py` reports re-spawn hotspots (files with ≥ 3 Implementation Agent entries in `docs/gates/agent_spawn_log.md`) alongside the cross-tier verdict. Re-spawns are normal (the Graduate Student code review can reject a draft and re-spawn the Implementation Agent), but a hotspot signals a poor spec, an ambiguous task, or a buggy Implementation Agent pass that the researcher should inspect at the stage gate.

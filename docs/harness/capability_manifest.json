@@ -130,6 +130,22 @@
       ],
       "artifact_paths": ["docs/claims/"],
       "workflow_gate_keys": ["claim_gate"]
+    },
+    {
+      "id": "ci-enforcement",
+      "title": "CI Enforcement Gate",
+      "kind": "gate",
+      "enforcement": "deterministic",
+      "scripts": [
+        ".github/workflows/harness-checks.yml",
+        "scripts/check_harness_manifest.py",
+        "scripts/check_spawn_contracts.py",
+        "scripts/check_contract_sync.py",
+        "scripts/evaluate_harness.py"
+      ],
+      "docs": ["docs/hooks_reference.md", "docs/harness/hook_registry.md"],
+      "artifact_paths": [".github/workflows/harness-checks.yml"],
+      "workflow_gate_keys": []
     }
   ],
   "hook_registry": [

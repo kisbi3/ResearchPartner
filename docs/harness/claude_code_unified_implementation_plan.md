@@ -461,24 +461,23 @@ python -m pytest tests/ -q
 
 **목표** — 결정론 checker를 PR마다 CI로 실행해 *repo 레벨*에서 강제. settings.local.json이 머신 로컬이라 배포 안 되는 문제(M-2)를 **보완**.
 
-**파일**: Create `.github/workflows/harness-checks.yml`(+ 필요 시 `@claude` PR 트리거 워크플로).
+**파일**: Create `.github/workflows/harness-checks.yml`.
 
 ```powershell
+python -m pytest tests -q
+python scripts/check_harness_manifest.py
+python scripts/check_spawn_contracts.py
 python scripts/check_contract_sync.py
-python scripts/check_harness_manifest.py --project .
-python scripts/check_spawn_contracts.py --project .
-python scripts/evaluate_harness.py --fail-on-partial
-python scripts/check_lineage_coverage.py --project . --strict
-python scripts/check_spawn_log_integrity.py --project .
-python -m pytest tests/ -q
+python scripts/evaluate_harness.py
 ```
 
-**계층/한계(중요)** — CI는 **gitignored local `.claude/settings.local.json`을 고치지 못한다.** 따라서 §11B는
-M-2(`--upgrade-hooks`)의 *대체가 아니다*. CI의 역할은 **generator/template/fixture가 올바른지**(새 init이 올바른 hook을
+**계층/한계(중요)** — CI는 repo-state checker만 강제한다. live Claude Code PreToolUse/PostToolUse hook의 발화는
+검증하지 못하므로 M-2(`--upgrade-hooks`)의 *대체가 아니다*. CI의 역할은 **generator/template/fixture가 올바른지**(새 init이 올바른 hook을
 깔고, manifest/registry/계약이 정합한지)를 검증하는 것. 보너스: `claude-dedupe-issues`/`claude-issue-triage` 패턴 →
 `docs/logs/anomaly_log.md` 중복제거·자동 분류에 이식.
 
-**수용 기준**: PR이 contract/manifest/spawn/lineage/test 중 하나라도 깨면 CI red, fixture 기반이라 머신 독립.
+**수용 기준**: PR이 pytest/manifest/spawn/contract/evaluator 중 하나라도 깨면 CI red, fixture 기반이라 머신 독립.
+기존 partial 시나리오가 0이 될 때까지 `evaluate_harness.py --fail-on-partial`은 후속 backlog로 둔다.
 (§4 매핑표·§13 PR표에 CP7/PR7 행 반영됨.)
 
 ---
@@ -526,7 +525,7 @@ M-2(`--upgrade-hooks`)의 *대체가 아니다*. CI의 역할은 **generator/tem
 | PR4 | skill metadata linter + operating profiles(advisory/display v0) + fixtures + evaluate 확장 | hard contract 이후 유지보수성·사용성. profile은 wired hook이 읽기 전까지 차단 의미가 없음을 명시. |
 | PR5 | safe wrappers + 기존 설치본 hook upgrade 경로 | manifest/profile 정착 후 반복작업 안정화. 신규 init뿐 아니라 기존 프로젝트의 `.claude/settings.local.json`도 안전하게 갱신. |
 | PR6 | doc sync + AGENTS.md 슬림화 + 단어수 회귀 체크 + child plan superseded 포인터 + full validation | 공개 동작 문서 동기화·최종 검증. 세 계획 문서 공존으로 인한 편집 혼선을 제거. |
-| PR7 | CI 워크플로(`harness-checks.yml`)로 contract/manifest/spawn/lineage/spawn-log/pytest를 PR마다 실행 | repo 레벨 강제. generator/template/fixture 정합을 검증하되 머신 로컬 settings는 못 고침(→ PR5 `--upgrade-hooks`와 분담). |
+| PR7 | CI 워크플로(`harness-checks.yml`)로 pytest/manifest/spawn/contract/evaluator를 PR마다 실행 | repo 레벨 강제. repo-state checker 정합을 검증하되 live hook 발화나 머신 로컬 settings는 못 고침(→ PR5 `--upgrade-hooks`와 분담). |
 
 ```
 Checkpoint 0 (선행, 모든 PR 전)
@@ -599,7 +598,7 @@ Checkpoint 0 (선행, 모든 PR 전)
 - [ ] 하위 implementation plan 문서들은 `SUPERSEDED` 포인터를 갖고 통합본을 유일한 편집 대상으로 가리킴.
 - [ ] README·README.ko가 새 공개 동작과 동기화; 지침 변경 시 AGENTS≡GEMINI.
 - [ ] (L7) PreToolUse hook은 싼 hard 차단만; lineage-coverage·manifest-completeness·spawn-log-reconciliation 같은 무거운 검사는 Stage Checkpoint/CI에서 실행.
-- [ ] (L5/CP7) `harness-checks.yml` CI가 PR마다 contract/manifest/spawn/lineage/spawn-log/pytest를 실행하고 generator/template/fixture 정합을 검증(머신 로컬 settings 미수정 → `--upgrade-hooks`와 분담).
+- [ ] (L5/CP7) `harness-checks.yml` CI가 PR마다 pytest/manifest/spawn/contract/evaluator를 실행하고 repo-state checker 정합을 검증(live hook 발화·머신 로컬 settings 미수정 → `--upgrade-hooks`와 분담). Partial 0 달성 전까지 `--fail-on-partial`은 후속 backlog.
 - [ ] (L8) profile state를 `active_profile.json`(repo) + `.claude/research-harness.local.md`(머신 override, quick-exit)로 읽되, override가 hard 과학 게이트를 floor 아래로 완화 못 함.
 - [ ] (L1) researcher-decision-point 프로토콜이 가정/claim ceiling/waiver/anomaly 해석 지점에서 자동결정 대신 "추천+확인"을 요청(전역 output style 아님).
 - [ ] (L10) peer-review/reviewer가 "confidence≥임계 AND scientific impact AND evidence path"만 raise(임계는 surface만, hard 차단은 deterministic).

@@ -112,6 +112,8 @@ Load `skills/task-intake/SKILL.md` and follow its classification, role assignmen
 
 The harness itself must be evaluated periodically.
 
+The **CI Enforcement Gate** runs repo-state checker commands on push and pull request. It is a deterministic backstop for pytest, manifest, spawn-contract, contract-sync, and harness-evaluator drift, but it does not replace live Claude Code hook firing or local hook upgrade/install paths.
+
 Run or update the harness evaluation when:
 
 - a new skill is added

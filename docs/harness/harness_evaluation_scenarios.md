@@ -562,3 +562,29 @@ Expected docs:
 Expected blocked behavior:
 
 - Do not treat a spawn-role change as complete unless `check_spawn_contracts.py` passes: required leaf agent files exist, frontmatter `name` equals `subagent_type`, tools match the JSON contract, no role agent has the `Agent` tool, child-spawn lists stay empty, the obsolete `.claude/agents/graduate-student.md` file is absent, and descriptions stay explicit-spawn-only.
+
+## Scenario 10: CI Enforcement
+
+Task prompt:
+
+> Add, remove, or weaken a deterministic harness checker.
+
+Risk:
+
+- The checker passes locally only because the developer remembered to run it, but pull requests can merge without the repo-state gate running.
+
+Expected skills:
+
+- `harness-evaluation`
+
+Expected docs:
+
+- `.github/workflows/harness-checks.yml`
+- `docs/hooks_reference.md`
+- `docs/harness/capability_manifest.json`
+
+Expected blocked behavior:
+
+- Do not treat CI enforcement as complete unless `harness-checks.yml` runs `python -m pytest tests -q`, `check_harness_manifest.py`, `check_spawn_contracts.py`, `check_contract_sync.py`, and plain `evaluate_harness.py` on both `ubuntu-latest` and `windows-latest`.
+- Do not use `--fail-on-partial` until the existing partial scenarios are retired.
+- Do not describe CI as a replacement for live Claude Code PreToolUse/PostToolUse hook firing; it is a repo-state checker gate.

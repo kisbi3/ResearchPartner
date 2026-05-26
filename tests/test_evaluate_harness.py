@@ -31,7 +31,7 @@ def test_multi_agent_orchestration_scenarios_are_evaluated():
 def test_harness_evaluator_includes_hook_scenarios():
     evaluator = load_evaluator()
 
-    assert len(evaluator.SCENARIOS) == 29
+    assert len(evaluator.SCENARIOS) == 30
 
 
 def test_orchestration_scenarios_require_run_templates():
@@ -268,4 +268,38 @@ def test_finding_lifecycle_scenario_runs_checker(monkeypatch):
     assert result["status"] == "fail"
     assert result["missing_checks"] == [
         "check_claim_promotion_lifecycle: claim lifecycle drift from test"
+    ]
+
+
+def test_ci_enforcement_scenario_is_evaluated():
+    evaluator = load_evaluator()
+    scenarios = {scenario.name: scenario for scenario in evaluator.SCENARIOS}
+
+    assert "ci_enforcement" in scenarios
+    scenario = scenarios["ci_enforcement"]
+    assert ".github/workflows/harness-checks.yml" in scenario.docs
+    assert "docs/hooks_reference.md" in scenario.docs
+    assert "CI Enforcement Gate" in scenario.rule_terms
+    assert "repo-state checker" in scenario.rule_terms
+    assert "check_ci_enforcement" in scenario.checks
+
+
+def test_ci_enforcement_scenario_runs_checker(monkeypatch):
+    evaluator = load_evaluator()
+    scenario = {
+        scenario.name: scenario for scenario in evaluator.SCENARIOS
+    }["ci_enforcement"]
+
+    monkeypatch.setattr(
+        evaluator,
+        "run_ci_enforcement_check",
+        lambda: ["ci workflow drift from test"],
+        raising=False,
+    )
+
+    result = evaluator.evaluate_scenario(scenario, evaluator.harness_rule_text())
+
+    assert result["status"] == "fail"
+    assert result["missing_checks"] == [
+        "check_ci_enforcement: ci workflow drift from test"
     ]
