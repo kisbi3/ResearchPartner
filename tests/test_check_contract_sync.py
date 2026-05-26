@@ -27,6 +27,14 @@ def test_checker_returns_zero_when_synced():
     assert checker.main() == 0
 
 
+def test_agents_and_gemini_stay_under_word_budget():
+    checker = load_checker()
+
+    for filename in ("AGENTS.md", "GEMINI.md"):
+        path = ROOT / filename
+        assert checker.word_count(path.read_text(encoding="utf-8")) <= checker.MAX_CONTRACT_WORDS
+
+
 def test_checker_detects_drift(tmp_path, monkeypatch):
     checker = load_checker()
 
@@ -49,3 +57,14 @@ def test_checker_reports_missing_file(tmp_path):
     errors = checker.compare_pair(left, right)
     assert errors
     assert "missing.md" in errors[0]
+
+
+def test_checker_detects_oversized_contract_file(tmp_path):
+    checker = load_checker()
+    oversized = tmp_path / "oversized.md"
+    oversized.write_text("word " * (checker.MAX_CONTRACT_WORDS + 1), encoding="utf-8")
+
+    errors = checker.check_word_budget(oversized)
+
+    assert errors
+    assert "word budget" in errors[0]

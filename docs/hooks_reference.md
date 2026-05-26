@@ -119,6 +119,194 @@ Cross-referential edges (`evolved_from`, `reproduces`, `cites_paper`, `supports`
 - **Decision**: any command exit code fails CI. `evaluate_harness.py` is run without `--fail-on-partial` until the existing partial scenarios are retired.
 - **Layering**: CI complements `--upgrade-hooks` and local hook installation by enforcing repository-state drift. It cannot prove live Claude Code PreToolUse/PostToolUse hook firing.
 
+## Scientific Loop Hook Catalog
+
+This catalog holds the detailed hook prose that used to live in resident `AGENTS.md`/`GEMINI.md`. Those files keep short routing rules and link here; evaluators include this file in `harness_rule_text()` so moving details here does not weaken scenario coverage.
+
+### Session Resumption Hook
+
+At the start of a continuing session, run `python scripts/check_session_resumable.py --project <project-dir>` and surface `In-Flight Tasks`, blocked or `in_progress` gates, `spawned` rows, and whether each task should continue, retry, be acknowledged, or be abandoned. Abandoned rows are marked `abandoned` in `docs/process/live_workflow_diagram.md`, then `/sync-workflow` refreshes state.
+
+### Task Intake Hook
+
+Load `skills/task-intake/SKILL.md` at the start of every task. It records the `Orient phase`, task classification, responsible role, first professor question, and assigns research roles before execution.
+
+### Ambiguity Hook
+
+If the research question, physical object, observable, failure criterion, or review checkpoint is unclear, remain in Interview/Specify instead of executing.
+
+### Assumption/Units Hook
+
+Record assumptions, units, boundary conditions, initial conditions, nondimensionalization, and approximation regime before relying on equations, parameters, or results.
+
+### Unit Conversion Hook
+
+When SI, cgs, natural units, code units, or nondimensional units are converted, record the conversion formula and reference scale.
+
+### Approximation Regime Hook
+
+Mark linearization, perturbation, continuum, weak-coupling, low/high-temperature, small-angle, or similar approximations with their validity regime.
+
+### Orient Gate Hook
+
+Write task-intake output to `<project>/docs/gates/orient_note.md` with `## Task Classification`, `## Responsible Role`, `## First Professor Question`, and `## Researcher Answer`. Enforce before Seed, Execute, or Evaluate with `python scripts/check_orient_recorded.py --project <project-dir>`.
+
+### Interview Gate Hook
+
+Write the professor-interview result to `docs/gates/interview_notes.md`, including the crystallized research question, surfaced assumptions, agreed direction, and suggested next skill. Enforce with `check_interview_recorded.py` before Seed or Execute work begins.
+
+### Literature Gate Hook
+
+Write Literature Gate Status (`ready` or `waived`) to `docs/literature/literature_review_plan.md`; enforce with `check_literature_reviewed.py`. A `docs/literature/literature_skip_waiver.md` waiver lowers the claim ceiling to at most `interpretation`.
+
+### Model Gate Hook
+
+Write the model definition to `docs/plan/model_spec.md`; enforce with `check_model_specified.py`. A `docs/plan/model_skip_waiver.md` waiver lowers the claim ceiling to at most `observation`.
+
+### Baseline Strategy Gate Hook
+
+Write `variation` or `new model` plus verification target to `docs/plan/baseline_strategy.md`; enforce with `check_baseline_strategy.py` before Seed. There is no skip waiver. The first seed task is reproduce the parent model for variation or verify against Analytical Checkpoint 1 for new model.
+
+### Baseline Gate Hook
+
+Before a new model, solver, analysis pipeline, or figure workflow is interpreted, require a toy model, known limit, reproduction, conservation check, or explicit waiver. Enforce with `check_baseline_gate.py` before Execute or Evaluate.
+
+### Graduate Student Role Hook
+
+Use `skills/seed-design/SKILL.md` to create Lead-managed seed task packets with exact files, commands, inputs, outputs, observables, pass/fail criteria, evidence records, failure handling, and `Seed phase` boundaries. The Graduate Student role is Lead-loaded task orchestration, not a subagent type.
+
+### Code-before-Test Hook
+
+For numerical, simulation, analysis, or figure-generation code, flag implementation that lacks a prior or accompanying validation check.
+
+### Numerical Stability Hook
+
+When solvers, timesteps, grids, tolerances, convergence criteria, integration schemes, sampling, or fitting routines are involved, require stability, convergence, uncertainty, or sensitivity checks. Visual agreement alone is not validation.
+
+### Parameter Change Hook
+
+Record parameter values, sweep ranges, timestep, grid size, tolerance, random seed, sample size, and changes from previous runs.
+
+### Randomness/Reproducibility Hook
+
+For stochastic sampling, Monte Carlo, bootstrap, train/test split, randomized initialization, or noise, record seeds and run metadata; seedless results are provisional.
+
+### Data Lineage Hook
+
+Record raw data, processed data, filters, smoothing, clipping, outlier removal, normalization, fits, and derived datasets.
+
+### Figure Provenance Hook
+
+Every figure should trace to script, input data, command, parameters, output path, and caption claim. Enforce after figures with `python scripts/check_figure_provenance.py --project <project-dir>`.
+
+### Claim Strength Hook
+
+When claims, captions, conclusions, README text, or manuscript text change, check wording strength against the weakest evidence and downgrade unsupported language. No scientific claim should be stronger than its evidence path.
+
+### Finding Lifecycle Hook
+
+Mechanism and generalization promotion must reject candidate findings. A finding can promote only after independent checking, `Evidence Paths Read Directly`, evidence-linked state, and no `false_alarm` state. The checker validates only declared structure; it cannot prove the Lead Agent actually read the file. The peer-review confidence threshold is reviewer surface guidance, not a hard checker.
+
+### Literature Claim Hook
+
+Novelty, priority, "to our knowledge", "first", "known result", and prior-work claims require citations or must be marked unverified.
+
+### Literature Replanning Hook
+
+Run the Literature Replanning Loop when novelty, prior methods, reproduction fidelity, or a literature claim could change the plan. The Lead Agent first confirms citation identity by web discovery, requests researcher-provided PDFs only when access fails, stores them under `literature/pdfs/`, writes a novelty map, chooses reproduction targets, and replans before full-scale work.
+
+### Literature Replanning Loop
+
+The loop builds section-by-section paper review notes, includes a `Figure/Table-by-Figure/Table Review`, and follows this rule: PDF text extraction is a reading aid, not evidence by itself. It may use `process_paper_for_review.py`, keeps clickable links across the literature graph, runs `check_paper_review_quality.py`, and may add a `Machine-Assisted Draft From Extracted Text` section that remains provisional until direct PDF review.
+
+### Manuscript Drift Hook
+
+Detect when manuscript language becomes stronger than the current evidence chain or diverges from recorded assumptions and limitations.
+
+### Artifact Freshness Hook
+
+After code, data, parameters, or analysis change, mark dependent figures, tables, captions, and manuscript references stale until regenerated or revalidated.
+
+### Anomaly Hook
+
+Surprising, unstable, contradictory, or failed results must be classified against expected behavior before patching symptoms.
+
+### Scope Creep Hook
+
+New observables, claims, parameter sweeps, figures, or goals that appear mid-run must be accepted into the seed explicitly or deferred.
+
+### Reviewer Simulation Hook
+
+Before major claims or figures are treated as ready, generate skeptical reviewer questions and check whether the evidence answers them.
+
+### Waiver Hook
+
+If the researcher bypasses a baseline, unit, reproduction, stability, or evidence gate, record the waiver, reason, risk, and claim limits.
+
+### Negative Result Hook
+
+Failed baselines, null results, disappearing effects, and invalidated hypotheses should be recorded rather than silently discarded.
+
+### Environment Capture Hook
+
+For important runs, record command, OS, Python/package versions, relevant environment, and git state when available.
+
+### Cartographer Hook
+
+The Cartographer (hook-driven, not spawned) listens to the Lead Agent, records process state in the live workflow artifact, tracks active step, gates, evidence links, must not strengthen scientific claims, and does not give project opinions.
+
+### Coding Subagent Claim Discipline
+
+Leaf Coding Subagents do bounded implementation, validation, audit, or figure work. They should not decide that evidence supports a stronger scientific claim; the Lead Agent performs that judgment from recorded artifacts.
+
+### Completion Conference Reporting
+
+At major completion points, the Lead Agent performs a completion conference across all agents, gathers visualization materials and validation evidence, then reports to the user with claim limits and caveats.
+
+### Retrospective Hook
+
+Every research iteration should leave a reusable artifact, check, benchmark, log entry, template, decision record, outcome, failure, negative result, open question, or lineage entry.
+
+### Workflow State Hook
+
+After completing a gate step, finishing a stage, or changing evidence links, run `/sync-workflow` (`python scripts/sync_workflow.py --project <project-dir>`) so the live workflow state remains current.
+
+### Stage Checkpoint Hook
+
+At the end of every research stage, write `docs/checkpoints/stage_N_checkpoint.md` with `python scripts/write_stage_checkpoint.py --project <project-dir> --stage N`; later agents load the compact checkpoint instead of raw logs unless a specific value needs deeper inspection.
+
+### Log Rotation Hook
+
+When Markdown-table logs exceed roughly 50 entries or during stage checkpointing, run `python scripts/rotate_log.py --log <path>` to archive closed rows while keeping active rows and rules live.
+
+### Meeting Hook
+
+When the Lead Agent cannot answer reliably alone, convene `meeting --scope quick`, `meeting --scope review`, or `meeting --scope full`; record outcomes in `docs/meetings/YYYY-MM-DD-<slug>.md` and run `/sync-workflow` when lineage changes.
+
+### Meeting Trigger Hook
+
+Recommend a meeting for failed or partial baseline validation, uncertain anomaly causes, mechanism/universality/novelty claims, contradictory numerical validation signals, or contested baseline strategy decisions.
+
+### Computation Checkpoint Hook
+
+For any `src/` script with a long-running loop, use `CheckpointManager` from `scripts/run_with_checkpoint.py`, checkpoint under `cache/checkpoint_<stem>.pkl`, and run `check_computation_resumable.py` to find orphaned checkpoints.
+
+### Long-Running Computation Hook
+
+When a simulation, solver, analysis pipeline, or parameter sweep will take more than roughly two minutes, use background execution and monitor outputs instead of filling the conversation with polling; record command, expected outputs, and duration in docs.
+
+### Cluster Submission Hook
+
+Claude runs locally and cannot submit HPC jobs directly. Detect or ask for scheduler details, write the batch script, tell the researcher the submission command and files to retrieve, then wait for returned stdout, stderr, and results before analysis.
+
+### Live Linked Research Graph
+
+`workflow_map.html` and `workflow_map.live.json` maintain Code links, Result links, Interpretation links, Link Status, Evidence Strength, Claim ceiling, Researcher Checkpoint Marker, Artifact Preview, and Staleness propagation. Use `skills/sync-workflow/SKILL.md`, `lineage:` front-matter, graph links, and `/sync-workflow` to keep it current.
+
+### Workflow Visualization
+
+Before substantial work, inspect `Workflow Visualization`, `workflow_map.html`, `paper_logic_diagram`, `docs/process/live_workflow_diagram.md`, and `sync_workflow.py` output when present.
+
 ## Re-spawn Monitoring (not a hook — surfaces in stage checkpoint)
 
 `scripts/write_stage_checkpoint.py` reports re-spawn hotspots (files with ≥ 3 Implementation Agent entries in `docs/gates/agent_spawn_log.md`) alongside the cross-tier verdict. Re-spawns are normal (the Graduate Student code review can reject a draft and re-spawn the Implementation Agent), but a hotspot signals a poor spec, an ambiguous task, or a buggy Implementation Agent pass that the researcher should inspect at the stage gate.

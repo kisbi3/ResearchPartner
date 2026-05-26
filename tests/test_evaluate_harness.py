@@ -303,3 +303,12 @@ def test_ci_enforcement_scenario_runs_checker(monkeypatch):
     assert result["missing_checks"] == [
         "check_ci_enforcement: ci workflow drift from test"
     ]
+
+
+def test_harness_rule_text_includes_hooks_reference():
+    evaluator = load_evaluator()
+
+    text = evaluator.harness_rule_text()
+
+    assert "Scientific Loop Hook Catalog" in text
+    assert "checker validates only declared structure" in text

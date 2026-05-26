@@ -136,6 +136,7 @@ Orient -> Interview -> Specify -> Seed -> Validate -> Execute -> Evaluate -> Rev
 | 슬래시 명령어 전역 설치 | `python scripts\install_skills.py --global` | 위와 동일하지만 `~/.claude/commands/`, `~/.gemini/antigravity/global_workflows/`, `~/.codex/skills/`에 설치해 모든 프로젝트에서 사용 가능합니다. |
 | 하네스 평가 | `python scripts\evaluate_harness.py` | 올바른 스킬, 게이트 및 차단된 동작에 대한 현실적인 시나리오 확인 |
 | CI 하네스 검사 | `.github/workflows/harness-checks.yml` | push와 pull request에서 pytest, manifest, spawn-contract, contract-sync, evaluator repo-state checker를 실행; live Claude Code hook 발화를 대체하지 않음 |
+| 테스트 의존성 설치 | `python -m pip install -r requirements.txt` | 테스트와 CI가 쓰는 작은 의존성 집합(`pytest`, `PyYAML`) 설치 |
 | capability manifest 검증 | `python scripts\check_harness_manifest.py --project <project-dir>` | canonical capability, hook registry coverage, `$CLAUDE_PROJECT_DIR` hook 경로, 실제 `workflow_gate_keys` 정합성 확인 |
 | spawn contract 검증 | `python scripts\check_spawn_contracts.py --project <project-dir>` | leaf `.claude/agents/<role>.md`, 역할별 `tools:`, `subagent_type` 이름, nested spawn 부재, 명시-spawn-only description 정합성 확인 |
 | 링크 검증 | `python scripts\validate_workflow_links.py` | 워크플로우 문서 링크 확인 |
@@ -144,7 +145,7 @@ Orient -> Interview -> Specify -> Seed -> Validate -> Execute -> Evaluate -> Rev
 | 논문 리뷰 스캐폴딩 | `python scripts\scaffold_paper_review.py --run <run-dir> --paper-id P1 --title "Title"` | 재사용 가능한 논문 리뷰 노트를 생성하고 문헌 인덱스 업데이트 |
 | 논문 PDF 처리 | `python scripts\process_paper_for_review.py --run <run-dir> --paper-id P1 --title "Title" --pdf <pdf-path>` | 리뷰 스캐폴딩, 텍스트 추출, 임시 추출 노트 초안 작성 |
 | 논문 리뷰 확인 | `python scripts\check_paper_review_quality.py <review-path>` | 약한 논문 노트가 참신성이나 재현 주장의 근거가 되기 전에 차단 |
-| 계약 동기화 검증 | `python scripts\check_contract_sync.py` | `AGENTS.md`와 `GEMINI.md`가 바이트 단위로 동일하도록 강제하여 두 런타임이 같은 계약을 따르게 보장 |
+| 계약 동기화 검증 | `python scripts\check_contract_sync.py` | `AGENTS.md`와 `GEMINI.md`의 바이트 단위 동일성 및 상시 로드 문서 단어수 예산을 강제 |
 | Orient 게이트 검증 | `python scripts\check_orient_recorded.py --run <run-dir>` | `docs/gates/orient_note.md`에 task-intake 산출물(분류, 역할, 첫 질문, 연구자 답변)이 기록되지 않으면 Seed, Execute, Evaluate 작업 차단 |
 | Interview 게이트 검증 | `python scripts\check_interview_recorded.py --run <run-dir>` | `docs/gates/interview_notes.md`에 professor-interview 산출물(결정화된 연구 질문, 가정, 합의된 방향)이 기록되지 않으면 Seed, Execute 작업 차단 |
 | Literature 게이트 검증 | `python scripts\check_literature_reviewed.py --run <run-dir>` | `docs/literature/literature_review_plan.md`에 `## Literature Gate Status: ready/waived`가 없거나 `docs/literature/literature_skip_waiver.md`가 없으면 model-specification 또는 seed-design 차단 (스킵 시 claim ceiling → `interpretation`) |
@@ -209,7 +210,7 @@ Orient -> Interview -> Specify -> Seed -> Validate -> Execute -> Evaluate -> Rev
 ### 1. 전제 조건
 
 * 하네스가 실행될 로컬 연구 프로젝트 디렉토리 (예: `C:\MyPhysicsProject`).
-* 터미널에서 `python`으로 실행 가능한 Python 3.10 이상. 내장된 헬퍼 스크립트는 Python 표준 라이브러리만 사용하므로 하네스 자체를 위한 `pip install` 단계는 필요하지 않습니다.
+* 터미널에서 `python`으로 실행 가능한 Python 3.10 이상. 핵심 헬퍼 스크립트는 Python 표준 라이브러리를 사용하며, 테스트와 CI 의존성은 `requirements.txt`에 선언되어 있습니다.
 * 리포지토리 지침을 읽는 AI 어시스턴트:
 * **Codex / Copilot 스타일 에이전트**는 `AGENTS.md`를 읽습니다.
 * **Gemini CLI**는 `GEMINI.md`를 읽습니다.
