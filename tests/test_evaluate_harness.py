@@ -98,6 +98,57 @@ def test_user_facing_documentation_scenario_is_evaluated():
     assert "Staleness propagation" in scenario.rule_terms
 
 
+def test_workflow_state_terms_use_workflow_hooks_not_cartographer():
+    evaluator = load_evaluator()
+    scenarios = {scenario.name: scenario for scenario in evaluator.SCENARIOS}
+
+    live = scenarios["live_workflow_diagram_agent"]
+    drift = scenarios["manuscript_and_artifact_drift_hooks"]
+
+    assert "workflow_hooks.py (hook-driven, not spawned)" in live.rule_terms
+    assert "Workflow State Hook" in drift.rule_terms
+    all_terms = "\n".join(
+        term for scenario in evaluator.SCENARIOS for term in scenario.rule_terms
+    )
+    assert "Cartographer (hook-driven, not spawned)" not in all_terms
+    assert "Cartographer Hook" not in all_terms
+
+
+def test_readmes_use_researcher_first_structure():
+    expected_en = [
+        "What It Is",
+        "Install",
+        "Using It",
+        "Research Model",
+        "Reference",
+        "How Discipline Is Enforced",
+        "Vision",
+    ]
+    expected_ko = [
+        "무엇인가",
+        "설치",
+        "사용법",
+        "연구 모델",
+        "참조",
+        "규율은 어떻게 강제되는가",
+        "비전",
+    ]
+
+    en_headings = [
+        line[3:].strip()
+        for line in (ROOT / "README.md").read_text(encoding="utf-8").splitlines()
+        if line.startswith("## ")
+    ]
+    ko_headings = [
+        line[3:].strip()
+        for line in (ROOT / "README.ko.md").read_text(encoding="utf-8").splitlines()
+        if line.startswith("## ")
+    ]
+
+    assert en_headings == expected_en
+    assert ko_headings == expected_ko
+
+
 def test_new_skill_scenarios_are_evaluated():
     evaluator = load_evaluator()
 

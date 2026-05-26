@@ -114,9 +114,9 @@ After receiving the Validator's report:
 2. **Fail**: follow the on-failure instruction in your spawn prompt (escalate / log-and-continue / retry). Do not proceed past a fail without Professor approval.
 3. **Anomaly**: if the result is unexpected, surprising, or contradicts the baseline, classify and escalate. Do not patch silently.
 
-### Step 5: Cartographer update
+### Step 5: Workflow state update
 
-After task completion (pass or fail), emit a Cartographer update event recording:
+After task completion (pass or fail), leave evidence records and run `/sync-workflow` so the deterministic workflow refresh records:
 - Gate status change (pending → pass or fail).
 - Evidence link (file path).
 - Whether researcher review is required.

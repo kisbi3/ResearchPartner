@@ -97,7 +97,7 @@ SCENARIOS = [
         ),
         rule_terms=(
             "scripts/init_research_project.py",
-            "Cartographer (hook-driven, not spawned)",
+            "workflow_hooks.py (hook-driven, not spawned)",
             "does not give project opinions",
             "listens to the Lead Agent",
             "live workflow artifact",
@@ -270,7 +270,7 @@ SCENARIOS = [
             "Scope Creep Hook",
             "Reviewer Simulation Hook",
             "Negative Result Hook",
-            "Cartographer Hook",
+            "Workflow State Hook",
             "Retrospective Hook",
         ),
     ),

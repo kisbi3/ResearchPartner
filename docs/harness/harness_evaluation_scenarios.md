@@ -59,7 +59,7 @@ Expected blocked behavior:
 - Do not treat the live Mermaid or workflow artifact as evidence for a scientific claim.
 - Do not strengthen claims, infer mechanisms, or convert preliminary observations into conclusions through diagram wording.
 - Do not continue past a baseline, validation, claim, or researcher-review gate without marking the gate status and next checkpoint.
-- Do not let the Cartographer (hook-driven, not spawned) give project opinions. It must listen to the Lead Agent and leaf Coding Subagents, then record workflow state only.
+- Do not let workflow_hooks.py (hook-driven, not spawned) give project opinions. It must listen to the Lead Agent and leaf Coding Subagents, then record workflow state only.
 
 ## Scenario 0B: Professor Orchestration
 
@@ -167,7 +167,7 @@ Expected docs:
 Expected blocked behavior:
 
 - Do not finish a substantial reproduction, validation, or figure-generation task without a Lead Agent completion conference with all agents.
-- Do not omit the Cartographer (hook-driven, not spawned)'s workflow state.
+- Do not omit workflow_hooks.py (hook-driven, not spawned) workflow state.
 - Do not omit visualization materials, evidence links, supported claims, unsupported claims, validation status, failures, caveats, remaining uncertainty, and the next researcher decision.
 
 ## Scenario 0F: Hook-Aware Scientific Loop
@@ -285,7 +285,7 @@ Expected docs:
 
 - `docs/workflow_overview.md`
 - `docs/workflow_diagrams.md`
-- `docs/run_templates/cartographer_update_template.md`
+- `docs/hooks_reference.md`
 - `docs/run_templates/live_workflow_diagram_template.md`
 - `docs/run_templates/research_run_packet_template.md`
 
