@@ -135,7 +135,7 @@ Orient -> Interview -> Specify -> Seed -> Validate -> Execute -> Evaluate -> Rev
 | 슬래시 명령어 설치 | `python scripts\install_skills.py` | 연구자용 스킬 7개를 `.claude/commands/`, `.agents/workflows/`, `.codex/skills/`에 복사해 Claude Code, Antigravity CLI, Codex CLI에서 `/task-intake`, `/meeting` 등으로 사용 가능하게 합니다. SKILL.md 수정 후 재실행 필요. |
 | 슬래시 명령어 전역 설치 | `python scripts\install_skills.py --global` | 위와 동일하지만 `~/.claude/commands/`, `~/.gemini/antigravity/global_workflows/`, `~/.codex/skills/`에 설치해 모든 프로젝트에서 사용 가능합니다. |
 | 하네스 평가 | `python scripts\evaluate_harness.py` | 올바른 스킬, 게이트 및 차단된 동작에 대한 현실적인 시나리오 확인 |
-| CI 하네스 검사 | `.github/workflows/harness-checks.yml` | push와 pull request에서 pytest, manifest, spawn-contract, contract-sync, evaluator repo-state checker를 실행; live Claude Code hook 발화를 대체하지 않음 |
+| CI 하네스 검사 | `.github/workflows/harness-checks.yml` | push와 pull request에서 pytest, manifest, spawn-contract, contract-sync, evaluator `--fail-on-partial` repo-state checker를 실행; live Claude Code hook 발화를 대체하지 않음 |
 | 테스트 의존성 설치 | `python -m pip install -r requirements.txt` | 테스트와 CI가 쓰는 작은 의존성 집합(`pytest`, `PyYAML`) 설치 |
 | capability manifest 검증 | `python scripts\check_harness_manifest.py --project <project-dir>` | canonical capability, hook registry coverage, `$CLAUDE_PROJECT_DIR` hook 경로, 실제 `workflow_gate_keys` 정합성 확인 |
 | spawn contract 검증 | `python scripts\check_spawn_contracts.py --project <project-dir>` | leaf `.claude/agents/<role>.md`, 역할별 `tools:`, `subagent_type` 이름, nested spawn 부재, 명시-spawn-only description 정합성 확인 |

@@ -115,8 +115,8 @@ Cross-referential edges (`evolved_from`, `reproduces`, `cites_paper`, `supports`
 `.github/workflows/harness-checks.yml` runs deterministic repo-state checker commands on `push` and `pull_request` across `ubuntu-latest` and `windows-latest`.
 
 - **Workflow**: `.github/workflows/harness-checks.yml`
-- **Commands**: `python -m pytest tests -q`; `python scripts/check_harness_manifest.py`; `python scripts/check_spawn_contracts.py`; `python scripts/check_contract_sync.py`; `python scripts/evaluate_harness.py`.
-- **Decision**: any command exit code fails CI. `evaluate_harness.py` is run without `--fail-on-partial` until the existing partial scenarios are retired.
+- **Commands**: `python -m pytest tests -q`; `python scripts/check_harness_manifest.py`; `python scripts/check_spawn_contracts.py`; `python scripts/check_contract_sync.py`; `python scripts/evaluate_harness.py --fail-on-partial`.
+- **Decision**: any command exit code fails CI. `evaluate_harness.py --fail-on-partial` makes new partial scenario coverage a CI failure.
 - **Layering**: CI complements `--upgrade-hooks` and local hook installation by enforcing repository-state drift. It cannot prove live Claude Code PreToolUse/PostToolUse hook firing.
 
 ## Scientific Loop Hook Catalog

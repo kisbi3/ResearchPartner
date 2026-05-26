@@ -701,7 +701,7 @@ def run_ci_enforcement_check() -> list[str]:
         "python scripts/check_harness_manifest.py",
         "python scripts/check_spawn_contracts.py",
         "python scripts/check_contract_sync.py",
-        "python scripts/evaluate_harness.py",
+        "python scripts/evaluate_harness.py --fail-on-partial",
     ]
     problems = [
         f"workflow missing {term!r}"
@@ -709,7 +709,6 @@ def run_ci_enforcement_check() -> list[str]:
         if term not in text
     ]
     forbidden_terms = [
-        "python scripts/evaluate_harness.py --fail-on-partial",
         "check_claim_promotion.py --project",
         "check_claim_promotion_freshness.py --project",
     ]
