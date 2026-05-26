@@ -61,8 +61,8 @@ def detect_cross_tier_compliance(run_dir: Path) -> dict:
     """Count src/*.py files vs Implementation Agent spawn log entries.
 
     Also counts re-spawns per file: multiple Implementation Agent rows
-    pointing at the same File cell mean the Graduate Student review
-    rejected earlier versions. A high re-spawn count is a quality signal
+    pointing at the same File cell mean the Lead's Graduate Student role
+    review rejected earlier versions. A high re-spawn count is a quality signal
     (poor spec, ambiguous task, or buggy Implementation Agent output).
     """
     src_dir = run_dir / "src"
@@ -236,9 +236,10 @@ the design is too coupled and the stage boundary should be reconsidered.
 Status: {compliance['status']}
 
 > Every `src/` file must be written by a spawned Implementation Agent — not
-> by the Lead Agent and not by a Graduate Student (who reviews code but
-> never writes it). Spawn records are in `docs/gates/agent_spawn_log.md`.
-> Re-spawns are normal (the Graduate Student review can reject a draft),
+> by the Lead Agent, including Lead-managed Graduate Student role passes
+> that review code but never write it. Spawn records are in
+> `docs/gates/agent_spawn_log.md`.
+> Re-spawns are normal (the Lead's Graduate Student role review can reject a draft),
 > but a hotspot with ≥{RESPAWN_WARN_THRESHOLD} spawns on one file signals a
 > poor spec, an ambiguous task, or a buggy Implementation Agent pass —
 > worth inspecting at this stage gate. Verdict: **{compliance['verdict']}**.

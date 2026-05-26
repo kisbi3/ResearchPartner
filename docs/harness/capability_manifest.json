@@ -104,7 +104,6 @@
       "scripts": ["scripts/check_spawn_contracts.py"],
       "docs": [
         "docs/harness/spawn_contracts.json",
-        ".claude/agents/graduate-student.md",
         ".claude/agents/implementation-agent.md",
         ".claude/agents/scientific-validator.md",
         ".claude/agents/cache-log-auditor.md",

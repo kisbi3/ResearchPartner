@@ -1,6 +1,6 @@
 ---
 name: cache-log-auditor
-description: Explicitly spawned only by a Graduate Student after a Scientific Validator run; do not auto-trigger or invoke opportunistically.
+description: Explicitly spawned only by the Lead Agent after a Scientific Validator run; do not auto-trigger or invoke opportunistically.
 tools: Read, Grep, Glob, Bash
 ---
 

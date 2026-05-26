@@ -59,7 +59,7 @@ Expected blocked behavior:
 - Do not treat the live Mermaid or workflow artifact as evidence for a scientific claim.
 - Do not strengthen claims, infer mechanisms, or convert preliminary observations into conclusions through diagram wording.
 - Do not continue past a baseline, validation, claim, or researcher-review gate without marking the gate status and next checkpoint.
-- Do not let the Cartographer (hook-driven, not spawned) give project opinions. It must listen to the Lead Agent, Graduate Test-Design Agents, and Coding Subagents, then record workflow state only.
+- Do not let the Cartographer (hook-driven, not spawned) give project opinions. It must listen to the Lead Agent and leaf Coding Subagents, then record workflow state only.
 
 ## Scenario 0B: Professor Orchestration
 
@@ -89,11 +89,11 @@ Expected blocked behavior:
 - Do not start coding before the Lead Agent has clarified assumptions, evidence needs, reproduction fidelity, and claim discipline.
 - Do not skip the Socratic Interviewer, Ontologist, Seed Architect, Evaluator, Contrarian, Hacker, Simplifier, Researcher, and Architect stances when they are relevant to project start or review.
 
-## Scenario 0C: Graduate Test-Design Agents
+## Scenario 0C: Graduate Student Role
 
 Task prompt:
 
-> The professor assigned a simulation task. Have graduate agents decide how it should be tested before coding.
+> The professor assigned a simulation task. Have the Lead use the Graduate Student role to decide how it should be tested before coding.
 
 Risk:
 
@@ -113,8 +113,8 @@ Expected docs:
 
 Expected blocked behavior:
 
-- Do not let Graduate Test-Design Agents skip interviewing the professor.
-- Do not let Graduate Test-Design Agents assign work to coding subagents before observables, failure criteria, and baseline or reproduction targets are clear.
+- Do not let the Lead skip the Graduate Student role's clarification and test-design pass.
+- Do not let the Lead spawn leaf Coding Subagents before observables, failure criteria, and baseline or reproduction targets are clear.
 - Do not let coding subagents silently change physics, units, seeds, boundaries, initial conditions, integration schemes, or claim wording.
 
 ## Scenario 0D: Coding Subagent Claim Discipline
@@ -199,7 +199,7 @@ Expected blocked behavior:
 
 - Do not execute before the Task Intake Hook classifies the work and the Ambiguity Hook confirms the physical object, observable, failure criterion, and researcher checkpoint.
 - Do not leave Specify before the Assumption/Units Hook records assumptions, units, boundary conditions, initial conditions, nondimensionalization, and approximation regime.
-- Do not leave Seed before the Graduate Test-Design Hook produces exact files, commands, outputs, pass/fail criteria, evidence records, and failure handling.
+- Do not leave Seed before the Graduate Student Role Hook produces exact files, commands, outputs, pass/fail criteria, evidence records, and failure handling.
 - Do not interpret full-scale results before the Baseline Gate Hook, Code-before-Test Hook, Numerical Stability Hook, and Waiver Hook have a pass, recorded failure, or explicit waiver.
 
 ## Scenario 0G: Provenance and Reproducibility Hooks
@@ -513,7 +513,7 @@ Task prompt:
 
 Risk:
 
-- The harness appears to have role isolation, but `.claude/agents/<role>.md`, `tools:` frontmatter, skill text, `subagent_type` names, and orchestration templates drift apart.
+- The harness appears to have role isolation, but `.claude/agents/<role>.md`, `tools:` frontmatter, skill text, `subagent_type` names, and orchestration templates drift apart, or the obsolete nested-spawn Graduate Student tier returns.
 
 Expected skills:
 
@@ -523,7 +523,6 @@ Expected docs:
 
 - `docs/harness/spawn_contracts.json`
 - `scripts/check_spawn_contracts.py`
-- `.claude/agents/graduate-student.md`
 - `.claude/agents/implementation-agent.md`
 - `.claude/agents/scientific-validator.md`
 - `.claude/agents/cache-log-auditor.md`
@@ -532,4 +531,4 @@ Expected docs:
 
 Expected blocked behavior:
 
-- Do not treat a spawn-role change as complete unless `check_spawn_contracts.py` passes: required agent files exist, frontmatter `name` equals `subagent_type`, tools match the JSON contract, Graduate Student retains `Write/Edit/Agent` and `docs/evidence/` scope, child roles match the skill declaration, and descriptions stay explicit-spawn-only.
+- Do not treat a spawn-role change as complete unless `check_spawn_contracts.py` passes: required leaf agent files exist, frontmatter `name` equals `subagent_type`, tools match the JSON contract, no role agent has the `Agent` tool, child-spawn lists stay empty, the obsolete `.claude/agents/graduate-student.md` file is absent, and descriptions stay explicit-spawn-only.

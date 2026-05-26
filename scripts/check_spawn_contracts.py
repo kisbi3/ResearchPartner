@@ -14,11 +14,13 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CONTRACTS = Path("docs/harness/spawn_contracts.json")
 REQUIRED_ROLES = {
-    "graduate-student",
     "implementation-agent",
     "scientific-validator",
     "cache-log-auditor",
     "peer-review-professor",
+}
+FORBIDDEN_AGENT_FILES = {
+    ".claude/agents/graduate-student.md": "Graduate Student is a Lead-Agent role, not a spawned subagent",
 }
 DESCRIPTION_PREFIX = "Explicitly spawned only"
 DESCRIPTION_FORBIDDEN_PHRASES = (
@@ -27,7 +29,6 @@ DESCRIPTION_FORBIDDEN_PHRASES = (
     "examples:",
     "<example>",
 )
-GRADUATE_REQUIRED_TOOLS = {"Write", "Edit", "Agent"}
 
 
 def _load_json(path: Path) -> Any:
@@ -128,6 +129,10 @@ def validate_contracts(project: Path | str, contracts_path: Path | str) -> list[
     if data.get("schema_version") != 1:
         problems.append("schema_version must be 1")
 
+    for forbidden, reason in FORBIDDEN_AGENT_FILES.items():
+        if (project / forbidden).exists():
+            problems.append(f"forbidden agent file {forbidden}: {reason}")
+
     contracts = data.get("contracts")
     if not isinstance(contracts, list):
         return problems + ["contracts must be a list"]
@@ -155,18 +160,12 @@ def validate_contracts(project: Path | str, contracts_path: Path | str) -> list[
         allowed_tools = _string_list(contract.get("allowed_tools"))
         if not allowed_tools:
             problems.append(f"{role}: allowed_tools must be a non-empty string list")
-        if role == "graduate-student":
-            for tool in sorted(GRADUATE_REQUIRED_TOOLS):
-                if tool not in allowed_tools:
-                    problems.append(f"{role}: allowed_tools must include {tool}")
-            if "docs/evidence/" not in _string_list(contract.get("write_scope")):
-                problems.append(f"{role}: write_scope must include docs/evidence/")
+        if "Agent" in allowed_tools:
+            problems.append(f"{role}: Agent tool is reserved for the Lead Agent; role agents are leaf agents")
 
         allowed_spawns = _string_list(contract.get("allowed_spawn_subagent_types"))
-        if allowed_spawns and "Agent" not in allowed_tools:
-            problems.append(f"{role}: Agent tool required when allowed_spawn_subagent_types is non-empty")
-        if not allowed_spawns and "Agent" in allowed_tools:
-            problems.append(f"{role}: Agent tool present but allowed_spawn_subagent_types is empty")
+        if allowed_spawns:
+            problems.append(f"{role}: leaf roles must not declare child spawns")
 
         declared_spawns = _declared_skill_spawns(skill_path)
         if set(declared_spawns) != set(allowed_spawns):

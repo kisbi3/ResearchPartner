@@ -136,7 +136,7 @@ Orient -> Interview -> Specify -> Seed -> Validate -> Execute -> Evaluate -> Rev
 | 슬래시 명령어 전역 설치 | `python scripts\install_skills.py --global` | 위와 동일하지만 `~/.claude/commands/`, `~/.gemini/antigravity/global_workflows/`, `~/.codex/skills/`에 설치해 모든 프로젝트에서 사용 가능합니다. |
 | 하네스 평가 | `python scripts\evaluate_harness.py` | 올바른 스킬, 게이트 및 차단된 동작에 대한 현실적인 시나리오 확인 |
 | capability manifest 검증 | `python scripts\check_harness_manifest.py --project <project-dir>` | canonical capability, hook registry coverage, `$CLAUDE_PROJECT_DIR` hook 경로, 실제 `workflow_gate_keys` 정합성 확인 |
-| spawn contract 검증 | `python scripts\check_spawn_contracts.py --project <project-dir>` | `.claude/agents/<role>.md`, 역할별 `tools:`, `subagent_type` 이름, Graduate Student evidence write scope, 허용 child role 정합성 확인 |
+| spawn contract 검증 | `python scripts\check_spawn_contracts.py --project <project-dir>` | leaf `.claude/agents/<role>.md`, 역할별 `tools:`, `subagent_type` 이름, nested spawn 부재, 명시-spawn-only description 정합성 확인 |
 | 링크 검증 | `python scripts\validate_workflow_links.py` | 워크플로우 문서 링크 확인 |
 | 워크플로우 맵 생성 | `python scripts\generate_workflow_map.py` | 최신 실행의 `workflow_map.html` 및 `workflow_map.json`을 새로고침. 중앙 `docs\workflow_map.html`은 `--central` 옵션을 명시할 때만 빌드 |
 | 논문 로직 포함 | `python scripts\generate_workflow_map.py --include-paper-logic` | 논문 계획이 명시적으로 시작될 때 논문 로직 뷰 추가 |
@@ -170,9 +170,9 @@ Orient -> Interview -> Specify -> Seed -> Validate -> Execute -> Evaluate -> Rev
 | 연구자 | 코딩을 멈추고 조사를 시작함. | "우리에게 실제로 있는 증거는 무엇입니까?" |
 | 아키텍트 | 구조적 원인을 파악함. | "우리가 처음부터 다시 시작한다면, 이런 방식으로 구축했을까요?" |
 
-이러한 스탠스들은 다섯 가지 운영 역할을 지원합니다. Lead Agent(메인 대화 컨텍스트, *spawn되는 별도 subagent가 아님*)는 과학적 판단과 주장 규율을 담당합니다. 피어 리뷰 교수(Peer-Review Professor)는 `meeting --scope review` 세션에서만 spawn되는 외부 대립 검토자로, 프로젝트 히스토리 없이 라이브 워크플로 다이어그램과 공유된 artifact만 보고 주장의 허점을 찾습니다. 대학원생 테스트 설계 에이전트(Graduate Test-Design Agents)는 계획을 검증 작업으로 변환합니다. 코딩 하위 에이전트(Coding Subagents)는 검증 전략이 명확해진 후에만 제한된 구현을 실행합니다. 워크플로우 상태는 `scripts/workflow_hooks.py`(Agent() spawn 자동 추적)와 `/sync-workflow` 스킬(게이트 완료 후 온디맨드 파일시스템 워크)로 관리됩니다.
+이러한 스탠스들은 single-spawner 운영 모델을 지원합니다. Lead Agent(메인 대화 컨텍스트, *spawn되는 별도 subagent가 아님*)는 과학적 판단, 주장 규율, 모든 `Agent()` spawn을 담당합니다. Graduate Student는 spawn되는 별도 tier가 아니라 Lead가 seed task마다 로드하는 역할입니다. 피어 리뷰 교수(Peer-Review Professor)는 `meeting --scope review` 세션에서만 spawn되는 외부 대립 검토자입니다. leaf 코딩 하위 에이전트(Coding Subagents)는 Lead의 검증 전략이 명확해진 후에만 제한된 구현/검증/audit를 실행합니다. 워크플로우 상태는 `scripts/workflow_hooks.py`(Agent() spawn 자동 추적)와 `/sync-workflow` 스킬(게이트 완료 후 온디맨드 파일시스템 워크)로 관리됩니다.
 
-큰 작업에서는 Lead Agent 아래의 spawn 역할들이 *실제로 별도의 에이전트를 `Agent()` 도구로 spawn*하면서 강제됩니다 — 하나의 에이전트가 내부 페르소나를 바꿔 가며 흉내 내는 방식이 아닙니다. Lead Agent는 메인 컨텍스트 자체이고, 그 아래 2계층 spawn 구조는 다음과 같습니다: **Lead Agent** → **Graduate Student Agent(s)** (seed task 한 개당 한 명, 독립 task는 병렬 spawn) → **Implementation Agent** + **Scientific Validator** + **Cache-Log Auditor** (각 Graduate Student가 필요에 따라 spawn). 역할 agent 정의는 `.claude/agents/<role>.md`에 있고, `docs/harness/spawn_contracts.json`이 agent 정의, `tools:` frontmatter, skill 선언, `subagent_type` 이름의 정합성을 유지합니다. Graduate Student는 task *유형*이 아니라 *단일 task instance*에 묶입니다 — "baseline 학생"과 "scan 학생"의 구분은 없습니다. spawn block 템플릿과 cross-tier 금지 규칙은 `docs/orchestration_protocol.md`의 "Agent Spawning Protocol" 섹션을 참조하세요.
+큰 작업에서는 Lead Agent가 유일한 spawner입니다. Graduate Student agent를 spawn하지 않고, `skills/graduate-student/SKILL.md`를 seed task 하나에 대한 Lead 역할로 로드합니다. Lead가 직접 leaf agent인 **Implementation Agent**, **Scientific Validator**, **Cache-Log Auditor**, **Peer-Review Professor**를 spawn합니다. 역할 agent 정의는 `.claude/agents/<role>.md`에 있고, `docs/harness/spawn_contracts.json`이 leaf agent 정의, `tools:` frontmatter, skill 선언, `subagent_type` 이름의 정합성을 유지합니다. task orchestration template, leaf spawn block, cross-tier 금지 규칙은 `docs/orchestration_protocol.md`의 "Agent Spawning Protocol" 섹션을 참조하세요.
 
 ### 설치되는 Skills
 
@@ -198,7 +198,7 @@ Orient -> Interview -> Specify -> Seed -> Validate -> Execute -> Evaluate -> Rev
 | `baseline-strategy` | model-specification 이후 — 교수-대학원생 대화로 variation vs. new model을 결정하고 seed-design 전에 첫 검증 타겟을 고정할 때 |
 | `meeting` | "이게 말이 되는가?"를 외부 관점으로 검증할 때 — `--scope quick/review/full`, `--on "<질문>"` 파라미터로 소집. 워크플로의 어느 시점에서도 호출 가능. |
 | `peer-review-professor` | `meeting` 세션 안에서 활성화되는 외부 대립 검토자 역할 — 프로젝트 히스토리 없이 5가지 스탠스로 주장의 허점을 찾음 |
-| `graduate-student` | spawn된 Graduate Student 에이전트가 로드함 — 하나의 seed task에 대한 실행 전략, sub-agent 조율, 이상 감지 에스컬레이션, evidence 기록을 담당 |
+| `graduate-student` | Lead Agent가 seed task 하나를 조율할 때 로드함 — task 전략, Lead 코드 리뷰, leaf-agent 조율, 이상 감지 에스컬레이션, evidence 기록을 담당 |
 | `implementation-agent` | spawn된 Implementation Agent가 로드함 — `src/`에 코드 작성만 담당; 코드 실행이나 결과 판단, 물리 해석은 하지 않음 |
 | `scientific-validator` | spawn된 Scientific Validator가 로드함 — `run_with_capture.py`로 스크립트를 실행하고 사전 정의된 pass/fail 기준을 기계적으로 적용; 코드 수정이나 claim 강화는 금지 |
 | `cache-log-auditor` | spawn된 Cache-Log Auditor가 로드함 (Scientific Validator 직후 항상 spawn) — `audit_run_outputs.py`로 `logs/`, `errors/`, `cache/`에 충분한 산출물이 남았는지 검증 |

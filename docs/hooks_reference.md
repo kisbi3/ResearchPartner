@@ -101,10 +101,10 @@ Cross-referential edges (`evolved_from`, `reproduces`, `cites_paper`, `supports`
 
 ## Spawn Contract Consistency Gate
 
-`scripts/check_spawn_contracts.py` validates `docs/harness/spawn_contracts.json` against `.claude/agents/<role>.md`, role skills, and `docs/orchestration_protocol.md`. It is an offline/CI consistency gate: it does not itself block a live tool call, but it catches drift before a PR or checkpoint claims the spawn contract is coherent.
+`scripts/check_spawn_contracts.py` validates `docs/harness/spawn_contracts.json` against `.claude/agents/<role>.md`, role skills, and `docs/orchestration_protocol.md`. It is an offline/CI consistency gate for the single-spawner model: the Lead Agent is the only spawner, and all spawned role agents are leaf agents. The script does not itself block a live tool call, but it catches drift before a PR or checkpoint claims the spawn contract is coherent.
 
 - **Script**: `python scripts/check_spawn_contracts.py --project <project-dir>`
-- **Decision**: exits 1 when a required role is missing, an agent file's frontmatter `name` differs from the `subagent_type`, `tools:` differs from the JSON contract, the Graduate Student loses `Write`/`Edit`/`Agent` or `docs/evidence/` write scope, the allowed child `subagent_type` list differs from the Graduate Student skill declaration, the description is not explicit-spawn-only, or `docs/orchestration_protocol.md` omits a required `subagent_type`.
+- **Decision**: exits 1 when a required leaf role is missing, an agent file's frontmatter `name` differs from the `subagent_type`, `tools:` differs from the JSON contract, any role agent includes the `Agent` tool, any role declares child spawns, the obsolete `.claude/agents/graduate-student.md` file exists, the description is not explicit-spawn-only, or `docs/orchestration_protocol.md` omits a required leaf `subagent_type`.
 - **Layering**: Claude Code's agent loader applies `.claude/agents/<role>.md` `tools:` at runtime; existing path and Bash hooks (`check_src_write_authorization.py`, `check_bash_code_write.py`) still provide hard protection against unauthorized code writes.
 
 ## Re-spawn Monitoring (not a hook — surfaces in stage checkpoint)

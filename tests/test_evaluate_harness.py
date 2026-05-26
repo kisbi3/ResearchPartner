@@ -212,10 +212,11 @@ def test_spawn_contracts_scenario_is_evaluated():
     scenario = scenarios["spawn_contracts_and_agent_definitions"]
     assert "docs/harness/spawn_contracts.json" in scenario.docs
     assert "scripts/check_spawn_contracts.py" in scenario.docs
-    assert ".claude/agents/graduate-student.md" in scenario.docs
     assert "Spawn Contract Consistency Gate" in scenario.rule_terms
+    assert "single-spawner model" in scenario.rule_terms
     assert "subagent_type" in scenario.rule_terms
     assert "check_spawn_contracts" in scenario.checks
+    assert ".claude/agents/graduate-student.md" not in scenario.docs
 
 
 def test_spawn_contracts_scenario_runs_checker(monkeypatch):

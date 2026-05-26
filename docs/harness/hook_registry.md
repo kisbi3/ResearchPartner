@@ -27,4 +27,4 @@ python scripts/check_spawn_contracts.py --project <project-dir>
 - Every wired hook script in `.claude/settings.local.json` must appear in `hook_registry` or in `known_uncovered_wired_hooks`.
 - `known_uncovered_wired_hooks` is a temporary migration escape hatch and should be empty before release.
 - Workflow references use real generator keys such as `interview_gate`, not guessed rendered node ids such as `gate_interview`.
-- Spawn role changes must pass `check_spawn_contracts.py`: required `.claude/agents/<role>.md` files, `tools:` frontmatter, `subagent_type` names, Graduate Student child roles, and explicit-spawn-only descriptions must match `docs/harness/spawn_contracts.json`.
+- Spawn role changes must pass `check_spawn_contracts.py`: required leaf `.claude/agents/<role>.md` files, `tools:` frontmatter, `subagent_type` names, empty child-spawn lists, no `Agent` tool in any role agent, no spawned Graduate Student agent file, and explicit-spawn-only descriptions must match `docs/harness/spawn_contracts.json`.

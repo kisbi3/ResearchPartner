@@ -29,7 +29,7 @@ flowchart TB
     S --> AU["Assumption/Units Hook"]
     S --> UC["Unit Conversion Hook"]
     S --> AR["Approximation Regime Hook"]
-    SD["Seed"] --> GD["Graduate Test-Design Hook"]
+    SD["Seed"] --> GD["Graduate Student Role Hook"]
     V["Validate"] --> BG["Baseline Gate Hook"]
     V --> NS["Numerical Stability Hook"]
     V --> WV["Waiver Hook"]
@@ -82,10 +82,9 @@ flowchart TD
 
 ```mermaid
 flowchart TB
-    P["Lead Agent"] --> G["Graduate Test-Design Agents"]
-    G --> C["Coding Subagents"]
+    P["Lead Agent"] --> G["Graduate Student role (not spawned)"]
+    P --> C["Leaf Coding Subagents"]
     P --> D["Cartographer (hook-driven, not spawned)"]
-    G --> D
     C --> D
     D --> W["Live Workflow Artifact"]
 ```

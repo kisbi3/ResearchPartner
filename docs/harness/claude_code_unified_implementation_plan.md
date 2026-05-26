@@ -228,14 +228,15 @@ waiver 가능 hook은 waiver artifact + claim-ceiling 강등 경로가 선언될
 
 > 두 계획의 단 하나의 정면 차이를 여기서 해소한다. **강제는 agent 정의, 검사는 JSON 계약 — 둘 다 둔다.**
 
-**(런타임 격리) agent 정의 (Claude §4.1 정정)** — `.claude/agents/<role>.md` 신설 + `tools:` frontmatter + `subagent_type` 스폰.
+**(런타임 격리) leaf agent 정의 (Claude §4.1 정정)** — `.claude/agents/<role>.md` 신설 + `tools:` frontmatter + `subagent_type` 스폰.
 본문은 기존 skill 위임("Load skills/<role>/SKILL.md"). Claude Code의 문서화된 agent frontmatter 기능과 Lead/Manager의 라이브 관측을
 런타임 격리 근거로 둔다. 우리 repo의 오프라인 작업은 이 기능을 호출해 실연하지 않고, 아래 JSON/checker로 정합성만 결정론적으로 검사한다.
+**2026-05-26 정정**: spawned subagent는 `Agent` tool을 받지 못하므로 중첩 스폰은 불가. Lead Agent가 유일 스포너이고,
+Graduate Student는 Lead가 seed task마다 로드하는 역할이다. `.claude/agents/graduate-student.md`는 두지 않는다.
 권장 tools:
 
 | 역할 | tools | 효과 |
 |---|---|---|
-| Graduate Student | `Read, Grep, Glob, Write, Edit, Agent` | evidence 작성 가능; code write는 기존 cross-tier hooks가 차단 |
 | Scientific Validator | `Read, Grep, Glob, Bash` | Write/Edit 없음 → 코드 수정 *불가* |
 | Cache-Log Auditor | `Read, Grep, Glob, Bash` | 단일 audit 명령만 |
 | Implementation Agent | `Read, Write, Edit, Grep, Glob` | code/figure file 작성만; 실행은 validator handoff |
@@ -269,9 +270,9 @@ self-verification/fallback→identifier→트리거 예시)으로 일관 생성�
                            "검증 미실행 시 'not run'으로 보고하고 claim은 provisional 유지"] } ] }
 ```
 
-checker fail: 필수 role 누락; agent file 부재; `name`이 `subagent_type`과 불일치; frontmatter `tools`와 JSON `allowed_tools` 불일치;
-Graduate Student가 `Write/Edit/Agent` 또는 `docs/evidence/` write scope를 잃음; skill의 canonical child `subagent_type` 목록과 JSON 허용 목록 불일치;
-description이 `Explicitly spawned only`로 시작하지 않거나 trigger 문구를 포함; `orchestration_protocol.md`가 명명한 `subagent_type`이 빠짐.
+checker fail: 필수 leaf role 누락; agent file 부재; `name`이 `subagent_type`과 불일치; frontmatter `tools`와 JSON `allowed_tools` 불일치;
+role agent가 `Agent` tool을 포함; child spawn 목록이 비어 있지 않음; `.claude/agents/graduate-student.md`가 존재;
+description이 `Explicitly spawned only`로 시작하지 않거나 trigger 문구를 포함; `orchestration_protocol.md`가 명명한 leaf `subagent_type`이 빠짐.
 
 ```powershell
 python scripts/check_spawn_contracts.py --project C:\ResearchPartner
@@ -279,8 +280,9 @@ python -m pytest tests/test_check_spawn_contracts.py -q   # check_cross_tier_com
 python scripts/check_cross_tier_compliance.py --project C:\ResearchPartner --strict
 ```
 
-**수용 기준**: Scientific Validator 스폰이 코드 수정을 *수단 부재*로 못 함; 역할별 tool/scope가 실제로 다름;
-Implementation Agent는 좁은 validation Bash 또는 read-only Validator handoff로만 완료; completion_promise가 증거 없는 "완료" 차단.
+**수용 기준**: Lead만 `Agent`를 사용한다; leaf role agent는 모두 `Agent` tool이 없다; Scientific Validator 스폰이 코드 수정을
+*수단 부재*로 못 함; 역할별 tool/scope가 실제로 다름; Implementation Agent는 Validator handoff로만 완료; completion_promise가
+증거 없는 "완료" 차단.
 
 ---
 

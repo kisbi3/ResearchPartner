@@ -1,22 +1,7 @@
 {
   "schema_version": 1,
-  "description": "Static consistency registry for Claude Code role agents. Runtime tool isolation is provided by Claude Code agent frontmatter; this file keeps role definitions, skill declarations, and orchestration templates from drifting.",
+  "description": "Static consistency registry for Claude Code leaf role agents. The Lead Agent is the only spawner; Graduate Student is a Lead-loaded orchestration role, not a spawned subagent. Runtime tool isolation is provided by Claude Code agent frontmatter; this file keeps leaf role definitions, skill declarations, and orchestration templates from drifting.",
   "contracts": [
-    {
-      "role": "graduate-student",
-      "agent_file": ".claude/agents/graduate-student.md",
-      "skill": "skills/graduate-student/SKILL.md",
-      "allowed_tools": ["Read", "Grep", "Glob", "Write", "Edit", "Agent"],
-      "write_scope": ["docs/evidence/"],
-      "forbidden_write_globs": ["src/**/*.py", "**/*.ipynb", "**/*.sh", "**/*.R"],
-      "allowed_spawn_subagent_types": [
-        "implementation-agent",
-        "scientific-validator",
-        "cache-log-auditor"
-      ],
-      "must_report": ["evidence_path", "child_subagents_spawned", "pass_fail_status"],
-      "runtime_enforcement": "Claude Code loads .claude/agents/graduate-student.md and applies its tools frontmatter; check_spawn_contracts.py enforces static consistency only."
-    },
     {
       "role": "implementation-agent",
       "agent_file": ".claude/agents/implementation-agent.md",

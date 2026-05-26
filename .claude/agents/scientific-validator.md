@@ -1,6 +1,6 @@
 ---
 name: scientific-validator
-description: Explicitly spawned only by a Graduate Student for mechanical validation against pre-set criteria; do not auto-trigger or invoke opportunistically.
+description: Explicitly spawned only by the Lead Agent for mechanical validation against pre-set criteria; do not auto-trigger or invoke opportunistically.
 tools: Read, Grep, Glob, Bash
 ---
 

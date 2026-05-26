@@ -44,7 +44,7 @@ Orient -> Interview -> Specify -> Seed -> Validate -> Execute -> Evaluate -> Rev
     +----------------------------- Evolutionary Loop ---------------------------------+
 ```
 
-This loop absorbs software-development discipline into scientific practice. Brainstorming is the Professor-led Interview/Specify phase; implementation planning is the Graduate-led Seed/Validate phase; coding is bounded Execute work; code review and claim review are part of Evaluate/Review; branch or iteration finishing is Retrospect and lineage capture.
+This loop absorbs software-development discipline into scientific practice. Brainstorming is the Professor-led Interview/Specify phase; implementation planning is the Lead-loaded Graduate Student role in Seed/Validate; coding is bounded leaf-agent Execute work; code review and claim review are part of Evaluate/Review; branch or iteration finishing is Retrospect and lineage capture.
 
 ## Workflow Summary
 
@@ -54,7 +54,7 @@ This loop absorbs software-development discipline into scientific practice. Brai
 | Interview | Clarify intent, assumptions, alternatives, and risk | Interview Gate records the crystallized research question, key assumptions, agreed direction, and suggested next skill before Seed or Execute | `skills/professor-interview/SKILL.md`, `docs/gates/interview_notes.md`, `scripts/check_interview_recorded.py` |
 | Literature | Identify prior metrics, novelty risk, and the minimum reproduction target | Literature Gate is ready or explicitly waived before model-specification or seed-design relies on prior work | `skills/literature-review-planning/SKILL.md`, `docs/literature/literature_review_plan.md`, `scripts/check_literature_reviewed.py` |
 | Specify | Define model, variables, units, regimes, observables, and failure criteria | Assumption/Units, Unit Conversion, Approximation Regime, and Model Gate Hooks are satisfied | `skills/model-specification/SKILL.md`, `skills/dimensional-analysis/SKILL.md`, `docs/assumptions.md` |
-| Seed | Convert the idea into the smallest testable research iteration | Graduate Test-Design Hook produces tasks with files, commands, outputs, and pass/fail criteria | `skills/seed-design/SKILL.md`, `skills/research-plan-review/SKILL.md`, `docs/research_plan.md` |
+| Seed | Convert the idea into the smallest testable research iteration | Graduate Student role produces tasks with files, commands, outputs, and pass/fail criteria | `skills/seed-design/SKILL.md`, `skills/research-plan-review/SKILL.md`, `docs/research_plan.md` |
 | Validate | Establish baseline, stability, reproducibility, and waiver status | Baseline Gate, Numerical Stability, Code-before-Test, and Waiver Hooks are satisfied | `skills/baseline-validation/SKILL.md`, `skills/numerical-validation/SKILL.md`, `docs/baseline_registry.md` |
 | Execute | Run bounded implementation, analysis, simulation, or plotting tasks | Parameter Change, Data Lineage, Randomness/Reproducibility, Figure Provenance, and Environment Capture Hooks record provenance | `skills/numerical-validation/SKILL.md`, `docs/validation_log.md` |
 | Evaluate | Separate observations, interpretation, speculation, and failures | Anomaly, Claim Strength, Literature Claim, Reviewer Simulation, and Negative Result Hooks check interpretation | `skills/anomaly-debugging/SKILL.md`, `skills/scientific-verification-before-claim/SKILL.md`, `skills/claim-to-evidence/SKILL.md` |
@@ -68,14 +68,14 @@ The hooks are grouped by the risk they control:
 - Intake and scope: Task Intake Hook, Orient Gate Hook, Interview Gate Hook, Ambiguity Hook, Scope Creep Hook.
 - Literature and reproduction: Literature Gate Hook, Literature Claim Hook, Literature Replanning Hook.
 - Physical specification: Assumption/Units Hook, Unit Conversion Hook, Approximation Regime Hook.
-- Validation and execution: Baseline Gate Hook, Graduate Test-Design Hook, Code-before-Test Hook, Numerical Stability Hook, Waiver Hook.
+- Validation and execution: Baseline Gate Hook, Graduate Student role, Code-before-Test Hook, Numerical Stability Hook, Waiver Hook.
 - Provenance and reproducibility: Parameter Change Hook, Randomness/Reproducibility Hook, Data Lineage Hook, Figure Provenance Hook, Environment Capture Hook.
 - Evidence and claims: Claim Strength Hook, Manuscript Drift Hook, Artifact Freshness Hook, Reviewer Simulation Hook.
 - Failure and memory: Anomaly Hook, Negative Result Hook, Cartographer Hook, Retrospective Hook.
 
 ## Live Linked Research Graph
 
-The visible workflow map should not merely redraw the fixed loop. It should grow from the order in which research actually happens. Each Lead Agent, Graduate Test-Design Agent, and Coding Subagent update should send a small Cartographer update event using `docs/run_templates/cartographer_update_template.md`. The Cartographer (hook-driven, not spawned) records those events as graph nodes and links, but does not judge scientific meaning.
+The visible workflow map should not merely redraw the fixed loop. It should grow from the order in which research actually happens. Each Lead Agent and leaf Coding Subagent update should send a small Cartographer update event using `docs/run_templates/cartographer_update_template.md`. The Cartographer (hook-driven, not spawned) records those events as graph nodes and links, but does not judge scientific meaning.
 
 Each important node should expose three link families:
 
@@ -107,8 +107,8 @@ The workflow-diagram agent should update the live Mermaid/workflow artifact when
 Substantial research plans, existing-project reviews, reproduction attempts, simulation campaigns, analysis pipelines, figure sets, and manuscript-claim work should be organized as a professor-led research group.
 
 - The Lead Agent owns scientific judgment, assumptions, model meaning, validation gates, evidence sufficiency, reproduction fidelity, and final claim discipline.
-- Graduate Test-Design Agents interview the professor first, convert broad tasks into testable validation strategies, and then interview coding subagents to make implementation work concrete.
-- Coding Subagents perform bounded implementation, analysis, or plotting tasks after the test strategy is clear. They report commands, parameters, seeds, outputs, validation status, and failures, but they should not decide that a result supports a stronger scientific claim.
+- The Lead Agent loads the Graduate Student role for one seed task at a time. This is Lead-loaded task orchestration, not a spawned subagent tier.
+- Leaf Coding Subagents perform bounded implementation, analysis, validation, or audit tasks after the test strategy is clear. They report commands, parameters, seeds, outputs, validation status, and failures, but they should not decide that a result supports a stronger scientific claim or spawn other agents.
 
 The research group follows the evolutionary loop:
 
@@ -122,7 +122,7 @@ If evaluation exposes ambiguity, failed reproduction, dimensional risk, unsuppor
 
 ## Cartographer (hook-driven, not spawned)
 
-For substantial research iterations, the Cartographer (hook-driven, not spawned) maintains the live workflow artifact in real time. It listens to the Lead Agent, Graduate Test-Design Agents, and Coding Subagents, then records active steps, interview checkpoints, seeds/specs, execution tasks, evaluation gates, evidence links, blocked behaviors, and the next researcher review checkpoint.
+For substantial research iterations, the Cartographer (hook-driven, not spawned) maintains the live workflow artifact in real time. It listens to the Lead Agent and leaf Coding Subagents, then records active steps, interview checkpoints, seeds/specs, execution tasks, evaluation gates, evidence links, blocked behaviors, and the next researcher review checkpoint.
 
 The Cartographer (hook-driven, not spawned) does not give project opinions, choose scientific interpretations, infer mechanisms, judge whether a claim is true, or strengthen claims. It is a process-tracking role only. Its artifact is a shared thinking surface for researcher review, not scientific evidence.
 
@@ -130,7 +130,7 @@ Use `docs/run_templates/live_workflow_diagram_template.md` when starting a new r
 
 ## Completion Conference
 
-When a reproduction, validation, figure-generation, or other substantial task is complete and visualization artifacts are ready, the Lead Agent convenes a completion conference with all agents: graduate agents, coding subagents, and the Cartographer (hook-driven, not spawned).
+When a reproduction, validation, figure-generation, or other substantial task is complete and visualization artifacts are ready, the Lead Agent convenes a completion conference with the available leaf-agent reports and the Cartographer (hook-driven, not spawned) state.
 
 The completion conference should produce a user-facing report that summarizes:
 
