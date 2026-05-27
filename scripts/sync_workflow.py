@@ -636,6 +636,30 @@ def build_live_json(
     }
 
 
+def _domain_type_from_manual(manual: Path) -> str:
+    if not manual.exists():
+        return ""
+    text = _read(manual)
+    m = re.search(r"^\s*type:\s*([A-Za-z0-9_-]+)\s*$", text, re.MULTILINE)
+    return m.group(1) if m else ""
+
+
+def collect_domains(project: Path) -> list[dict]:
+    """Return minimal domain workspace metadata for live JSON surfacing."""
+    entries: list[dict] = []
+    for domain_root in layout.domains(project):
+        if domain_root == project:
+            continue
+        manual = layout.domain_manual(domain_root)
+        entries.append({
+            "name": domain_root.name,
+            "path": domain_root.relative_to(project).as_posix(),
+            "manual": manual.relative_to(project).as_posix(),
+            "type": _domain_type_from_manual(manual),
+        })
+    return entries
+
+
 # ── Broken-edge linter (moved from update_live_json.py) ──────────────────────
 
 
@@ -703,6 +727,9 @@ def sync(project: Path, active_step: str | None = None) -> Path:
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "maps": [live_map],
     }
+    domain_entries = collect_domains(project)
+    if domain_entries:
+        data["domains"] = domain_entries
     out_path = layout.workflow_map_live_json(project)
     out_path.write_text(json.dumps(data, indent=2, ensure_ascii=False),
                         encoding="utf-8")

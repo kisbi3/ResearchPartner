@@ -188,6 +188,63 @@ def evidence_dir(project: Path) -> Path:
     return project / "docs" / "evidence"
 
 
+# ── Optional domain workspaces (Step 1: non-enforcing surfacing only) ─────────
+
+def domains_root(project: Path) -> Path:
+    return project / "domains"
+
+
+def domain_names(project: Path) -> list[str]:
+    root = domains_root(project)
+    if not root.is_dir():
+        return []
+    return sorted(
+        child.name
+        for child in root.iterdir()
+        if child.is_dir() and not child.name.startswith(".")
+    )
+
+
+def domains(project: Path) -> list[Path]:
+    names = domain_names(project)
+    if not names:
+        return [project]
+    root = domains_root(project)
+    return [root / name for name in names]
+
+
+def domain_src_dir(domain_root: Path) -> Path:
+    return domain_root / "src"
+
+
+def domain_outputs_dir(domain_root: Path) -> Path:
+    return domain_root / "outputs"
+
+
+def domain_figures_dir(domain_root: Path) -> Path:
+    return domain_outputs_dir(domain_root) / "figures"
+
+
+def domain_data_dir(domain_root: Path) -> Path:
+    return domain_outputs_dir(domain_root) / "data"
+
+
+def domain_tables_dir(domain_root: Path) -> Path:
+    return domain_outputs_dir(domain_root) / "tables"
+
+
+def domain_plan_dir(domain_root: Path) -> Path:
+    return domain_root / "plan"
+
+
+def domain_claims_dir(domain_root: Path) -> Path:
+    return domain_root / "claims"
+
+
+def domain_manual(domain_root: Path) -> Path:
+    return domain_root / "README.md"
+
+
 # ── Runtime directories ───────────────────────────────────────────────────────
 
 def src_dir(project: Path) -> Path:

@@ -71,6 +71,8 @@ task-intake -> professor-interview -> literature-review-planning -> model-specif
 3. `/sync-workflow`로 artifact에서 live state를 다시 구성합니다.
 4. 오래된 figure나 manuscript 문구를 강화하기 전에 validation, provenance, lineage, claim check를 실행합니다.
 
+선택적 도메인 워크스페이스는 marker가 있는 프로젝트 하나 안에 reproduction, thread, subproblem, integration용 `domains/<name>/` 영역을 둡니다. Step 1에서는 project-level gate, claim check, lineage check, provenance check 동작을 바꾸지 않으며, `domains/`가 없는 프로젝트는 계속 프로젝트 루트가 기본 domain으로 resolve됩니다.
+
 플랫폼 라우팅:
 
 | 플랫폼 | 읽는 파일 | 메모 |
@@ -103,6 +105,7 @@ Lead Agent는 별도 agent가 아니라 mental mode로 9개 stance를 사용합�
 |---|---|---|
 | 하네스 설치 | `python -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/kisbi3/ResearchPartner/main/scripts/install.py').read())"` | 현재 프로젝트에 관리되는 하네스 파일 설치 |
 | 프로젝트 초기화 | `python scripts\init_research_project.py --project <project-dir>` | 연구 프로젝트 marker와 기본 구조 생성 |
+| domain workspace scaffold | `python scripts\scaffold_domain.py --project <project-dir> --name <slug> --type reproduction` | project-level gate를 이동하지 않고 선택적 `domains\<slug>\` workspace와 typed manual 추가 |
 | 기존 프로젝트 감사 | `python scripts\audit_existing_project.py <project-root>` | scripts, figures, outputs, validation gaps inventory |
 | 하네스 평가 | `python scripts\evaluate_harness.py --fail-on-partial` | scenario coverage 확인; partial도 이제 CI 실패 |
 | 테스트 의존성 설치 | `python -m pip install -r requirements.txt` | `pytest`, `PyYAML` 설치 |
