@@ -71,6 +71,8 @@ Scenario B, existing project:
 3. Use `/sync-workflow` to rebuild live state from artifacts.
 4. Use validation, provenance, lineage, and claim checks before strengthening old figures or manuscript text.
 
+Optional domain workspaces let one marked project carry named `domains/<name>/` areas for a reproduction, thread, subproblem, or integration workspace. Step 1 keeps all project-level gates, claim checks, lineage checks, and provenance checks unchanged; a project without `domains/` still resolves to the project root as its default domain.
+
 Platform routing:
 
 | Platform | Reads | Notes |
@@ -103,6 +105,7 @@ Commands:
 |---|---|---|
 | Install harness | `python -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/kisbi3/ResearchPartner/main/scripts/install.py').read())"` | Install managed harness files into the current project |
 | Init project | `python scripts\init_research_project.py --project <project-dir>` | Mark and scaffold a research project |
+| Scaffold domain workspace | `python scripts\scaffold_domain.py --project <project-dir> --name <slug> --type reproduction` | Add an optional `domains\<slug>\` workspace and typed manual without moving project-level gates |
 | Audit existing project | `python scripts\audit_existing_project.py <project-root>` | Inventory scripts, figures, outputs, and validation gaps |
 | Evaluate harness | `python scripts\evaluate_harness.py --fail-on-partial` | Check scenario coverage; partial now fails CI |
 | Install test dependencies | `python -m pip install -r requirements.txt` | Install `pytest` and `PyYAML` |
