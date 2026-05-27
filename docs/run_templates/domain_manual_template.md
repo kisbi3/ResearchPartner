@@ -2,7 +2,7 @@
 type: {{type}}
 purpose: <what this domain exists to answer>
 ground-truth: <internal-validation | external-paper:<id> | analytical-limit>
-pass/fail: <domain-specific success and failure criteria>
+pass-fail: <domain-specific success and failure criteria>
 units: <units and reference scales>
 assumptions: <local assumptions and validity regimes>
 relations:

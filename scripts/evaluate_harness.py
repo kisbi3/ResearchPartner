@@ -701,6 +701,7 @@ def run_ci_enforcement_check() -> list[str]:
         "python scripts/check_harness_manifest.py",
         "python scripts/check_spawn_contracts.py",
         "python scripts/check_contract_sync.py",
+        "python scripts/check_domain_manifest.py",
         "python scripts/evaluate_harness.py --fail-on-partial",
     ]
     problems = [
