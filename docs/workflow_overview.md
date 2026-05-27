@@ -6,23 +6,23 @@ Research Partner is not a full automation system. It is a strong research partne
 
 Before starting or continuing a substantial research task, inspect:
 
-- `docs/workflow_map.html` for the live research workflow
+- `workflow_map.html` for the live research workflow
 - `docs/workflow_diagrams.md` for the research workflow diagram
 - `docs/workflow_code_map.md` for the file ownership map
 
-Generate `docs/workflow_map.html` as a live research workflow by default:
+Refresh the live workflow state after gate changes, Agent spawns, or new evidence links:
+
+```bash
+python scripts/sync_workflow.py --project <project-dir>
+```
+
+Rebuild the dashboard HTML shell when the template or bundled data shape changes:
 
 ```bash
 python scripts/generate_workflow_map.py
 ```
 
-Start a new run-specific artifact set from the harness templates with:
-
-```bash
-python scripts/start_research_run.py --name 1d-diffusion-mode-decay
-```
-
-The run scaffolder creates `<project-root>/ResearchPartner-runs/YYYY-MM-DD-<slug>/` inside the project (override with `--runs-root`) with `docs/process/live_workflow_diagram.md`, `research_run_packet.md`, initial run docs, and `outputs/`.
+New run-specific artifacts are scaffolded from `docs/run_templates/` by the harness initialization and run-planning flow, with `docs/process/live_workflow_diagram.md`, `research_run_packet.md`, initial run docs, and `outputs/`.
 
 When the researcher explicitly starts manuscript planning, generate the paper logic workflow for review:
 
@@ -32,7 +32,7 @@ python scripts/generate_workflow_map.py --include-paper-logic
 
 Do not show the paper logic workflow as a default research dashboard before the researcher asks to plan manuscript structure.
 
-For substantial research iterations, keep a live Mermaid or workflow artifact current through a separate workflow-diagram agent or equivalent separate tracking pass. This live artifact should show the active step, gates, evidence links, blocked behaviors, and next researcher review checkpoint. It is a process-tracking artifact only and must not strengthen scientific claims beyond the evidence chain.
+For substantial research iterations, keep the live Mermaid or workflow artifact current with `scripts/workflow_hooks.py` Agent-spawn recording plus the on-demand `/sync-workflow` refresh. This live artifact should show the active step, gates, evidence links, blocked behaviors, and next researcher review checkpoint. It is a process-tracking artifact only and must not strengthen scientific claims beyond the evidence chain.
 
 ## Scientific Loop Summary
 
@@ -58,7 +58,7 @@ This loop absorbs software-development discipline into scientific practice. Brai
 | Validate | Establish baseline, stability, reproducibility, and waiver status | Baseline Gate, Numerical Stability, Code-before-Test, and Waiver Hooks are satisfied | `skills/baseline-validation/SKILL.md`, `skills/numerical-validation/SKILL.md`, `docs/baseline_registry.md` |
 | Execute | Run bounded implementation, analysis, simulation, or plotting tasks | Parameter Change, Data Lineage, Randomness/Reproducibility, Figure Provenance, and Environment Capture Hooks record provenance | `skills/numerical-validation/SKILL.md`, `docs/validation_log.md` |
 | Evaluate | Separate observations, interpretation, speculation, and failures | Anomaly, Claim Strength, Literature Claim, Reviewer Simulation, and Negative Result Hooks check interpretation | `skills/anomaly-debugging/SKILL.md`, `skills/scientific-verification-before-claim/SKILL.md`, `skills/claim-to-evidence/SKILL.md` |
-| Review | Present reviewable evidence and limits to the researcher | Manuscript Drift, Artifact Freshness, Scope Creep, and Cartographer Hooks expose stale or unsupported material | `skills/cartographer-update/SKILL.md`, `skills/researcher-review-loop/SKILL.md`, `docs/researcher_review_log.md` |
+| Review | Present reviewable evidence and limits to the researcher | Manuscript Drift, Artifact Freshness, Scope Creep, and Workflow State Hooks expose stale or unsupported material | `skills/sync-workflow/SKILL.md`, `skills/researcher-review-loop/SKILL.md`, `docs/researcher_review_log.md` |
 | Retrospect | Preserve lineage, decisions, failures, and reusable checks | Retrospective Hook leaves a reusable artifact, decision, open question, or skill/template rule | `skills/research-retrospective/SKILL.md`, `docs/research_retrospective.md`, `docs/lineage/iteration_template.md` |
 
 ## Hook Families
@@ -71,11 +71,11 @@ The hooks are grouped by the risk they control:
 - Validation and execution: Baseline Gate Hook, Graduate Student role, Code-before-Test Hook, Numerical Stability Hook, Waiver Hook.
 - Provenance and reproducibility: Parameter Change Hook, Randomness/Reproducibility Hook, Data Lineage Hook, Figure Provenance Hook, Environment Capture Hook.
 - Evidence and claims: Claim Strength Hook, Finding Lifecycle Hook, Manuscript Drift Hook, Artifact Freshness Hook, Reviewer Simulation Hook.
-- Failure and memory: Anomaly Hook, Negative Result Hook, Cartographer Hook, Retrospective Hook.
+- Failure and memory: Anomaly Hook, Negative Result Hook, Workflow State Hook, Retrospective Hook.
 
 ## Live Linked Research Graph
 
-The visible workflow map should not merely redraw the fixed loop. It should grow from the order in which research actually happens. Each Lead Agent and leaf Coding Subagent update should send a small Cartographer update event using `docs/run_templates/cartographer_update_template.md`. The Cartographer (hook-driven, not spawned) records those events as graph nodes and links, but does not judge scientific meaning.
+The visible workflow map should not merely redraw the fixed loop. It should grow from the order in which research actually happens. `scripts/workflow_hooks.py` records Agent spawn state in the In-Flight Tasks table, and `/sync-workflow` deterministically refreshes the workflow graph from gate, evidence, lineage, and process artifacts. Workflow state records link state and task state, but does not judge scientific meaning.
 
 Each important node should expose three link families:
 
@@ -120,17 +120,17 @@ Interview -> Seed -> Execute -> Evaluate
 
 If evaluation exposes ambiguity, failed reproduction, dimensional risk, unsupported interpretation, or unclear workflow state, the loop returns to Interview.
 
-## Cartographer (hook-driven, not spawned)
+## Workflow State Automation
 
-For substantial research iterations, the Cartographer (hook-driven, not spawned) maintains the live workflow artifact in real time. It listens to the Lead Agent and leaf Coding Subagents, then records active steps, interview checkpoints, seeds/specs, execution tasks, evaluation gates, evidence links, blocked behaviors, and the next researcher review checkpoint.
+For substantial research iterations, workflow state is maintained by two deterministic paths. `scripts/workflow_hooks.py` appends Agent spawn events to the In-Flight Tasks table. `/sync-workflow` walks the project artifacts on demand, then refreshes active steps, interview checkpoints, seeds/specs, execution tasks, evaluation gates, evidence links, blocked behaviors, and the next researcher review checkpoint.
 
-The Cartographer (hook-driven, not spawned) does not give project opinions, choose scientific interpretations, infer mechanisms, judge whether a claim is true, or strengthen claims. It is a process-tracking role only. Its artifact is a shared thinking surface for researcher review, not scientific evidence.
+Workflow state automation does not give project opinions, choose scientific interpretations, infer mechanisms, judge whether a claim is true, or strengthen claims. It is process tracking only. Its artifact is a shared thinking surface for researcher review, not scientific evidence.
 
 Use `docs/run_templates/live_workflow_diagram_template.md` when starting a new run-specific live workflow artifact.
 
 ## Completion Conference
 
-When a reproduction, validation, figure-generation, or other substantial task is complete and visualization artifacts are ready, the Lead Agent convenes a completion conference with the available leaf-agent reports and the Cartographer (hook-driven, not spawned) state.
+When a reproduction, validation, figure-generation, or other substantial task is complete and visualization artifacts are ready, the Lead Agent convenes a completion conference with the available leaf-agent reports and the latest workflow state.
 
 The completion conference should produce a user-facing report that summarizes:
 
@@ -147,7 +147,7 @@ Use `docs/run_templates/research_run_packet_template.md` to keep Interview, Seed
 
 ## Interactive Navigation
 
-Open `docs/workflow_map.html` in a browser. Click any node to see:
+Open `workflow_map.html` in a browser. Click any node to see:
 
 - purpose of the step
 - required checks

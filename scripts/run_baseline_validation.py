@@ -17,7 +17,6 @@ REQUIRED_PATHS = [
     "README.md",
     "skills/anomaly-debugging/SKILL.md",
     "skills/baseline-validation/SKILL.md",
-    "skills/cartographer-update/SKILL.md",
     "skills/existing-research-onboarding/SKILL.md",
     "skills/harness-evaluation/SKILL.md",
     "skills/literature-review-planning/SKILL.md",

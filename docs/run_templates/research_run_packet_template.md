@@ -11,7 +11,7 @@ Use this packet for substantial research plans, reproduction attempts, validatio
 - Lead Agent:
 - Graduate Student role passes:
 - Coding Subagents:
-- Cartographer (hook-driven, not spawned):
+- Workflow state automation:
 
 ## Interview
 
@@ -127,7 +127,7 @@ Convene this after a reproduction, validation, figure-generation, or other subst
 | Lead Agent |  |  |  |
 | Graduate Student role passes |  |  |  |
 | Coding Subagents |  |  |  |
-| Cartographer (hook-driven, not spawned) |  |  |  |
+| Workflow state (`workflow_hooks.py` + `/sync-workflow`) |  |  |  |
 
 ## Visualization Materials
 

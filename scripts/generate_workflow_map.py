@@ -367,113 +367,6 @@ def extract_gate_rows(markdown: str) -> list[dict[str, str]]:
     return rows
 
 
-def extract_json_objects(markdown: str) -> list[dict]:
-    objects = []
-    for match in re.finditer(r"```json\s*(?P<body>.*?)```", markdown, re.DOTALL):
-        body = match.group("body").strip()
-        if not body:
-            continue
-        try:
-            value = json.loads(body)
-        except json.JSONDecodeError:
-            continue
-        if isinstance(value, dict):
-            objects.append(value)
-    return objects
-
-
-def with_run_path(link: dict, run_root: Path, base_dir: Path | None = None) -> dict:
-    normalized = dict(link)
-    path_text = str(normalized.get("path", ""))
-    if path_text:
-        normalized["path"] = run_relative_path(run_root / path_text, base_dir)
-    normalized.setdefault(
-        "label",
-        normalized.get("role")
-        or normalized.get("kind")
-        or normalized.get("relation")
-        or path_text
-        or "linked artifact",
-    )
-    return normalized
-
-
-def cartographer_event_nodes(
-    markdown: str, run_root: Path, base_dir: Path | None = None
-) -> list[dict]:
-    section = extract_section(markdown, "Cartographer Update Events")
-    events = []
-    for value in extract_json_objects(section):
-        update = value.get("cartographer_update", value)
-        if isinstance(update, dict):
-            events.append(update)
-
-    nodes = []
-    x_positions = [80, 330, 580, 830]
-    for index, event in enumerate(events):
-        node_id = event.get("node_id") or re.sub(
-            r"[^a-z0-9]+",
-            "_",
-            str(event.get("title") or event.get("summary") or f"event_{index}").lower(),
-        ).strip("_")
-        code_links = [
-            with_run_path(link, run_root, base_dir) for link in event.get("code_links", [])
-        ]
-        result_links = [
-            with_run_path(link, run_root, base_dir) for link in event.get("result_links", [])
-        ]
-        interpretation_links = [
-            with_run_path(link, run_root, base_dir)
-            for link in event.get("interpretation_links", [])
-        ]
-        nodes.append(
-            {
-                "id": node_id or f"cartographer_event_{index}",
-                "title": event.get("title") or event.get("summary") or "Cartographer Update",
-                "phase": event.get("status", "active"),
-                "node_type": event.get("node_type", event.get("event_type", "update")),
-                "link_status": event.get("link_status", "pending_review"),
-                "evidence_strength": event.get("evidence_strength", "none"),
-                "claim_ceiling": event.get("claim_ceiling", "unsupported"),
-                "review_owner": event.get("review_owner", event.get("from", "unknown")),
-                "requires_researcher_review": bool(
-                    event.get("requires_researcher_review", False)
-                ),
-                "x": x_positions[index % len(x_positions)],
-                "y": 90 + 170 * (index // len(x_positions)),
-                "summary": event.get("summary", ""),
-                "result_summary": {
-                    "node_type": event.get("node_type", event.get("event_type", "update")),
-                    "link_status": event.get("link_status", "pending_review"),
-                    "evidence_strength": event.get("evidence_strength", "none"),
-                    "claim_ceiling": event.get("claim_ceiling", "unsupported"),
-                    "review_owner": event.get("review_owner", event.get("from", "unknown")),
-                },
-                "images": [
-                    link
-                    for link in result_links
-                    if str(link.get("kind", "")).lower() == "figure"
-                    or str(link.get("path", "")).lower().endswith((".png", ".jpg", ".jpeg", ".gif", ".webp"))
-                ],
-                "responsible": code_links + result_links + interpretation_links,
-                "code_links": code_links,
-                "result_links": result_links,
-                "interpretation_links": interpretation_links,
-                "graph_links": event.get("graph_links", []),
-                "checks": [
-                    "Cartographer records link state only; it does not judge scientific meaning.",
-                    "Open issues, stale links, waivers, and missing evidence must stay visible.",
-                ],
-                "edges": [
-                    link.get("to")
-                    for link in event.get("graph_links", [])
-                    if link.get("from") == node_id and link.get("to")
-                ],
-            }
-        )
-    return nodes
-
-
 def _label_tokens(normalized: str) -> frozenset[str]:
     """Return the meaningful token set of a normalized label for edge matching."""
     return frozenset(t for t in normalized.split("_") if len(t) > 1)
@@ -844,7 +737,6 @@ def live_workflow_map(
         extract_section(markdown, "Evidence Links"), run_root, base_dir
     )
     gate_rows = extract_gate_rows(markdown)
-    event_nodes = cartographer_event_nodes(markdown, run_root, base_dir)
 
     phase_by_status = {
         "pass": "passed",
@@ -902,14 +794,6 @@ def live_workflow_map(
     # Sequential chaining below fills in any gate without a Mermaid-matched edge.
     mermaid_edges = extract_mermaid_edges(markdown)
     apply_mermaid_edges_to_nodes(nodes, mermaid_edges)
-
-    if event_nodes:
-        if nodes:
-            for index, node in enumerate(event_nodes):
-                node["x"] = x_positions[index % len(x_positions)]
-                node["y"] = 90 + 170 * ((index + len(nodes)) // len(x_positions))
-            nodes[-1]["edges"] = [event_nodes[0]["id"]]
-        nodes.extend(event_nodes)
 
     for index, node in enumerate(nodes[:-1]):
         if not node.get("edges"):
