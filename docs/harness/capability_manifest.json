@@ -101,7 +101,7 @@
       "title": "Harness Update Stamp",
       "kind": "workflow",
       "enforcement": "warning",
-      "scripts": ["scripts/install.py", "scripts/check_harness_version.py"],
+      "scripts": ["scripts/install.py", "scripts/check_harness_version.py", "scripts/update_harness.py"],
       "docs": [
         "docs/harness/owned_paths.json",
         "docs/superpowers/specs/2026-05-27-harness-update-propagation-design.md",
