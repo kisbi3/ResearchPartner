@@ -35,22 +35,24 @@ def make_source_tree(root: Path) -> None:
                 "schema_version": 1,
                 "owned": [
                     "scripts/**/*.py",
-                    "skills/**",
-                    ".claude/agents/**",
+                    "skills/**/*",
+                    ".claude/agents/**/*",
                     "AGENTS.md",
                     "GEMINI.md",
                     "PHYSICS.md",
-                    "docs/run_templates/**",
+                    "docs/run_templates/**/*",
                     "docs/hooks_reference.md",
                     "docs/orchestration_protocol.md",
-                    "docs/harness/**",
+                    "docs/harness/**/*",
                     "docs/literature/*_template.md",
+                    "docs/literature/paper_request_queue.md",
                 ],
             }
         ),
         encoding="utf-8",
     )
     (root / "docs/literature/replanning_memo_template.md").write_text("memo\n", encoding="utf-8")
+    (root / "docs/literature/paper_request_queue.md").write_text("queue\n", encoding="utf-8")
     (root / "scripts/init_research_project.py").write_text("print('run')\n", encoding="utf-8")
     (root / ".claude/agents/implementation-agent.md").write_text("agent\n", encoding="utf-8")
     (root / "outputs/generated.txt").write_text("do not copy\n", encoding="utf-8")
@@ -73,6 +75,7 @@ def test_install_from_source_copies_harness_files_only(tmp_path):
         "PHYSICS.md",
         "docs/harness/owned_paths.json",
         "docs/hooks_reference.md",
+        "docs/literature/paper_request_queue.md",
         "docs/literature/replanning_memo_template.md",
         "docs/orchestration_protocol.md",
         "docs/run_templates/template.md",

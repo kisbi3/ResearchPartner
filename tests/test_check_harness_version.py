@@ -43,21 +43,24 @@ def make_source_tree(root: Path) -> None:
                 "schema_version": 1,
                 "owned": [
                     "scripts/**/*.py",
-                    "skills/**",
-                    ".claude/agents/**",
+                    "skills/**/*",
+                    ".claude/agents/**/*",
                     "AGENTS.md",
                     "GEMINI.md",
                     "PHYSICS.md",
-                    "docs/run_templates/**",
+                    "docs/run_templates/**/*",
                     "docs/hooks_reference.md",
                     "docs/orchestration_protocol.md",
-                    "docs/harness/**",
+                    "docs/harness/**/*",
                     "docs/literature/*_template.md",
+                    "docs/literature/paper_request_queue.md",
                 ],
             }
         ),
         encoding="utf-8",
     )
+    (root / "docs/literature").mkdir(parents=True, exist_ok=True)
+    (root / "docs/literature/paper_request_queue.md").write_text("queue\n", encoding="utf-8")
 
 
 def test_unstamped_project_reports_not_stamped_and_exits_zero(tmp_path, capsys):
