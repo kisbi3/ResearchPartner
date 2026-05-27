@@ -24,3 +24,23 @@ ResearchPartner-runs/
 .claude/scheduled_tasks.lock
 
 References/
+
+# ── Harness self-usage run artifacts ─────────────────────────────────────────
+# Created when this repo is initialized as a research project on itself.
+# This .gitignore is independent of the project template inlined in
+# scripts/init_research_project.py, so these do NOT affect installed projects.
+/.research-harness
+/research_run_packet.md
+/workflow_map.live.json
+/literature/
+/docs/gates/
+/docs/plan/
+/docs/process/
+/docs/literature/literature_review_plan.md
+/docs/literature/replanning_memo.md
+
+# ── Unrelated local tool / OS state ──────────────────────────────────────────
+/.antigravitycli/
+.DS_Store
+Thumbs.db
+Desktop.ini
