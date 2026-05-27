@@ -47,7 +47,7 @@ python scripts\check_contract_sync.py
 python scripts\check_harness_version.py
 ```
 
-설치는 owned-file hash가 들어 있는 `harness.lock.json`을 써서 프로젝트가 설치된 harness stamp와 로컬 harness 수정을 보고할 수 있게 합니다. `install.py --force`는 harness-owned 파일만 갱신하며 `docs/gates/`, `docs/plan/`, `docs/process/` 아래 연구 산출물은 보존합니다.
+설치는 owned-file hash가 들어 있는 `harness.lock.json`을 써서 프로젝트가 설치된 harness stamp와 로컬 harness 수정을 보고할 수 있게 합니다. `install.py --force`는 harness-owned 파일만 갱신하며 `docs/gates/`, `docs/plan/`, `docs/process/` 아래 연구 산출물은 보존합니다. `python scripts\update_harness.py --project <project-dir> --source <harness-source>`는 선택적 업데이트를 dry-run으로 보여주고, `--apply`를 붙이면 harness-owned 업데이트만 쓰며 충돌은 `.harness-new` sidecar로 남깁니다. `--adopt`는 stamp가 없는 legacy 프로젝트를 먼저 stamp할 때만 사용합니다.
 
 첫 실행은 assistant에게 task intake부터 시작하라고 요청합니다. 초기화는 `.research-harness`, `docs\process\live_workflow_diagram.md`, 문헌 작업 공간, project packet, `outputs/`를 scaffold합니다. gate, evidence, lineage가 바뀌면 `/sync-workflow`를 실행하세요.
 
@@ -113,6 +113,7 @@ Lead Agent는 별도 agent가 아니라 mental mode로 9개 stance를 사용합�
 | 기존 프로젝트 감사 | `python scripts\audit_existing_project.py <project-root>` | scripts, figures, outputs, validation gaps inventory |
 | 하네스 평가 | `python scripts\evaluate_harness.py --fail-on-partial` | scenario coverage 확인; partial도 이제 CI 실패 |
 | harness stamp 확인 | `python scripts\check_harness_version.py --project <project-dir>` | 설치된 harness stamp와 로컬에서 수정된 owned file 보고 |
+| vendored harness 업데이트 | `python scripts\update_harness.py --project <project-dir> --source <harness-source> [--apply]` | 비파괴 harness-owned 업데이트를 dry-run 또는 적용; 충돌은 `.harness-new` sidecar로 남김 |
 | 테스트 의존성 설치 | `python -m pip install -r requirements.txt` | `pytest`, `PyYAML` 설치 |
 | CI 하네스 검사 | `.github/workflows/harness-checks.yml` | push와 pull request에서 deterministic gate 실행 |
 | live workflow 동기화 | `python scripts\sync_workflow.py --project <project-dir> [--validate-edges]` | gate status, lineage, live JSON 갱신 |
