@@ -43,3 +43,6 @@ jobs:
           python scripts/check_contract_sync.py
           python scripts/check_domain_manifest.py
           python scripts/evaluate_harness.py --fail-on-partial
+
+      - name: Report harness stamp
+        run: python scripts/check_harness_version.py

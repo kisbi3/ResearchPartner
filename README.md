@@ -44,7 +44,10 @@ python scripts\evaluate_harness.py --fail-on-partial
 python scripts\check_harness_manifest.py
 python scripts\check_spawn_contracts.py
 python scripts\check_contract_sync.py
+python scripts\check_harness_version.py
 ```
+
+Install writes `harness.lock.json` with owned-file hashes so a project can report its installed harness stamp and local harness edits. `install.py --force` refreshes harness-owned files only; project-owned research artifacts under `docs/gates/`, `docs/plan/`, and `docs/process/` are preserved.
 
 Start the first run by asking the assistant to begin with task intake. The project marker `.research-harness`, `docs\process\live_workflow_diagram.md`, literature workspace, project packet, and `outputs/` are scaffolded by initialization. Use `/sync-workflow` after gate, evidence, or lineage changes.
 
@@ -109,6 +112,7 @@ Commands:
 | Check domain manifest | `python scripts\check_domain_manifest.py --project <project-dir>` | Validate opted-in domain manuals; dormant when `domains/` is absent |
 | Audit existing project | `python scripts\audit_existing_project.py <project-root>` | Inventory scripts, figures, outputs, and validation gaps |
 | Evaluate harness | `python scripts\evaluate_harness.py --fail-on-partial` | Check scenario coverage; partial now fails CI |
+| Check harness stamp | `python scripts\check_harness_version.py --project <project-dir>` | Report installed harness stamp and locally modified owned files |
 | Install test dependencies | `python -m pip install -r requirements.txt` | Install `pytest` and `PyYAML` |
 | CI harness checks | `.github/workflows/harness-checks.yml` | Run deterministic gates on push and pull request |
 | Sync live workflow | `python scripts\sync_workflow.py --project <project-dir> [--validate-edges]` | Refresh gate status, lineage, and live JSON |
