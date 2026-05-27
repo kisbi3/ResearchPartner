@@ -84,7 +84,7 @@ flowchart TD
 flowchart TB
     P["Lead Agent"] --> G["Graduate Student role (not spawned)"]
     P --> C["Leaf Coding Subagents"]
-    P --> D["Cartographer (hook-driven, not spawned)"]
+    P --> D["workflow_hooks.py + /sync-workflow"]
     C --> D
     D --> W["Live Workflow Artifact"]
 ```

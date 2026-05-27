@@ -31,10 +31,10 @@ Started: (fill in date)
 - Active gate: (name of gate currently being worked on)
 - Researcher Checkpoint: (pending / done on YYYY-MM-DD)
 
-Regenerate the Current Run Dashboard after Cartographer updates, gate changes, or new evidence links:
+Refresh the Current Run Dashboard after gate changes, Agent spawns, or new evidence links:
 
 ```bash
-python scripts/generate_workflow_map.py
+python scripts/sync_workflow.py --project <project-dir>
 ```
 
 ---

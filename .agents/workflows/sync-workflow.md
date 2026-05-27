@@ -5,7 +5,7 @@ description: Refresh the live workflow diagram (workflow_map.live.json + live_wo
 
 # Sync Workflow
 
-Refresh the project's live workflow artifact by diagnostic walk of the file system. This replaces the old hook-driven Cartographer system: there is no auto-update on Write/Edit any more. The diagram only changes when you call this skill (or when the Agent-spawn hook adds an in-flight row).
+Refresh the project's live workflow artifact by diagnostic walk of the file system. This replaces the old hook-driven workflow-map updater: there is no auto-update on Write/Edit any more. The diagram only changes when you call this skill (or when the Agent-spawn hook adds an in-flight row).
 
 ## When to Invoke
 

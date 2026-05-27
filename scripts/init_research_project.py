@@ -43,9 +43,6 @@ ROOT = Path(__file__).resolve().parents[1]
 # ── Template sources (harness-relative) ──────────────────────────────────────
 LIVE_TEMPLATE = ROOT / "docs" / "run_templates" / "live_workflow_diagram_template.md"
 PACKET_TEMPLATE = ROOT / "docs" / "run_templates" / "research_run_packet_template.md"
-CARTOGRAPHER_UPDATE_TEMPLATE = (
-    ROOT / "docs" / "run_templates" / "cartographer_update_template.md"
-)
 ORIENT_NOTE_TEMPLATE = ROOT / "docs" / "run_templates" / "orient_note_template.md"
 INTERVIEW_NOTES_TEMPLATE = ROOT / "docs" / "run_templates" / "interview_notes_template.md"
 MODEL_SPEC_TEMPLATE = ROOT / "docs" / "run_templates" / "model_spec_template.md"
@@ -219,7 +216,6 @@ def scaffold_project(project: Path | str = ".") -> Path:
     # ── Copy template files → docs/process/ ──────────────────────────────────
     process = layout.process_dir(project)
     _copy_if_absent(LIVE_TEMPLATE, process / "live_workflow_diagram.md")
-    _copy_if_absent(CARTOGRAPHER_UPDATE_TEMPLATE, process / "cartographer_update_template.md")
 
     # ── Copy template files → docs/literature/ ───────────────────────────────
     lit = layout.literature_dir(project)

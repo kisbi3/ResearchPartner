@@ -335,61 +335,11 @@ def test_embedded_workflow_data_remains_valid_json():
     assert "missing" not in statuses
 
 
-def test_cartographer_update_events_create_linked_research_graph(tmp_path, monkeypatch):
+def test_legacy_cartographer_update_events_are_ignored(tmp_path, monkeypatch):
     generator = load_generator()
     runs_root = tmp_path / "ResearchPartner-runs"
     run_docs = runs_root / "2026-05-14-linked-graph" / "docs"
     run_docs.mkdir(parents=True)
-    update = {
-        "cartographer_update": {
-            "from": "coding-subagent",
-            "event_type": "figure",
-            "node_id": "dispersion-figure-run-014",
-            "title": "Dispersion Figure Run 014",
-            "node_type": "figure",
-            "summary": "Generated dispersion relation figure for toy baseline.",
-            "status": "pending_review",
-            "link_status": "fresh",
-            "evidence_strength": "moderate",
-            "claim_ceiling": "observation",
-            "review_owner": "researcher",
-            "requires_researcher_review": True,
-            "code_links": [
-                {
-                    "path": "scripts/plot_dispersion.py",
-                    "line": 18,
-                    "role": "renders dispersion figure",
-                    "relation": "generates_figure",
-                    "status": "fresh",
-                }
-            ],
-            "result_links": [
-                {
-                    "path": "outputs/run_014/dispersion.png",
-                    "kind": "figure",
-                    "relation": "generated_by",
-                    "status": "fresh",
-                    "preview": "thumbnail",
-                }
-            ],
-            "interpretation_links": [
-                {
-                    "path": "docs/validation_log.md",
-                    "anchor": "run-014",
-                    "relation": "documents_uncertainty",
-                    "status": "pending_review",
-                }
-            ],
-            "graph_links": [
-                {
-                    "from": "toy-baseline-run-014",
-                    "to": "dispersion-figure-run-014",
-                    "relation": "generated_by",
-                    "status": "fresh",
-                }
-            ],
-        }
-    }
     (run_docs / "live_workflow_diagram.md").write_text(
         "# Live Workflow\n\n"
         "## Active Step\n\n- Current step: Evaluate\n\n"
@@ -399,8 +349,8 @@ def test_cartographer_update_events_create_linked_research_graph(tmp_path, monke
         "| Toy baseline | pass | Ready for figure review |\n\n"
         "## Cartographer Update Events\n\n"
         "```json\n"
-        + json.dumps(update)
-        + "\n```\n\n"
+        '{"cartographer_update":{"node_id":"legacy-cartographer-node","title":"Legacy"}}'
+        "\n```\n\n"
         "## Evidence Links\n\n- `docs/validation_log.md`\n\n"
         "## Next Review Checkpoint\n\n- Researcher decision needed: inspect figure\n",
         encoding="utf-8",
@@ -408,25 +358,8 @@ def test_cartographer_update_events_create_linked_research_graph(tmp_path, monke
     monkeypatch.setattr(generator, "RUNS_ROOT", runs_root)
 
     nodes = {node["id"]: node for node in generator.build_data()["maps"][0]["nodes"]}
-    node = nodes["dispersion-figure-run-014"]
-
-    assert node["node_type"] == "figure"
-    assert node["link_status"] == "fresh"
-    assert node["evidence_strength"] == "moderate"
-    assert node["claim_ceiling"] == "observation"
-    assert node["review_owner"] == "researcher"
-    assert node["requires_researcher_review"] is True
-    assert node["code_links"][0]["line"] == 18
-    assert node["result_links"][0]["preview"] == "thumbnail"
-    assert node["interpretation_links"][0]["anchor"] == "run-014"
-    assert node["graph_links"][0]["relation"] == "generated_by"
-
-    html = generator.build_html(generator.build_data())
-    assert "Code Links" in html
-    assert "Result Links" in html
-    assert "Interpretation Links" in html
-    assert "Evidence Strength" in html
-    assert "Claim Ceiling" in html
+    assert "legacy-cartographer-node" not in nodes
+    assert "toy_baseline" in nodes
 
 
 LITERATURE_WORKFLOW_FIXTURE = """\
