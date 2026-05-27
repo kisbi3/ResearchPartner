@@ -41,6 +41,7 @@ References/
 
 # ── Unrelated local tool / OS state ──────────────────────────────────────────
 /.antigravitycli/
+/.claude/launch.json
 .DS_Store
 Thumbs.db
 Desktop.ini
