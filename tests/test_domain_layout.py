@@ -101,6 +101,7 @@ def test_scaffold_domain_creates_tree_and_typed_manual(tmp_path):
     manual = (domain_root / "README.md").read_text(encoding="utf-8")
     assert "type: reproduction" in manual
     assert "ground-truth:" in manual
+    assert "pass-fail:" in manual
     assert "claim-ceiling-cap:" in manual
 
 

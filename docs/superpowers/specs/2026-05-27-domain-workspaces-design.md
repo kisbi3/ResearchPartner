@@ -94,16 +94,31 @@ Each `domains/<name>/README.md` carries a typed header plus a mini run-packet:
 - `purpose`: one line
 - `ground-truth`: `internal-validation | external-paper:<id> | analytical-limit`
   — the provenance class
-- `pass/fail`: success criteria for this domain
+- `pass-fail`: success criteria for this domain
 - `units` / `assumptions`: local to this domain
 - `relations`: `depends-on:` / `integrates-into:`
 - `claim-ceiling-cap`: the strongest claim this domain may assert
 
-**Surface-first, blocking-later.** In Step 1 the manual is *surface guidance*:
-agents read it, checkers ignore it. A later step may promote *presence +
-well-typed header* to a deterministic check, then enforce type-specific rules
-on top (e.g. every figure in a `type=reproduction` domain must cite its
-external paper and have a `reproduction_log` row with a match criterion).
+**Shape enforced from Step 1; semantics blocking-later.** The manual's
+*shape* — presence + a well-typed `type` header + required fields — is enforced
+by `scripts/check_domain_manifest.py` (structure-only, like the finding-lifecycle
+check: it verifies tokens/fields exist, never judges content). The checker is
+**dormant for projects without `domains/`** (`domain_names` empty -> exit 0), so
+legacy and single-thread projects are untaxed; it activates the moment a project
+opts into domains. `scaffold_domain.py` is the blessed path that always emits a
+valid manual, so only a hand-rolled malformed domain fails.
+
+*Type-specific semantic* rules stay blocking-later — e.g. every figure in a
+`type=reproduction` domain must cite its external paper and have a
+`reproduction_log` row with a match criterion. These need the domain-aware
+figure-provenance refactor (Step 2-3) and must not be hard-enforced before the
+enforcement spine understands domains, or the structure becomes mandatory while
+the spine still assumes one flat project (a half-migration trap).
+
+Placement enforcement ("all work must live inside a domain") is intentionally
+**not** added: with the default domain equal to the project root it is either
+vacuous (everything is already in *a* domain) or, if the root is made invalid,
+a false positive that blocks shared utilities and single-thread projects.
 
 ## Backward compatibility
 
@@ -136,7 +151,7 @@ per-domain lineage checks, run in isolation, each pass.
 
 | Step | Content | Enforcement change | When |
 |---|---|---|---|
-| **1. Foundation** | domain resolver + default-domain back-compat in `_layout.py`; `scripts/scaffold_domain.py`; `docs/run_templates/domain_manual_template.md`; minimal domain listing in the workflow graph (surfacing only); tests; README / README.ko | **none** (checkers iterate domains, which is `[default]` for legacy -> identical results) | now |
+| **1. Foundation** | domain resolver + default-domain back-compat in `_layout.py`; `scripts/scaffold_domain.py`; `docs/run_templates/domain_manual_template.md`; **`scripts/check_domain_manifest.py`** (manual-shape, dormant when no `domains/`) + CI wiring; minimal domain listing in the workflow graph (surfacing only); tests; README / README.ko | **none for legacy/single-thread** (checker exits 0 without `domains/`); new opt-in enforcement: a domain-bearing project must give each domain a well-typed manual | now |
 | **2. Per-domain model/baseline/validation** | relocate `model_spec`/`baseline_strategy`/validation into the domain; split the required skill order; gate checkers gain `--domain`; project stage = aggregate over domains | gates become domain-aware | design against a first real domain |
 | **3. Domain claims + integration gate** | domain-local claims; new integration checker enforcing the anti-laundering invariants | claim/lineage become domain-aware | requires `>= 2` domains to test |
 
@@ -153,12 +168,15 @@ python -m pytest tests -q
 python scripts\check_harness_manifest.py
 python scripts\check_spawn_contracts.py
 python scripts\check_contract_sync.py
+python scripts\check_domain_manifest.py
 python scripts\evaluate_harness.py --fail-on-partial
 ```
 
-Plus: a legacy flat project resolves to one default domain; a `domains/`-bearing
-project enumerates its domains; `scaffold_domain.py` produces a typed manual
-from the template.
+Plus: a legacy flat project resolves to one default domain and
+`check_domain_manifest.py` exits 0 (dormant); a `domains/`-bearing project
+enumerates its domains; `scaffold_domain.py` produces a typed manual from the
+template that passes the checker; a hand-rolled domain missing its manual or
+with a bad `type` header fails with exit 2.
 
 ## Risks and caveats
 

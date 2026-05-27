@@ -362,6 +362,7 @@ def test_ci_enforcement_uses_fail_on_partial_workflow_gate():
     )
 
     assert "python scripts/evaluate_harness.py --fail-on-partial" in workflow
+    assert "python scripts/check_domain_manifest.py" in workflow
 
 
 def test_ci_enforcement_checker_accepts_fail_on_partial_workflow():

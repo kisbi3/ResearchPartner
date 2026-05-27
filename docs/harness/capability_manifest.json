@@ -91,7 +91,7 @@
       "title": "Domain Workspaces",
       "kind": "workflow",
       "enforcement": "deterministic",
-      "scripts": ["scripts/_layout.py", "scripts/scaffold_domain.py", "scripts/sync_workflow.py"],
+      "scripts": ["scripts/_layout.py", "scripts/scaffold_domain.py", "scripts/check_domain_manifest.py", "scripts/sync_workflow.py"],
       "docs": ["README.md", "README.ko.md", "docs/run_templates/domain_manual_template.md"],
       "artifact_paths": ["domains/"],
       "workflow_gate_keys": []

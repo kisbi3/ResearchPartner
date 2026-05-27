@@ -106,6 +106,7 @@ Commands:
 | Install harness | `python -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/kisbi3/ResearchPartner/main/scripts/install.py').read())"` | Install managed harness files into the current project |
 | Init project | `python scripts\init_research_project.py --project <project-dir>` | Mark and scaffold a research project |
 | Scaffold domain workspace | `python scripts\scaffold_domain.py --project <project-dir> --name <slug> --type reproduction` | Add an optional `domains\<slug>\` workspace and typed manual without moving project-level gates |
+| Check domain manifest | `python scripts\check_domain_manifest.py --project <project-dir>` | Validate opted-in domain manuals; dormant when `domains/` is absent |
 | Audit existing project | `python scripts\audit_existing_project.py <project-root>` | Inventory scripts, figures, outputs, and validation gaps |
 | Evaluate harness | `python scripts\evaluate_harness.py --fail-on-partial` | Check scenario coverage; partial now fails CI |
 | Install test dependencies | `python -m pip install -r requirements.txt` | Install `pytest` and `PyYAML` |
