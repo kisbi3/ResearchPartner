@@ -51,6 +51,8 @@ Install writes `harness.lock.json` with owned-file hashes so a project can repor
 
 Start the first run by asking the assistant to begin with task intake. The project marker `.research-harness`, `docs\process\live_workflow_diagram.md`, literature workspace, project packet, and `outputs/` are scaffolded by initialization. Use `/sync-workflow` after gate, evidence, or lineage changes.
 
+The live enforcement hooks live in `.claude/settings.local.json`. If that file does not exist, initialization writes it; if it already exists (common when adopting the harness into a project that already uses Claude Code), initialization **merges** the harness hooks into it — preserving your existing permissions and custom hooks, and skipping any harness hook already present (idempotent). If the file exists but cannot be parsed, initialization leaves it untouched and prints a warning that the hooks were not installed. Re-run `python scripts\init_research_project.py` after editing the file to install them.
+
 ## Using It
 
 The assistant should begin every research task with `skills/task-intake/SKILL.md`, then follow the required research order for new model, simulation, analysis, manuscript claim, or reproduction work:
