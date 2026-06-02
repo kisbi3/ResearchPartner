@@ -51,6 +51,8 @@ python scripts\check_harness_version.py
 
 첫 실행은 assistant에게 task intake부터 시작하라고 요청합니다. 초기화는 `.research-harness`, `docs\process\live_workflow_diagram.md`, 문헌 작업 공간, project packet, `outputs/`를 scaffold합니다. gate, evidence, lineage가 바뀌면 `/sync-workflow`를 실행하세요.
 
+live enforcement hook은 `.claude/settings.local.json`에 있습니다. 이 파일이 없으면 초기화가 새로 쓰고, 이미 있으면(이미 Claude Code를 쓰던 프로젝트에 harness를 도입할 때 흔함) harness hook을 그 파일에 **머지**합니다 — 기존 권한과 커스텀 hook은 보존하고, 이미 있는 harness hook은 건너뜁니다(멱등). 파일이 있지만 파싱할 수 없으면 초기화는 파일을 건드리지 않고 hook이 설치되지 않았다는 경고를 출력합니다. 파일을 고친 뒤 `python scripts\init_research_project.py`를 다시 실행하면 설치됩니다.
+
 ## 사용법
 
 assistant는 모든 연구 task를 `skills/task-intake/SKILL.md`로 시작해야 합니다. 새 모델, simulation, analysis, manuscript claim, reproduction 작업은 다음 순서를 따릅니다:

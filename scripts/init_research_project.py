@@ -29,6 +29,7 @@ Layout version: 3
 from __future__ import annotations
 
 import argparse
+import json
 import shutil
 import sys
 from pathlib import Path
@@ -174,6 +175,47 @@ _CLAUDE_SETTINGS_CONTENT = """\
 """
 
 
+def _merge_hook_settings(existing: dict, harness: dict) -> tuple[dict, list[str]]:
+    """Merge harness hook registrations into an existing settings dict.
+
+    The researcher's existing ``permissions`` and any non-harness hooks are
+    preserved untouched. A harness hook command is added only when an identical
+    command string is not already registered under the same event + matcher, so
+    re-running init is idempotent (no duplicate rows).
+
+    Returns ``(merged_settings, added_command_strings)``. ``merged_settings`` is
+    a fresh dict — the caller's ``existing`` is never mutated.
+    """
+    merged = json.loads(json.dumps(existing))  # deep copy; never mutate the caller's dict
+    if not isinstance(merged.get("hooks"), dict):
+        merged["hooks"] = {}
+    added: list[str] = []
+
+    for event, harness_groups in harness.get("hooks", {}).items():
+        groups = merged["hooks"].get(event)
+        if not isinstance(groups, list):
+            groups = []
+            merged["hooks"][event] = groups
+        for hgroup in harness_groups:
+            matcher = hgroup.get("matcher")
+            target = next((g for g in groups if g.get("matcher") == matcher), None)
+            if target is None:
+                groups.append(json.loads(json.dumps(hgroup)))
+                added.extend(
+                    h["command"] for h in hgroup.get("hooks", []) if h.get("command")
+                )
+                continue
+            target_hooks = target.setdefault("hooks", [])
+            present = {h.get("command") for h in target_hooks}
+            for hook in hgroup.get("hooks", []):
+                cmd = hook.get("command")
+                if cmd and cmd not in present:
+                    target_hooks.append(json.loads(json.dumps(hook)))
+                    present.add(cmd)
+                    added.append(cmd)
+    return merged, added
+
+
 def scaffold_project(project: Path | str = ".") -> Path:
     """Create the harness directory tree at the given project root.
 
@@ -263,12 +305,44 @@ def scaffold_project(project: Path | str = ".") -> Path:
     if not gitignore.exists():
         gitignore.write_text(_GITIGNORE_CONTENT, encoding="utf-8")
 
-    # ── Write .claude/settings.local.json (hook registration) ─────────────────
-    # Created only if absent so a researcher's custom permissions are preserved.
+    # ── Write / merge .claude/settings.local.json (hook registration) ─────────
+    # The live enforcement layer (cross-tier write block, gate-sequence block,
+    # claim-freshness block, peer-review gate, …) lives ENTIRELY in this file's
+    # `hooks`. Skipping the file whenever it already exists means a project
+    # adopted into a repo that already has a settings.local.json would get ZERO
+    # enforcement hooks — silently. So: create it when absent, otherwise MERGE
+    # the harness hooks in, preserving the researcher's permissions/custom hooks.
     claude_settings = project / ".claude" / "settings.local.json"
+    claude_settings.parent.mkdir(parents=True, exist_ok=True)
+    harness_settings = json.loads(_CLAUDE_SETTINGS_CONTENT)
     if not claude_settings.exists():
-        claude_settings.parent.mkdir(parents=True, exist_ok=True)
         claude_settings.write_text(_CLAUDE_SETTINGS_CONTENT, encoding="utf-8")
+    else:
+        try:
+            existing_settings = json.loads(claude_settings.read_text(encoding="utf-8"))
+            if not isinstance(existing_settings, dict):
+                raise ValueError("top-level JSON is not an object")
+        except (json.JSONDecodeError, OSError, ValueError) as exc:
+            print(
+                f"WARNING: {claude_settings} exists but could not be parsed ({exc}).\n"
+                "         Harness enforcement hooks were NOT installed, so the live "
+                "gates (cross-tier write block,\n"
+                "         gate sequence, claim freshness, peer-review) will NOT fire. "
+                "Fix the file and re-run\n"
+                "         init_research_project.py to install them.",
+                file=sys.stderr,
+            )
+        else:
+            merged, added = _merge_hook_settings(existing_settings, harness_settings)
+            if added:
+                claude_settings.write_text(
+                    json.dumps(merged, indent=2) + "\n", encoding="utf-8"
+                )
+                print(
+                    f"Merged {len(added)} harness enforcement hook(s) into existing "
+                    f"{claude_settings.relative_to(project).as_posix()} "
+                    "(existing permissions/hooks preserved)."
+                )
 
     # ── Write project-root marker ────────────────────────────────────────────
     project_root_mod.create_marker(project)
