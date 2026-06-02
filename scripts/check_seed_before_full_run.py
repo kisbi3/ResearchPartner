@@ -9,9 +9,10 @@ The pattern this gate prevents:
        seed-stage smoke-run would have caught in seconds.
 
 When the Bash/PowerShell command looks like a heavy run (a Python invocation
-of a script whose name matches RUN_PATTERNS), this hook checks
-``docs/gates/seed_design.md`` for a Status=pass entry. If absent, the call is
-blocked.
+of a script whose name matches RUN_PATTERNS), this hook requires BOTH a
+Status=pass entry in ``docs/gates/seed_design.md`` (the smoke run) AND a
+non-empty ``## Decision`` in ``docs/gates/seed_decision.md`` (the PI's
+sign-off, write-blocked for agents). If either is absent, the call is blocked.
 
 Detection is intentionally conservative: only block obvious heavy-run names
 to avoid false positives on utility scripts (e.g. ``python scripts/foo.py``,
@@ -22,11 +23,13 @@ Heavy-run name patterns (case-insensitive, substring on script stem):
     full, production, deploy
 
 Bypass: set ``RESEARCH_HARNESS_BYPASS_SEED_GATE=1`` for an explicit one-off
-waiver (logged to stderr).
+waiver of the smoke-run requirement only (logged to stderr). The PI's
+seed_decision is the brake and is NEVER waived.
 
 Exit codes:
-    0 — allow (not a heavy run, or seed gate passed, or bypass set)
-    2 — block (heavy run detected without seed gate)
+    0 — allow (not a heavy run; or smoke pass + PI seed_decision; or bypass set
+        with the PI seed_decision present)
+    2 — block (heavy run without the smoke pass, or without the PI's seed_decision)
 """
 
 from __future__ import annotations
@@ -134,6 +137,31 @@ def _seed_gate_passed(project: Path) -> bool:
     return False
 
 
+def _seed_decision_recorded(project: Path) -> bool:
+    """Return True iff docs/gates/seed_decision.md has a non-empty '## Decision'.
+
+    This is the researcher (PI) sign-off to proceed from a passing smoke run to
+    full-scale compute. Agents are hook-blocked from writing this file, so the
+    lab cannot approve its own production runs.
+    """
+    decision = project / "docs" / "gates" / "seed_decision.md"
+    if not decision.is_file():
+        return False
+    text = decision.read_text(encoding="utf-8", errors="replace")
+    in_section = False
+    for line in text.splitlines():
+        if line.strip() == "## Decision":
+            in_section = True
+            continue
+        if in_section:
+            if line.startswith("## "):
+                break
+            stripped = line.strip()
+            if stripped and not stripped.startswith("<!--"):
+                return True
+    return False
+
+
 def main() -> int:
     try:
         raw = sys.stdin.read()
@@ -143,14 +171,6 @@ def main() -> int:
 
     tool_name = payload.get("tool_name", "")
     if tool_name not in ("Bash", "PowerShell"):
-        return 0
-
-    if os.environ.get("RESEARCH_HARNESS_BYPASS_SEED_GATE") == "1":
-        print(
-            "SEED-GATE BYPASS: heavy run allowed via "
-            "RESEARCH_HARNESS_BYPASS_SEED_GATE=1",
-            file=sys.stderr,
-        )
         return 0
 
     command = (payload.get("tool_input", {}) or {}).get("command", "") or ""
@@ -167,27 +187,54 @@ def main() -> int:
     except project_root_mod.ProjectRootNotFoundError:
         return 0
 
-    if _seed_gate_passed(project):
-        return 0
-
     target_list = ", ".join(heavy)
-    print(
-        f"SEED GATE BLOCK: heavy run detected ({target_list}) but no "
-        f"Status=pass row in docs/gates/seed_design.md.\n"
-        f"\n"
-        f"  Rule: a full-scale Python run must be preceded by a seed/stage-1\n"
-        f"        pass — otherwise hours of compute can be wasted on a bug\n"
-        f"        that a smoke run would have caught.\n"
-        f"\n"
-        f"  Fix:  (1) run the same script with a tiny config (n=10, 1 epoch,\n"
-        f"            etc.); (2) record the result as a Status=pass row in\n"
-        f"            docs/gates/seed_design.md; (3) retry the full run.\n"
-        f"\n"
-        f"  Bypass: set RESEARCH_HARNESS_BYPASS_SEED_GATE=1 for an explicit\n"
-        f"          one-off waiver (logged to stderr).",
-        file=sys.stderr,
-    )
-    return 2
+    bypass = os.environ.get("RESEARCH_HARNESS_BYPASS_SEED_GATE") == "1"
+
+    if not bypass and not _seed_gate_passed(project):
+        print(
+            f"SEED GATE BLOCK: heavy run detected ({target_list}) but no "
+            f"Status=pass row in docs/gates/seed_design.md.\n"
+            f"\n"
+            f"  Rule: a full-scale Python run must be preceded by a seed/stage-1\n"
+            f"        pass — otherwise hours of compute can be wasted on a bug\n"
+            f"        that a smoke run would have caught.\n"
+            f"\n"
+            f"  Fix:  (1) run the same script with a tiny config (n=10, 1 epoch,\n"
+            f"            etc.); (2) record the result as a Status=pass row in\n"
+            f"            docs/gates/seed_design.md; (3) retry the full run.\n"
+            f"\n"
+            f"  Bypass: set RESEARCH_HARNESS_BYPASS_SEED_GATE=1 for an explicit\n"
+            f"          one-off waiver (logged to stderr).",
+            file=sys.stderr,
+        )
+        return 2
+
+    if not _seed_decision_recorded(project):
+        print(
+            f"SEED GATE BLOCK: heavy run detected ({target_list}). The seed/stage-1\n"
+            f"smoke run passed, but the researcher has not approved full-scale runs.\n"
+            f"\n"
+            f"  Rule: the jump from a smoke run to production compute also needs the\n"
+            f"        PI's sign-off. The lab cannot approve its own full-scale runs.\n"
+            f"\n"
+            f"  Fix:  ask the researcher to record 'approve' in the '## Decision'\n"
+            f"        section of docs/gates/seed_decision.md. Agents cannot write\n"
+            f"        that file (it is hook-blocked).\n"
+            f"\n"
+            f"  No bypass: the PI's seed_decision is the brake — the bypass env\n"
+            f"          var waives only the smoke-run requirement, not this sign-off.",
+            file=sys.stderr,
+        )
+        return 2
+
+    if bypass:
+        print(
+            "SEED-GATE BYPASS: smoke-run requirement waived via "
+            "RESEARCH_HARNESS_BYPASS_SEED_GATE=1; the PI's seed_decision is still "
+            "required (and is present).",
+            file=sys.stderr,
+        )
+    return 0
 
 
 if __name__ == "__main__":

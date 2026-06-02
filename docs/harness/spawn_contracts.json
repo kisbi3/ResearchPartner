@@ -1,18 +1,28 @@
 {
   "schema_version": 1,
-  "description": "Static consistency registry for Claude Code leaf role agents. The Lead Agent is the only spawner; Graduate Student is a Lead-loaded orchestration role, not a spawned subagent. Runtime tool isolation is provided by Claude Code agent frontmatter; this file keeps leaf role definitions, skill declarations, and orchestration templates from drifting.",
+  "description": "Static consistency registry for Claude Code leaf role agents. The Lead Agent (professor) is the only spawner. graduate-student, code-reviewer, scientific-validator, cache-log-auditor, and workflow-manager are spawned leaf agents (graduate students and code reviewers may run in parallel). Runtime tool isolation is provided by Claude Code agent frontmatter; this file keeps leaf role definitions, skill declarations, and orchestration templates from drifting.",
   "contracts": [
     {
-      "role": "implementation-agent",
-      "agent_file": ".claude/agents/implementation-agent.md",
-      "skill": "skills/implementation-agent/SKILL.md",
-      "allowed_tools": ["Read", "Write", "Edit", "Grep", "Glob"],
-      "write_scope": ["src/", "outputs/figures/"],
-      "forbidden_tools": ["Agent", "unrestricted Bash", "WebSearch", "WebFetch"],
+      "role": "graduate-student",
+      "agent_file": ".claude/agents/graduate-student.md",
+      "skill": "skills/graduate-student/SKILL.md",
+      "allowed_tools": ["Read", "Write", "Edit", "Grep", "Glob", "Bash"],
+      "write_scope": ["src/", "outputs/figures/", "outputs/data/", "docs/evidence/"],
+      "forbidden_tools": ["Agent", "WebSearch", "WebFetch"],
       "allowed_spawn_subagent_types": [],
-      "validator_handoff_required": true,
-      "must_report": ["changed_files", "implementation_decisions", "validator_handoff_required"],
-      "runtime_enforcement": "Claude Code loads .claude/agents/implementation-agent.md and applies its tools frontmatter; check_spawn_contracts.py enforces static consistency only."
+      "must_report": ["changed_files", "seed_run_result", "observed_values", "hypotheses", "evidence_path"],
+      "runtime_enforcement": "Claude Code loads .claude/agents/graduate-student.md and applies its tools frontmatter; check_spawn_contracts.py enforces static consistency only. The graduate student writes and runs code and offers interpretation as hypotheses, but does not pronounce the binding pass/fail verdict (that is the scientific-validator) or promote claims."
+    },
+    {
+      "role": "code-reviewer",
+      "agent_file": ".claude/agents/code-reviewer.md",
+      "skill": "skills/code-reviewer/SKILL.md",
+      "allowed_tools": ["Read", "Grep", "Glob"],
+      "write_scope": [],
+      "forbidden_tools": ["Write", "Edit", "Bash", "Agent", "WebSearch", "WebFetch"],
+      "allowed_spawn_subagent_types": [],
+      "must_report": ["review_verdict", "spec_conformance", "correctness_issues", "reproducibility_issues"],
+      "runtime_enforcement": "Claude Code loads .claude/agents/code-reviewer.md and applies its tools frontmatter; check_spawn_contracts.py enforces static consistency only. The code reviewer reads code statically (no execution); behavioural validation is the scientific-validator's job."
     },
     {
       "role": "scientific-validator",
@@ -35,6 +45,17 @@
       "allowed_spawn_subagent_types": [],
       "must_report": ["audit_command", "audit_verdict", "cache_and_log_paths"],
       "runtime_enforcement": "Claude Code loads .claude/agents/cache-log-auditor.md and applies its tools frontmatter; check_spawn_contracts.py enforces static consistency only."
+    },
+    {
+      "role": "workflow-manager",
+      "agent_file": ".claude/agents/workflow-manager.md",
+      "skill": "skills/workflow-manager/SKILL.md",
+      "allowed_tools": ["Read", "Grep", "Glob", "Bash"],
+      "write_scope": [],
+      "forbidden_tools": ["Write", "Edit", "Agent", "WebSearch", "WebFetch"],
+      "allowed_spawn_subagent_types": [],
+      "must_report": ["gate_status", "broken_lineage_edges", "refreshed_paths"],
+      "runtime_enforcement": "Claude Code loads .claude/agents/workflow-manager.md and applies its tools frontmatter; check_spawn_contracts.py enforces static consistency only. The workflow manager refreshes and reports workflow state; it does not run experiments, modify research code, or interpret results."
     },
     {
       "role": "peer-review-professor",

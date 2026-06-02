@@ -211,7 +211,7 @@ def test_computation_checkpoint_scenario_is_evaluated():
 
     assert "computation_checkpoint_resumption" in scenarios
     scenario = scenarios["computation_checkpoint_resumption"]
-    assert "skills/implementation-agent/SKILL.md" in scenario.skills
+    assert "skills/graduate-student/SKILL.md" in scenario.skills
     assert "scripts/run_with_checkpoint.py" in scenario.docs
     assert "scripts/check_computation_resumable.py" in scenario.docs
     assert "Computation Checkpoint Hook" in scenario.rule_terms
@@ -267,7 +267,9 @@ def test_spawn_contracts_scenario_is_evaluated():
     assert "single-spawner model" in scenario.rule_terms
     assert "subagent_type" in scenario.rule_terms
     assert "check_spawn_contracts" in scenario.checks
-    assert ".claude/agents/graduate-student.md" not in scenario.docs
+    # graduate-student is now a spawned leaf agent (Model-A lab), so it IS a
+    # spawn-contract doc.
+    assert ".claude/agents/graduate-student.md" in scenario.docs
 
 
 def test_spawn_contracts_scenario_runs_checker(monkeypatch):

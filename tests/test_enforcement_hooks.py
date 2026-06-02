@@ -45,9 +45,11 @@ def run_hook(script: str, payload: dict | None = None, *, env: dict | None = Non
 
 @pytest.fixture
 def run_dir(tmp_path):
-    run = tmp_path / "ResearchPartner-runs" / "2026-05-17-test"
+    # v3 layout: the project root IS the research root, marked by .research-harness.
+    run = tmp_path / "proj"
     (run / "src").mkdir(parents=True)
     (run / "docs" / "gates").mkdir(parents=True)
+    (run / ".research-harness").write_text("")
     return run
 
 
@@ -138,7 +140,7 @@ class TestSrcWriteAuthorization:
     def test_allows_with_matching_spawn_log_entry(self, run_dir):
         target = run_dir / "src" / "sim.py"
         write_spawn_log(run_dir, [
-            ("2026-05-17", "implementation", "src/sim.py", "T1", "complete"),
+            ("2026-05-17", "graduate-student", "src/sim.py", "T1", "complete"),
         ])
         rc, _, _ = run_hook(self.SCRIPT, {
             "tool_name": "Write",
@@ -210,8 +212,9 @@ class TestBashCodeWrite:
 
     @pytest.fixture
     def covered_path(self, tmp_path):
-        run = tmp_path / "ResearchPartner-runs" / "2026-05-17-test"
+        run = tmp_path / "proj"
         (run / "src").mkdir(parents=True)
+        (run / ".research-harness").write_text("")
         return (run / "src" / "sim.py").as_posix()
 
     def test_ignores_non_bash_tools(self):
@@ -278,8 +281,9 @@ class TestBashCodeWrite:
         assert rc == 2
 
     def test_exempts_docs_path(self, tmp_path):
-        run = tmp_path / "ResearchPartner-runs" / "2026-05-17-test"
+        run = tmp_path / "proj"
         (run / "docs").mkdir(parents=True)
+        (run / ".research-harness").write_text("")
         target = (run / "docs" / "note.py").as_posix()
         rc, _, _ = run_hook(self.SCRIPT, {
             "tool_name": "Bash",
@@ -315,7 +319,7 @@ class TestCrossTierCompliance:
     def test_passes_when_src_matches_spawns(self, run_dir):
         (run_dir / "src" / "sim.py").write_text("")
         write_spawn_log(run_dir, [
-            ("2026-05-17", "implementation", "src/sim.py", "T1", "complete"),
+            ("2026-05-17", "graduate-student", "src/sim.py", "T1", "complete"),
         ])
         rc, _, _ = run_hook(self.SCRIPT, args=["--run", str(run_dir)])
         assert rc == 0
@@ -324,7 +328,7 @@ class TestCrossTierCompliance:
         (run_dir / "src" / "sim.py").write_text("")
         (run_dir / "src" / "plot.py").write_text("")
         write_spawn_log(run_dir, [
-            ("2026-05-17", "implementation", "src/sim.py", "T1", "complete"),
+            ("2026-05-17", "graduate-student", "src/sim.py", "T1", "complete"),
         ])
         rc, _, err = run_hook(self.SCRIPT, args=["--run", str(run_dir)])
         assert rc == 2
@@ -471,7 +475,7 @@ class TestSpawnLogIntegrity:
 
     def test_warns_when_diagram_missing(self, run_dir):
         write_spawn_log(run_dir, [
-            ("2026-05-17", "implementation", "src/sim.py", "T1", "complete"),
+            ("2026-05-17", "graduate-student", "src/sim.py", "T1", "complete"),
         ])
         # No diagram file — script should warn but not fail
         rc, _, err = run_hook(self.SCRIPT, args=["--run", str(run_dir)])
@@ -480,28 +484,28 @@ class TestSpawnLogIntegrity:
 
     def test_passes_when_diagram_has_matching_events(self, run_dir):
         write_spawn_log(run_dir, [
-            ("2026-05-17", "implementation", "src/sim.py", "T1", "complete"),
+            ("2026-05-17", "graduate-student", "src/sim.py", "T1", "complete"),
         ])
         diagram = run_dir / "docs" / "live_workflow_diagram.md"
         diagram.parent.mkdir(parents=True, exist_ok=True)
         diagram.write_text(
             "# Live\n\n## Real-Time Event Log\n\n"
-            "🔄 `2026-05-17 12:34 UTC` | `start` | **You are an Implementation Agent** | _lead-agent_\n"
+            "🔄 `2026-05-17 12:34 UTC` | `start` | **You are a Graduate Student** | _lead-agent_\n"
         )
         rc, _, _ = run_hook(self.SCRIPT, args=["--run", str(run_dir)])
         assert rc == 0
 
     def test_fails_when_spawn_rows_exceed_events(self, run_dir):
         write_spawn_log(run_dir, [
-            ("2026-05-17", "implementation", "src/sim.py", "T1", "complete"),
-            ("2026-05-17", "implementation", "src/plot.py", "T2", "complete"),
-            ("2026-05-17", "implementation", "src/fake.py", "TX", "complete"),
+            ("2026-05-17", "graduate-student", "src/sim.py", "T1", "complete"),
+            ("2026-05-17", "graduate-student", "src/plot.py", "T2", "complete"),
+            ("2026-05-17", "graduate-student", "src/fake.py", "TX", "complete"),
         ])
         diagram = run_dir / "docs" / "live_workflow_diagram.md"
         diagram.parent.mkdir(parents=True, exist_ok=True)
         diagram.write_text(
             "# Live\n\n## Real-Time Event Log\n\n"
-            "🔄 `2026-05-17 12:34 UTC` | `start` | **You are an Implementation Agent for T1** | _lead-agent_\n"
+            "🔄 `2026-05-17 12:34 UTC` | `start` | **You are a Graduate Student for T1** | _lead-agent_\n"
         )
         rc, _, err = run_hook(self.SCRIPT, args=["--run", str(run_dir)])
         assert rc == 2

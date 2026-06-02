@@ -14,14 +14,16 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CONTRACTS = Path("docs/harness/spawn_contracts.json")
 REQUIRED_ROLES = {
-    "implementation-agent",
+    "graduate-student",
+    "code-reviewer",
     "scientific-validator",
     "cache-log-auditor",
+    "workflow-manager",
     "peer-review-professor",
 }
-FORBIDDEN_AGENT_FILES = {
-    ".claude/agents/graduate-student.md": "Graduate Student is a Lead-Agent role, not a spawned subagent",
-}
+# graduate-student is now a spawned leaf agent (Model-A lab), so it is no longer
+# a forbidden agent file. The Lead Agent (professor) remains the only spawner.
+FORBIDDEN_AGENT_FILES: dict[str, str] = {}
 DESCRIPTION_PREFIX = "Explicitly spawned only"
 DESCRIPTION_FORBIDDEN_PHRASES = (
     "use this agent when",

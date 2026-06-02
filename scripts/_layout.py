@@ -97,6 +97,26 @@ def professor_evaluation(project: Path) -> Path:
     return gates_dir(project) / "professor_evaluation.md"
 
 
+# ── Researcher-owned gate decisions  (docs/gates/) ───────────────────────────
+# Write-blocked for every agent by scripts/path_check_hooks.py — only the PI
+# records these. The lab drafts proposals in the matching *_note.md files.
+
+def orient_decision(project: Path) -> Path:
+    return gates_dir(project) / "orient_decision.md"
+
+
+def interview_decision(project: Path) -> Path:
+    return gates_dir(project) / "interview_decision.md"
+
+
+def model_decision(project: Path) -> Path:
+    return gates_dir(project) / "model_decision.md"
+
+
+def seed_decision(project: Path) -> Path:
+    return gates_dir(project) / "seed_decision.md"
+
+
 # ── Process completion markers  (docs/process/) ───────────────────────────────
 
 def execution_complete(project: Path) -> Path:

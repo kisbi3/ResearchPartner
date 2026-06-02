@@ -2,12 +2,21 @@
 
 Detailed descriptions of the harness's automated enforcement hooks. `AGENTS.md` / `GEMINI.md` link to this file rather than inlining the descriptions so the contract files stay compact (every spawned subagent that loads `AGENTS.md` pays for that prose). Soft "discipline" hooks (Numerical Stability, Anomaly, Scope Creep, etc.) stay inline in `AGENTS.md`; the entries here are the ones that involve a script, a hook registration, or an enforcement decision.
 
+## Human-Owned Decision Gate (HARD ENFORCED)
+
+The brake. The harness's #1 principle — leave scientific judgment with the researcher — made enforceable. The researcher-owned decision files are write-blocked for *every* agent (Lead/professor included), so the lab can propose but never sign its own approval or its own bypass.
+
+- **Files (PI-only)**: `docs/gates/{orient,interview,model,seed}_decision.md`, `docs/plan/model_skip_waiver.md`, `docs/literature/literature_skip_waiver.md`.
+- **Write-block**: PreToolUse on `Write|Edit` → `scripts/path_check_hooks.py` exits 2 on any agent write to those paths. The lab drafts proposals in the matching `*_note`/`*_spec` files; the PI records the decision directly (outside the agent's tools).
+- **Gate requirement**: `check_orient_recorded.py`, `check_interview_recorded.py`, and `check_model_specified.py` require a non-empty `## Decision`; `check_seed_before_full_run.py` requires `docs/gates/seed_decision.md` before any heavy run; `enforce_gate_sequence.py` keeps a `HUMAN_GATES = {orient, interview, model}` set.
+- **Unbypassable**: `RESEARCH_HARNESS_BYPASS_GATE_SEQUENCE` / `RESEARCH_HARNESS_BYPASS_SEED_GATE` waive only the quality/sequence and smoke-run gates — never the PI's decision. (Agents cannot set those env vars anyway: an inline `VAR=1 cmd` does not reach the PreToolUse hook process.)
+
 ## Cross-Tier Write Hook (HARD ENFORCED)
 
-Every `.py` or `.ipynb` file written anywhere under a `ResearchPartner-runs/<run>/` directory (except `<run>/docs/` and `<run>/literature/`) must come from a spawned Implementation Agent. The Lead Agent and Graduate Students are forbidden from writing code; Graduate Students *review* code and re-spawn the Implementation Agent for every correction.
+Every `.py` or `.ipynb` file written anywhere under the project root (marked by `.research-harness`; layout v3 has no `ResearchPartner-runs/<run>/` wrapper) must come from a spawned graduate-student — except files under `docs/`, `literature/`, `scripts/`, and `tools/` (notes, PDFs, and vendored harness tooling; `tests/` is research code and IS covered). The Lead Agent (professor) does not write research code; it spawns graduate students who do.
 
 - **Hook**: PreToolUse on `Write|Edit` → `scripts/check_src_write_authorization.py`
-- **Decision**: allow iff `<run>/docs/gates/agent_spawn_log.md` has a matching `implementation` row for the target file, or was modified within the last 10 minutes.
+- **Decision**: allow iff `docs/gates/agent_spawn_log.md` has a matching `graduate-student` row for the target file, or was modified within the last 10 minutes.
 - **Bypass**: `RESEARCH_HARNESS_BYPASS_SRC_GATE=1` for an explicit one-off waiver.
 
 ## Bash Code-Write Hook (HARD ENFORCED)
@@ -15,22 +24,22 @@ Every `.py` or `.ipynb` file written anywhere under a `ResearchPartner-runs/<run
 Closes the Bash bypass of the cross-tier write hook. Bash commands such as `echo … > sim.py`, `cat <<EOF > sim.py`, `sed -i … sim.py`, `cp other.py <run>/src/sim.py`, `python -c "open('sim.py', 'w')…"`, `Set-Content`, or `Out-File` would otherwise produce code without triggering Write/Edit.
 
 - **Hook**: PreToolUse on `Bash|PowerShell` → `scripts/check_bash_code_write.py`
-- **Decision**: block any command whose shell-write syntax (`>`, `>>`, `tee`, `sed -i`, `cp/mv/install/rsync`, heredoc redirect, `Set-Content`/`Out-File`/`Add-Content`, `python -c "open(…,'w')"`) targets a `.py`/`.ipynb` path inside a run directory (excluding `<run>/docs/` and `<run>/literature/`).
+- **Decision**: block any command whose shell-write syntax (`>`, `>>`, `tee`, `sed -i`, `cp/mv/install/rsync`, heredoc redirect, `Set-Content`/`Out-File`/`Add-Content`, `python -c "open(…,'w')"`) targets a `.py`/`.ipynb` path inside the project, outside the exempt top-level dirs (`docs/`, `literature/`, `scripts/`, `tools/`).
 - **Bypass**: same `RESEARCH_HARNESS_BYPASS_SRC_GATE=1`.
 
 ## Cross-Tier Compliance Gate Hook
 
 Backstop for the two write hooks above. Run before advancing a stage gate.
 
-- **Script**: `python scripts/check_cross_tier_compliance.py --run <run-dir> [--strict]`
-- **Decision**: exits 2 when `src/*.py` files exist without matching Implementation Agent spawn records. `--strict` also fails on missing spawn log.
+- **Script**: `python scripts/check_cross_tier_compliance.py --project <project-dir> [--strict]`
+- **Decision**: exits 2 when `src/*.py` files exist without matching graduate-student spawn records. `--strict` also fails on missing spawn log.
 
 ## Spawn Log Integrity Hook
 
 `docs/gates/agent_spawn_log.md` is plain Markdown — a forged row could let a direct code write pass the cross-tier hook. This script reconciles spawn-log rows against Agent() start events recorded automatically by `workflow_hooks.py` in `<run>/docs/live_workflow_diagram.md`.
 
-- **Script**: `python scripts/check_spawn_log_integrity.py --run <run-dir>`
-- **Decision**: exits 2 when, for any date bucket, the spawn log has more `implementation` rows than the diagram has Agent() `start` events whose description mentions "implementation".
+- **Script**: `python scripts/check_spawn_log_integrity.py --project <project-dir>`
+- **Decision**: exits 2 when, for any date bucket, the spawn log has more `graduate-student` rows than the diagram has Agent() `start` events whose description mentions "graduate".
 
 ## Claim Promotion Gate Hook (HARD ENFORCED)
 
@@ -107,7 +116,7 @@ Cross-referential edges (`evolved_from`, `reproduces`, `cites_paper`, `supports`
 `scripts/check_spawn_contracts.py` validates `docs/harness/spawn_contracts.json` against `.claude/agents/<role>.md`, role skills, and `docs/orchestration_protocol.md`. It is an offline/CI consistency gate for the single-spawner model: the Lead Agent is the only spawner, and all spawned role agents are leaf agents. The script does not itself block a live tool call, but it catches drift before a PR or checkpoint claims the spawn contract is coherent.
 
 - **Script**: `python scripts/check_spawn_contracts.py --project <project-dir>`
-- **Decision**: exits 1 when a required leaf role is missing, an agent file's frontmatter `name` differs from the `subagent_type`, `tools:` differs from the JSON contract, any role agent includes the `Agent` tool, any role declares child spawns, the obsolete `.claude/agents/graduate-student.md` file exists, the description is not explicit-spawn-only, or `docs/orchestration_protocol.md` omits a required leaf `subagent_type`.
+- **Decision**: exits 1 when a required leaf role (graduate-student, code-reviewer, scientific-validator, cache-log-auditor, workflow-manager, peer-review-professor) is missing or an unknown role appears, an agent file's frontmatter `name` differs from the `subagent_type`, `tools:` differs from the JSON contract, any role agent includes the `Agent` tool, any role declares child spawns, the description is not explicit-spawn-only, or `docs/orchestration_protocol.md` omits a required leaf `subagent_type`.
 - **Layering**: Claude Code's agent loader applies `.claude/agents/<role>.md` `tools:` at runtime; existing path and Bash hooks (`check_src_write_authorization.py`, `check_bash_code_write.py`) still provide hard protection against unauthorized code writes.
 
 ## CI Enforcement Gate
@@ -171,9 +180,9 @@ Write `variation` or `new model` plus verification target to `docs/plan/baseline
 
 Before a new model, solver, analysis pipeline, or figure workflow is interpreted, require a toy model, known limit, reproduction, conservation check, or explicit waiver. Enforce with `check_baseline_gate.py` before Execute or Evaluate.
 
-### Graduate Student Role Hook
+### Graduate Student Hook
 
-Use `skills/seed-design/SKILL.md` to create Lead-managed seed task packets with exact files, commands, inputs, outputs, observables, pass/fail criteria, evidence records, failure handling, and `Seed phase` boundaries. The Graduate Student role is Lead-loaded task orchestration, not a subagent type.
+Use `skills/seed-design/SKILL.md` to break the work into bounded seed tasks (exact files, commands, inputs, outputs, observables, pass/fail criteria, evidence records, failure handling, `Seed phase` boundaries), then spawn a `graduate-student` per task — in parallel where the dependency map allows. A graduate student writes and runs its task's code and reports evidence plus hypotheses; it does not pronounce the binding verdict (the scientific-validator does) or promote claims. See `skills/graduate-student/SKILL.md` and `docs/orchestration_protocol.md`.
 
 ### Code-before-Test Hook
 
@@ -261,7 +270,7 @@ Leaf Coding Subagents do bounded implementation, validation, audit, or figure wo
 
 ### Completion Conference Reporting
 
-At major completion points, the Lead Agent performs a completion conference across all agents' reports, Graduate Student role output, and the latest workflow state, gathers visualization materials and validation evidence, then reports to the user with claim limits and caveats.
+At major completion points, the Lead Agent performs a completion conference across all leaf-agent reports (graduate-student evidence + hypotheses, code-review/validator/auditor verdicts) and the latest workflow state, gathers visualization materials and validation evidence, then reports to the PI with claim limits and caveats.
 
 ### Retrospective Hook
 
@@ -309,7 +318,7 @@ Before substantial work, inspect `Workflow Visualization`, `workflow_map.html`, 
 
 ## Re-spawn Monitoring (not a hook — surfaces in stage checkpoint)
 
-`scripts/write_stage_checkpoint.py` reports re-spawn hotspots (files with ≥ 3 Implementation Agent entries in `docs/gates/agent_spawn_log.md`) alongside the cross-tier verdict. Re-spawns are normal (the Graduate Student code review can reject a draft and re-spawn the Implementation Agent), but a hotspot signals a poor spec, an ambiguous task, or a buggy Implementation Agent pass that the researcher should inspect at the stage gate.
+`scripts/write_stage_checkpoint.py` reports re-spawn hotspots (files with ≥ 3 graduate-student entries in `docs/gates/agent_spawn_log.md`) alongside the cross-tier verdict. Re-spawns are normal (the Code Reviewer can reject a draft and the professor re-spawns the graduate student), but a hotspot signals a poor spec, an ambiguous task, or buggy graduate-student output that the researcher should inspect at the stage gate.
 
 ## Hook Registration
 

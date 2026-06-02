@@ -128,7 +128,7 @@ def main(argv: list[str] | None = None) -> int:
              "Default: walk up from cwd looking for the `.research-harness` marker. "
              "`--run` kept as alias for one release.",
     )
-    args = parser.parse_args(argv if argv is not None else [])
+    args = parser.parse_args(argv)
     try:
         project = project_root_mod.resolve_project(args.project, require=True)
     except project_root_mod.ProjectRootNotFoundError as exc:
