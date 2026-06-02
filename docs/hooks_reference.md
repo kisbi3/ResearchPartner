@@ -2,6 +2,8 @@
 
 Detailed descriptions of the harness's automated enforcement hooks. `AGENTS.md` / `GEMINI.md` link to this file rather than inlining the descriptions so the contract files stay compact (every spawned subagent that loads `AGENTS.md` pays for that prose). Soft "discipline" hooks (Numerical Stability, Anomaly, Scope Creep, etc.) stay inline in `AGENTS.md`; the entries here are the ones that involve a script, a hook registration, or an enforcement decision.
 
+**Label vocabulary.** *HARD ENFORCED* = wired as a blocking PreToolUse/PostToolUse hook that fires at tool-call time (some carry an explicit `RESEARCH_HARNESS_BYPASS_*` escape hatch). *Unbypassable* = additionally has no env-var escape — only the Human-Owned Decision Gate qualifies. An entry with a `**Script:**`/`**Invocation:**` line and no `**Hook:**` line is a CLI/CI checker the Lead Agent or CI runs deliberately; it is **not** a write-time block. Where a section mixes both (e.g. Claim Promotion Gate), the per-bullet label says which layer is wired.
+
 ## Human-Owned Decision Gate (HARD ENFORCED)
 
 The brake. The harness's #1 principle — leave scientific judgment with the researcher — made enforceable. The researcher-owned decision files are write-blocked for *every* agent (Lead/professor included), so the lab can propose but never sign its own approval or its own bypass.
@@ -41,17 +43,23 @@ Backstop for the two write hooks above. Run before advancing a stage gate.
 - **Script**: `python scripts/check_spawn_log_integrity.py --project <project-dir>`
 - **Decision**: exits 2 when, for any date bucket, the spawn log has more `graduate-student` rows than the diagram has Agent() `start` events whose description mentions "graduate".
 
-## Claim Promotion Gate Hook (HARD ENFORCED)
+## Claim Promotion Gate Hook
 
 Run before the Lead Agent promotes the run's claim ceiling above `observation`.
 
-- **Script**: `python scripts/check_claim_promotion.py --run <run-dir> --target <observation|interpretation|mechanism|generalization>`
-- **Input**: `<run>/docs/gates/validation_log.md` rows (`| Date | Check | Target | Status | Evidence |`).
+**Enforcement — two layers, only one is wired:**
+
+- **Freshness + finding-lifecycle structure — HARD ENFORCED (wired).** PreToolUse on `Write|Edit` to `docs/claims/*.md` → `scripts/path_check_hooks.py` invokes `scripts/check_claim_promotion_freshness.py`, which blocks (exit 2) a promoted claim whose cited `outputs/` artifacts are stale/missing, or whose mechanism/generalization finding lifecycle is incomplete.
+- **Count + diversity — NOT a live hook.** `scripts/check_claim_promotion.py` is a CLI checker the Lead Agent runs before promoting, and CI runs on a fixture (via `evaluate_harness.py`). It is enforced by Lead discipline + CI, *not* by a write-time block — nothing at write time stops a promoted claim that skipped it.
+
+Checker detail (`check_claim_promotion.py`, the non-wired count/diversity layer):
+
+- **Invocation**: `python scripts/check_claim_promotion.py --run <run-dir> --target <observation|interpretation|mechanism|generalization>`
+- **Input**: `docs/gates/validation_log.md` rows (`| Date | Check | Target | Status | Evidence |`).
 - **Count gate**: interpretation ≥ 1 pass; mechanism ≥ 2 pass; generalization ≥ 3 pass.
 - **Diversity gate**: `mechanism` requires ≥ 1 baseline-class pass (Check matching `toy_model | reproduction | analytical | conservation | dimensional | known_limit`). `generalization` requires ≥ 2 distinct Check categories.
 - **Finding Lifecycle Hook**: for `mechanism` and `generalization`, the affected `docs/claims/<claim_id>.md` must include a `## Finding Lifecycle` section. Candidate findings cannot promote; `independently_checked` and `evidence_linked` must be declared; `false_alarm` cannot promote; and `## Evidence Paths Read Directly` must contain at least one existing project path.
 - **Direct-read boundary**: the checker validates only declared structure and path existence. It cannot prove the Lead actually read a file.
-- **Wired freshness layer**: `scripts/path_check_hooks.py` invokes `scripts/check_claim_promotion_freshness.py` for `docs/claims/*.md` writes. That path keeps the existing stale-output check and adds the same candidate/direct-read structural check for mechanism/generalization claim files.
 - **Bypass**: lower the target ceiling or add a waivered validation row.
 
 ## Peer-Review Invocation Hook (HARD ENFORCED)

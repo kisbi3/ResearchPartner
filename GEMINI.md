@@ -50,7 +50,7 @@ The following are not just prose. They are wired hooks, deterministic checkers, 
 - [Bash Code-Write Hook](docs/hooks_reference.md#bash-code-write-hook-hard-enforced) (HARD ENFORCED): shell write syntax follows the same code-write restriction.
 - [Cross-Tier Compliance Gate](docs/hooks_reference.md#cross-tier-compliance-gate-hook): stage-gate backstop for cross-tier writes.
 - [Spawn Log Integrity Hook](docs/hooks_reference.md#spawn-log-integrity-hook): reconciles spawn-log rows with recorded Agent events.
-- [Claim Promotion Gate Hook](docs/hooks_reference.md#claim-promotion-gate-hook-hard-enforced) (HARD ENFORCED): count, diversity, freshness, and finding-lifecycle checks gate mechanism/generalization promotion.
+- [Claim Promotion Gate Hook](docs/hooks_reference.md#claim-promotion-gate-hook): the freshness + finding-lifecycle structural check is HARD ENFORCED (wired PreToolUse block on `docs/claims/*.md` writes); the count + diversity check (`check_claim_promotion.py`) is a Lead-run + CI checker, not a write-time block.
 - [Peer-Review Invocation Hook](docs/hooks_reference.md#peer-review-invocation-hook-hard-enforced) (HARD ENFORCED): Peer-Review Professor runs only inside `meeting --scope review` or `--scope full`.
 - [Capability Manifest Hook](docs/hooks_reference.md#capability-manifest-hook): registry, hook coverage, workflow gate keys, and portable `$CLAUDE_PROJECT_DIR` commands must stay synchronized.
 - [Spawn Contract Consistency Gate](docs/hooks_reference.md#spawn-contract-consistency-gate): `.claude/agents/*.md`, `spawn_contracts.json`, and orchestration docs must agree; the `Agent` tool is reserved for the Lead Agent.
