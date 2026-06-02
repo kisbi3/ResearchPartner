@@ -28,8 +28,13 @@ SCRIPTS = ROOT / "scripts"
 
 
 def run_hook(script: str, payload: dict | None = None, *, env: dict | None = None,
-             args: list[str] | None = None) -> tuple[int, str, str]:
-    """Invoke a hook script with JSON payload on stdin; return (rc, stdout, stderr)."""
+             args: list[str] | None = None, cwd: Path | None = None) -> tuple[int, str, str]:
+    """Invoke a hook script with JSON payload on stdin; return (rc, stdout, stderr).
+
+    ``cwd`` sets the child's working directory — needed for hooks like
+    enforce_gate_sequence.py that resolve the project root from cwd (Agent
+    spawns carry no file_path to locate the project from).
+    """
     cmd = [sys.executable, str(SCRIPTS / script)]
     if args:
         cmd.extend(args)
@@ -39,8 +44,18 @@ def run_hook(script: str, payload: dict | None = None, *, env: dict | None = Non
         capture_output=True,
         text=True,
         env=env,
+        cwd=str(cwd) if cwd is not None else None,
     )
     return proc.returncode, proc.stdout.strip(), proc.stderr.strip()
+
+
+def load_module(name: str):
+    """Import a scripts/ module by file path for pure-function unit tests."""
+    import importlib.util
+    spec = importlib.util.spec_from_file_location(name, SCRIPTS / f"{name}.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 
 @pytest.fixture
@@ -510,3 +525,81 @@ class TestSpawnLogIntegrity:
         rc, _, err = run_hook(self.SCRIPT, args=["--run", str(run_dir)])
         assert rc == 2
         assert "INTEGRITY FAIL" in err
+
+
+# ---------------------------------------------------------------------------
+# enforce_gate_sequence.py — gate detection must key on subagent_type, not
+# just free-text prose, so a reworded spawn cannot dodge the prerequisite
+# gates (the rewording bypass demonstrated by behavioral probe B2).
+# ---------------------------------------------------------------------------
+
+class TestGateSequenceDetection:
+    """Pure-function coverage of the spawn-role → required-gate resolver."""
+
+    @staticmethod
+    def _mod():
+        return load_module("enforce_gate_sequence")
+
+    def test_subagent_type_gates_even_without_keywords(self):
+        # B2: identical intent, but the prose contains none of the skill keywords.
+        role, gates = self._mod().resolve_required_gates(
+            "graduate-student", "create the solver module and run the model"
+        )
+        assert role == "graduate-student"
+        assert gates, "a typed graduate-student spawn must be gated regardless of prose"
+
+    def test_prose_fallback_still_works_without_type(self):
+        # Untyped spawn whose prose names the skill still resolves via regex.
+        _, gates = self._mod().resolve_required_gates(
+            "", "You are a Graduate Student. Load skills/graduate-student/SKILL.md"
+        )
+        assert gates
+
+    def test_keyword_free_untyped_spawn_not_gated_here(self):
+        # Documents the residual: an untyped, keyword-free spawn passes THIS hook.
+        # The cross-tier write hook independently blocks the actual .py write.
+        _, gates = self._mod().resolve_required_gates(
+            "", "create the solver module and run the model"
+        )
+        assert gates == []
+
+    def test_validator_type_requires_baseline(self):
+        _, gates = self._mod().resolve_required_gates("scientific-validator", "")
+        assert "baseline" in gates
+
+    def test_ungated_leaf_type_passes(self):
+        _, gates = self._mod().resolve_required_gates("cache-log-auditor", "")
+        assert gates == []
+
+
+class TestGateSequenceEndToEnd:
+    """Subprocess coverage of the stdin → exit-code contract."""
+
+    SCRIPT = "enforce_gate_sequence.py"
+
+    def test_blocks_typed_spawn_with_unmet_gates(self, run_dir):
+        # The bypass-closing case: subagent_type set, prose keyword-free, gates
+        # unrecorded → must block even though no skill keyword appears.
+        rc, _, err = run_hook(self.SCRIPT, {
+            "tool_name": "Agent",
+            "tool_input": {
+                "subagent_type": "graduate-student",
+                "description": "coding task",
+                "prompt": "create the solver module and run the model end to end",
+            },
+        }, cwd=run_dir)
+        assert rc == 2
+        assert "GATE SEQUENCE BLOCK" in err
+
+    def test_allows_ungated_leaf_type(self, run_dir):
+        rc, _, _ = run_hook(self.SCRIPT, {
+            "tool_name": "Agent",
+            "tool_input": {"subagent_type": "cache-log-auditor", "prompt": "audit the run"},
+        }, cwd=run_dir)
+        assert rc == 0
+
+    def test_ignores_non_agent_tool(self, run_dir):
+        rc, _, _ = run_hook(self.SCRIPT, {
+            "tool_name": "Write", "tool_input": {"file_path": "x.py"},
+        }, cwd=run_dir)
+        assert rc == 0

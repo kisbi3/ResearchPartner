@@ -9,9 +9,11 @@ content, the spawn is blocked (exit 2) with a clear fix message.
 Covered gate sequence (linear order):
     orient → interview → literature → seed/stage-1 → implementation
 
-The hook detects the intended step from the Agent spawn description + prompt
-rather than relying on active_step, so it works even when
-update_workflow_diagram.py has not been called yet.
+The hook detects the intended step from the Agent spawn's subagent_type (the
+robust signal — Claude Code puts the spawned role there), falling back to the
+description + prompt text, rather than relying on active_step. It works even
+when update_workflow_diagram.py has not been called yet, and a reworded prompt
+cannot dodge the gate for a typed leaf spawn.
 
 The critical rule this enforces:
     Writing content in your response text is NOT sufficient.
@@ -221,6 +223,42 @@ def detect_required_gates(text: str) -> tuple[str, list[str]]:
     return "", []
 
 
+# ── subagent_type → prerequisite gate mapping ────────────────────────────────
+# The robust signal. Claude Code puts the spawned role in tool_input["subagent_type"]
+# (already consumed by workflow_hooks.py and check_peer_review_invocation.py), so the
+# gate check does NOT have to guess the role from free-text prose. A spawn that sets
+# one of these subagent_types is gated regardless of how its description/prompt is
+# worded — closing the rewording bypass of the prose-only detector above.
+SUBAGENT_TYPE_REQUIREMENTS: dict[str, list[str]] = {
+    "graduate-student":     ["orient", "interview", "literature", "model", "baseline_strategy"],
+    "code-reviewer":        ["orient", "interview", "literature", "model", "baseline_strategy"],
+    "scientific-validator": ["orient", "interview", "literature", "model", "baseline_strategy", "baseline"],
+}
+
+
+def detect_from_subagent_type(subagent_type: str) -> tuple[str, list[str]]:
+    """Return (role, required_gates) from the structured subagent_type field.
+
+    Returns ("", []) for roles this hook does not gate (cache-log-auditor,
+    workflow-manager, peer-review-professor — the last has its own hook).
+    """
+    gates = SUBAGENT_TYPE_REQUIREMENTS.get(subagent_type)
+    return (subagent_type, list(gates)) if gates else ("", [])
+
+
+def resolve_required_gates(subagent_type: str, combined_text: str) -> tuple[str, list[str]]:
+    """Resolve prerequisite gates for a spawn.
+
+    Prefers the structured ``subagent_type`` (robust against prose rewording);
+    falls back to free-text pattern matching when the subagent_type is absent or
+    not one of the gated roles (defense in depth for differently-typed spawns).
+    """
+    role, gates = detect_from_subagent_type((subagent_type or "").strip().lower())
+    if gates:
+        return role, gates
+    return detect_required_gates(combined_text)
+
+
 def run_gate_check(project: Path, step: str) -> tuple[int, list[str]]:
     """Import and run the check module for the given gate step.
 
@@ -258,13 +296,18 @@ def main() -> int:
     # decision gates (orient/interview/model). The PI sign-off is the brake.
     bypass = os.environ.get("RESEARCH_HARNESS_BYPASS_GATE_SEQUENCE") == "1"
 
-    # ── Extract spawn description + prompt ────────────────────────────────────
+    # ── Extract spawn role + description + prompt ─────────────────────────────
     tool_input = payload.get("tool_input", {}) or {}
+    subagent_type = tool_input.get("subagent_type", "") or ""
     description = tool_input.get("description", "") or ""
     prompt = tool_input.get("prompt", "") or ""
     combined = f"{description}\n{prompt}"
 
-    skill_name, required_gates = detect_required_gates(combined)
+    # Prefer the structured subagent_type; fall back to prose patterns. This
+    # closes the rewording bypass: a graduate-student / code-reviewer /
+    # scientific-validator spawn is gated by its type no matter how the prompt
+    # is phrased.
+    skill_name, required_gates = resolve_required_gates(subagent_type, combined)
     if not required_gates:
         return 0  # Not a gated spawn — let through
 
