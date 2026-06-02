@@ -22,7 +22,8 @@ Exit codes:
     2  block the spawn (prerequisite gate not recorded)
 
 Bypass: set RESEARCH_HARNESS_BYPASS_GATE_SEQUENCE=1 for an explicit one-off
-waiver (logged to stderr).
+waiver of the quality/sequence gates (logged to stderr). The human-owned
+decision gates (orient/interview/model) are the brake and are NEVER waived.
 """
 
 from __future__ import annotations
@@ -76,6 +77,11 @@ GATE_ARTIFACTS: dict[str, str] = {
     "review_recent":     "docs/process/researcher_review_log.md",
 }
 
+# Gates whose checker requires a HUMAN-OWNED artifact (a write-blocked PI
+# decision file: orient/interview/model). These are the brake and are NEVER
+# waived by RESEARCH_HARNESS_BYPASS_GATE_SEQUENCE — only quality/sequence gates are.
+HUMAN_GATES = {"orient", "interview", "model"}
+
 
 # ── Skill → prerequisite gate mapping ────────────────────────────────────────
 # Keys are logical skill names (for readability only).
@@ -118,12 +124,21 @@ SKILL_REQUIREMENTS: list[dict] = [
         "requires": ["orient", "interview", "literature", "model", "baseline_strategy"],
     },
     {
-        "skill": "implementation-agent",
+        "skill": "graduate-student",
         "patterns": [
-            r"implementation[-_\s]?agent",
-            r"skills/implementation",
-            r"\bcoding\s+agent\b",
-            r"spawning\s+implementation",
+            r"graduate[-_\s]?student",
+            r"skills/graduate-student",
+            r"\bgrad\s+student\b",
+            r"spawning\s+graduate",
+        ],
+        "requires": ["orient", "interview", "literature", "model", "baseline_strategy"],
+    },
+    {
+        "skill": "code-reviewer",
+        "patterns": [
+            r"code[-_\s]?reviewer",
+            r"skills/code-reviewer",
+            r"\bcode\s+review\b",
         ],
         "requires": ["orient", "interview", "literature", "model", "baseline_strategy"],
     },
@@ -239,14 +254,9 @@ def main() -> int:
     if payload.get("tool_name") != "Agent":
         return 0
 
-    # ── Bypass via environment variable ───────────────────────────────────────
-    if os.environ.get("RESEARCH_HARNESS_BYPASS_GATE_SEQUENCE") == "1":
-        print(
-            "GATE-SEQUENCE BYPASS: spawn allowed via "
-            "RESEARCH_HARNESS_BYPASS_GATE_SEQUENCE=1",
-            file=sys.stderr,
-        )
-        return 0
+    # Bypass waives the quality/sequence gates only — never the human-owned
+    # decision gates (orient/interview/model). The PI sign-off is the brake.
+    bypass = os.environ.get("RESEARCH_HARNESS_BYPASS_GATE_SEQUENCE") == "1"
 
     # ── Extract spawn description + prompt ────────────────────────────────────
     tool_input = payload.get("tool_input", {}) or {}
@@ -267,12 +277,22 @@ def main() -> int:
     # ── Check prerequisites in order ──────────────────────────────────────────
     failures: list[tuple[str, list[str]]] = []
     for step in required_gates:
+        if bypass and step not in HUMAN_GATES:
+            continue  # quality/sequence gate waived by the bypass env var
         code, messages = run_gate_check(project, step)
         if code != 0:
             failures.append((step, messages))
 
+    if bypass:
+        print(
+            "GATE-SEQUENCE BYPASS: quality/sequence gates waived via "
+            "RESEARCH_HARNESS_BYPASS_GATE_SEQUENCE=1; human-owned decision gates "
+            "(orient/interview/model) are still enforced.",
+            file=sys.stderr,
+        )
+
     if not failures:
-        return 0  # All prerequisites satisfied
+        return 0  # All prerequisites satisfied (or only non-human gates, waived)
 
     # ── Block with a clear fix message ────────────────────────────────────────
     step, messages = failures[0]

@@ -1,18 +1,19 @@
 #!/usr/bin/env python3
-"""PreToolUse hook: block Bash commands that write code into a run directory.
+"""PreToolUse hook: block Bash commands that write code into a project.
 
 The Write/Edit cross-tier hook (check_src_write_authorization.py) covers the
 Write and Edit tools, but a Bash command can write a file too —
 ``echo ... > sim.py``, ``cat <<EOF > sim.py``, ``sed -i ... sim.py``,
-``cp other.py <run>/src/sim.py``, ``python -c "open('sim.py','w')..."``,
+``cp other.py src/sim.py``, ``python -c "open('sim.py','w')..."``,
 ``Set-Content`` / ``Out-File`` in PowerShell, and so on. Without this hook,
-Bash would be a wide-open back door around the "Graduate Students and the
-Lead Agent do not write code" rule.
+Bash would be a wide-open back door around the "only spawned Graduate Students
+write research code" rule.
 
 This hook inspects the Bash ``command`` string for patterns that look like
-they could create or modify a ``.py`` or ``.ipynb`` file inside a
-``ResearchPartner-runs/<run>/`` directory (excluding ``<run>/docs/`` and
-``<run>/literature/``, same as the Write/Edit hook).
+they could create or modify a ``.py`` or ``.ipynb`` file inside a project
+(layout v3: project root marked by ``.research-harness``), excluding the exempt
+top-level dirs ``docs/``, ``literature/``, ``scripts/``, ``tools/`` (same
+coverage as the Write/Edit hook; ``tests/`` is research code and is covered).
 
 Detection is intentionally conservative (false positives are blocked, not
 false negatives) — when in doubt the user can set
@@ -21,7 +22,7 @@ hook) for an explicit one-off waiver.
 
 Exit codes:
 - 0: command does not look like a covered code write
-- 2: command looks like a code write to a covered run path
+- 2: command looks like a code write to a covered project path
 """
 
 from __future__ import annotations
@@ -30,21 +31,32 @@ import json
 import os
 import re
 import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import _project_root as project_root_mod  # noqa: E402
 
 COVERED_EXTENSIONS = (".py", ".ipynb")
-EXEMPT_SUBDIRS = ("/docs/", "/literature/", "\\docs\\", "\\literature\\")
+# Top-level project dirs that are NOT cross-tier-gated research code: docs/notes,
+# literature/PDFs, and vendored harness tooling (scripts/, tools/). Test code
+# under tests/ IS research code and is covered.
+EXEMPT_TOP_DIRS = {"docs", "literature", "scripts", "tools"}
 
 # Patterns that introduce a file path written by the shell.
-# Each pattern captures the target path in group 1.
+# Each pattern captures the target path in group 1 where a single target exists.
 WRITE_PATTERNS = [
     # POSIX redirects: > path  or  >> path  or  &> path  or  &>> path
     re.compile(r"(?:^|[\s|&;])(?:[12]?>>?|&>>?)\s*([^\s|&;<>]+)"),
     # tee path / tee -a path / tee --append path
     re.compile(r"\btee\b(?:\s+-[aA]\w*|\s+--append)?\s+([^\s|&;<>]+)"),
-    # sed -i path  (in-place edit)
-    re.compile(r"\bsed\b[^|;&]*?-i[^\s]*\s+(?:-e\s+\S+\s+)?([^\s|&;<>]+)"),
-    # cp src dst   (last arg is destination; conservative: any token ending in .py/.ipynb anywhere)
-    re.compile(r"\b(?:cp|mv|install|rsync)\b[^|;&]*"),
+    # sed -i ... file  (in-place edit; the file is a positional arg, so this
+    # has no capture group and falls into the segment-scan branch — only -i
+    # forms write a file, so plain `sed 's/x/y/' f.txt` is not matched)
+    re.compile(r"\bsed\b[^|;&]*?-i[^|;&]*"),
+    # cp/mv/install/rsync as a COMMAND (at a command boundary + a following
+    # space), not the substring "install" inside a filename like scripts/install.py.
+    # No capture group → segment-scan for a .py/.ipynb target among the args.
+    re.compile(r"(?:^|[\s|&;])(?:cp|mv|install|rsync)\s[^|;&]*"),
     # PowerShell redirects and cmdlets
     re.compile(r"\bSet-Content\b[^|;&]*?(?:-Path\s+)?['\"]?([^'\"\s|;&]+)"),
     re.compile(r"\bOut-File\b[^|;&]*?(?:-FilePath\s+)?['\"]?([^'\"\s|;&]+)"),
@@ -64,39 +76,51 @@ COVERED_PATH_RE = re.compile(
 
 
 def looks_like_covered_path(path: str) -> bool:
-    """Return True if path is a code file inside a run dir (not docs/literature)."""
+    """Return True if path is research code inside a project (not an exempt dir).
+
+    Layout v3: the project root is marked by ``.research-harness``. A path is
+    covered if it ends in .py/.ipynb and resolves inside a project, outside the
+    exempt top-level dirs (docs/, literature/, scripts/, tests/, tools/).
+    Relative paths resolve against the current working directory.
+    """
     if not path:
         return False
-    norm = path.replace("\\", "/").lower()
-    if not norm.endswith(COVERED_EXTENSIONS):
+    if not path.replace("\\", "/").lower().endswith(COVERED_EXTENSIONS):
         return False
-    if "researchpartner-runs/" not in norm:
+    try:
+        resolved = Path(path).resolve()
+        project = project_root_mod.find_project_root(resolved, require=True)
+        rel = resolved.relative_to(project)
+    except (project_root_mod.ProjectRootNotFoundError, ValueError, OSError):
         return False
-    # Exempt: docs/ and literature/ subtrees directly under the run dir
-    for exempt in ("/docs/", "/literature/"):
-        if re.search(r"researchpartner-runs/[^/]+" + re.escape(exempt), norm):
-            return False
-    return True
+    top = rel.parts[0] if rel.parts else ""
+    return top not in EXEMPT_TOP_DIRS
 
 
 def find_offending_paths(command: str) -> list[str]:
+    """Return covered .py/.ipynb paths that a shell-write operator actually targets.
+
+    Only paths captured by a WRITE_PATTERN count — a redirect target, a
+    tee/sed/Set-Content/Out-File/Add-Content target, a ``python -c open(...)``
+    target, or a heredoc redirect target. For cp/mv/install/rsync (no single
+    capture) we scan .py tokens inside that command segment only. A bare
+    *mention* of a .py path (in an echo string, a grep pattern, an rm/ls
+    argument) is not a write and is ignored — otherwise the hook false-blocks
+    the Lead's routine maintenance commands.
+    """
     hits: set[str] = set()
-    # First, scan all .py/.ipynb tokens in the command line as candidates.
-    for m in COVERED_PATH_RE.finditer(command):
-        candidate = m.group(1)
-        if looks_like_covered_path(candidate):
-            hits.add(candidate)
+    for pat in WRITE_PATTERNS:
+        for m in pat.finditer(command):
+            if m.groups():
+                cand = m.group(1)
+                if cand and looks_like_covered_path(cand):
+                    hits.add(cand)
+            else:
+                # cp/mv/install/rsync: scan .py tokens within the matched segment
+                for mm in COVERED_PATH_RE.finditer(m.group(0)):
+                    if looks_like_covered_path(mm.group(1)):
+                        hits.add(mm.group(1))
     return sorted(hits)
-
-
-def command_looks_writey(command: str) -> bool:
-    """Return True if the command contains shell-write syntax we care about."""
-    write_tokens = (
-        ">", ">>", "tee", "sed", "cp", "mv", "install", "rsync",
-        "Set-Content", "Out-File", "Add-Content",
-        "-c open(", "open(\"", "open('", "<<",
-    )
-    return any(tok in command for tok in write_tokens)
 
 
 def main() -> int:
@@ -117,10 +141,6 @@ def main() -> int:
     offending = find_offending_paths(command)
     if not offending:
         return 0
-    if not command_looks_writey(command):
-        # A bare path mention (e.g. `python src/sim.py` to run it) is not a
-        # write. Only block when the command has shell-write syntax.
-        return 0
 
     if os.environ.get("RESEARCH_HARNESS_BYPASS_SRC_GATE") == "1":
         print(
@@ -132,12 +152,12 @@ def main() -> int:
 
     print(
         f"CROSS-TIER BLOCK: refused Bash command that writes to {', '.join(offending)}\n"
-        f"  rule: Only spawned Implementation Agents may create or modify .py/.ipynb\n"
-        f"        files inside a run directory. The Lead Agent and Graduate Students\n"
-        f"        cannot use Bash (cat/echo/sed/cp/tee/python -c/Set-Content/...) to\n"
-        f"        bypass the Write/Edit cross-tier hook.\n"
-        f"  fix: spawn an Implementation Agent (skills/implementation-agent/SKILL.md)\n"
-        f"       and let it produce the file via the Write tool.\n"
+        f"  rule: Only spawned Graduate Students may create or modify research\n"
+        f"        .py/.ipynb files. The Professor (Lead) cannot use Bash\n"
+        f"        (cat/echo/sed/cp/tee/python -c/Set-Content/...) to bypass the\n"
+        f"        Write/Edit cross-tier hook.\n"
+        f"  fix: spawn a Graduate Student (skills/graduate-student/SKILL.md) and\n"
+        f"       let it produce the file via the Write tool.\n"
         f"  bypass: set RESEARCH_HARNESS_BYPASS_SRC_GATE=1 for an explicit one-off waiver.\n"
         f"  command: {command[:240]}",
         file=sys.stderr,

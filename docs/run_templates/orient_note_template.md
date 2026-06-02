@@ -21,9 +21,11 @@ This file is the gate artifact checked by `scripts/check_orient_recorded.py`.
 
 <!-- The single most important clarifying question asked before execution -->
 
-## Researcher Answer
-
-<!-- The researcher's answer to the first professor question -->
+<!--
+  The researcher's ANSWER and decision do not go here — they belong in the
+  researcher-owned docs/gates/orient_decision.md (## Decision), which the lab
+  is hook-blocked from writing. This note is the lab's proposal only.
+-->
 
 ## Suggested Next Skill
 

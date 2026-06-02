@@ -8,11 +8,13 @@ docstring paths stay in sync with the canonical run layout.
 
 Pass conditions for a given run directory:
 
-1. <run>/docs/gates/orient_note.md exists; AND
-2. The file contains non-placeholder content for all four required fields:
-   Task Classification, Responsible Role, First Professor Question, and
-   Researcher Answer (i.e. each section has at least one non-empty,
-   non-comment line after its heading).
+1. <run>/docs/gates/orient_note.md exists (the lab's proposal); AND
+2. It contains non-placeholder content for the three required fields:
+   Task Classification, Responsible Role, First Professor Question (each
+   section has at least one non-empty, non-comment line after its heading); AND
+3. <run>/docs/gates/orient_decision.md has a non-empty ``## Decision`` — the
+   researcher's (PI) sign-off. That file is write-blocked for agents, so the
+   lab cannot record its own decision (this is the brake).
 
 All other states fail.
 """
@@ -26,13 +28,13 @@ from pathlib import Path
 _SCRIPTS_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(_SCRIPTS_DIR))
 from _layout import orient_note as _orient_note  # noqa: E402
+from _layout import orient_decision as _orient_decision  # noqa: E402
 import _project_root as project_root_mod  # noqa: E402
 
 REQUIRED_SECTIONS = [
     "## Task Classification",
     "## Responsible Role",
     "## First Professor Question",
-    "## Researcher Answer",
 ]
 
 
@@ -76,7 +78,21 @@ def check_project(project_root: Path) -> tuple[int, list[str]]:
             "before proceeding."
         ]
 
-    return 0, ["Orient gate passed: task classification and first question are recorded."]
+    # Brake: the lab records the proposal in orient_note.md, but the DECISION is
+    # the researcher's (PI) to write in the human-owned orient_decision.md.
+    decision = _orient_decision(project_root)
+    if not decision.exists() or not _section_has_content(
+        decision.read_text(encoding="utf-8"), "## Decision"
+    ):
+        return 1, [
+            "Orient note is recorded, but the researcher's decision is not.\n"
+            "  The decision belongs in docs/gates/orient_decision.md (## Decision),\n"
+            "  which is write-blocked for agents. Present the proposal in\n"
+            "  orient_note.md to the researcher and ask them to record their\n"
+            "  decision directly. The gate stays closed until they do."
+        ]
+
+    return 0, ["Orient gate passed: proposal recorded and researcher decision signed."]
 
 
 # Backward-compat alias retained for one release.
@@ -96,7 +112,7 @@ def main(argv: list[str] | None = None) -> int:
              "Default: walk up from cwd looking for the `.research-harness` marker. "
              "`--run` kept as alias for one release.",
     )
-    args = parser.parse_args(argv if argv is not None else [])
+    args = parser.parse_args(argv)
     try:
         project = project_root_mod.resolve_project(args.project, require=True)
     except project_root_mod.ProjectRootNotFoundError as exc:

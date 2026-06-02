@@ -58,26 +58,26 @@ def detect_lineage_coverage(run_dir: Path) -> dict:
 
 
 def detect_cross_tier_compliance(run_dir: Path) -> dict:
-    """Count src/*.py files vs Implementation Agent spawn log entries.
+    """Count src/*.py files vs graduate-student spawn log entries.
 
-    Also counts re-spawns per file: multiple Implementation Agent rows
-    pointing at the same File cell mean the Lead's Graduate Student role
-    review rejected earlier versions. A high re-spawn count is a quality signal
-    (poor spec, ambiguous task, or buggy Implementation Agent output).
+    Also counts re-spawns per file: multiple graduate-student rows pointing at
+    the same File cell mean the professor's Code Reviewer rejected earlier
+    versions. A high re-spawn count is a quality signal (poor spec, ambiguous
+    task, or buggy graduate-student output).
     """
     src_dir = run_dir / "src"
     src_files = sorted(src_dir.glob("*.py")) if src_dir.is_dir() else []
     src_count = len(src_files)
 
     spawn_log = run_dir / "docs" / "gates" / "agent_spawn_log.md"
-    impl_spawns = 0
+    grad_spawns = 0
     spawns_per_file: dict[str, int] = {}
     has_log = spawn_log.is_file()
     if has_log:
         for line in spawn_log.read_text(encoding="utf-8").splitlines():
             cells = [c.strip() for c in line.strip().strip("|").split("|")]
-            if len(cells) >= 3 and cells[1].lower() == "implementation" and cells[0] != "Date":
-                impl_spawns += 1
+            if len(cells) >= 3 and cells[1].lower() == "graduate-student" and cells[0] != "Date":
+                grad_spawns += 1
                 file_cell = cells[2]
                 spawns_per_file[file_cell] = spawns_per_file.get(file_cell, 0) + 1
 
@@ -104,10 +104,10 @@ def detect_cross_tier_compliance(run_dir: Path) -> dict:
             hot_str = ", ".join(f"{f}×{n}" for f, n in respawn_hotspots)
             status = (
                 f"✓ all {src_count} src/ file(s) have spawn records "
-                f"(total {impl_spawns} spawns); re-spawn hotspots: {hot_str}"
+                f"(total {grad_spawns} spawns); re-spawn hotspots: {hot_str}"
             )
         else:
-            status = f"✓ all {src_count} src/ file(s) have spawn records (total {impl_spawns} spawns)"
+            status = f"✓ all {src_count} src/ file(s) have spawn records (total {grad_spawns} spawns)"
         verdict = "pass"
     else:
         gap = src_count - distinct_impl_files
@@ -119,7 +119,7 @@ def detect_cross_tier_compliance(run_dir: Path) -> dict:
 
     return {
         "src_count": src_count,
-        "impl_spawns": impl_spawns,
+        "grad_spawns": grad_spawns,
         "distinct_impl_files": distinct_impl_files,
         "respawn_hotspots": respawn_hotspots,
         "has_log": has_log,
@@ -230,18 +230,16 @@ the design is too coupled and the stage boundary should be reconsidered.
 |---|---|
 | `src/*.py` files this stage | {compliance['src_count']} |
 | Distinct src files in spawn log | {compliance.get('distinct_impl_files', 0)} |
-| Implementation Agent spawns total | {compliance['impl_spawns']} |
+| Graduate Student spawns total | {compliance['grad_spawns']} |
 | Re-spawn hotspots (≥{RESPAWN_WARN_THRESHOLD} spawns/file) | {len(compliance.get('respawn_hotspots', []))} |
 
 Status: {compliance['status']}
 
-> Every `src/` file must be written by a spawned Implementation Agent — not
-> by the Lead Agent, including Lead-managed Graduate Student role passes
-> that review code but never write it. Spawn records are in
-> `docs/gates/agent_spawn_log.md`.
-> Re-spawns are normal (the Lead's Graduate Student role review can reject a draft),
+> Every `src/` file must be written by a spawned Graduate Student — not by the
+> Lead Agent (professor). Spawn records are in `docs/gates/agent_spawn_log.md`.
+> Re-spawns are normal (the professor's Code Reviewer can reject a draft),
 > but a hotspot with ≥{RESPAWN_WARN_THRESHOLD} spawns on one file signals a
-> poor spec, an ambiguous task, or a buggy Implementation Agent pass —
+> poor spec, an ambiguous task, or buggy graduate-student output —
 > worth inspecting at this stage gate. Verdict: **{compliance['verdict']}**.
 
 ## Lineage Coverage
@@ -281,7 +279,7 @@ def write_checkpoint(*, run_dir: Path, stage: int, title: str, force: bool, skip
     today = dt.date.today().isoformat()
     outputs = discover_outputs(run_dir)
     compliance = (
-        {"src_count": 0, "impl_spawns": 0, "has_log": False,
+        {"src_count": 0, "grad_spawns": 0, "has_log": False,
          "status": "— compliance check skipped (--no-compliance)", "verdict": "skipped"}
         if skip_compliance
         else detect_cross_tier_compliance(run_dir)

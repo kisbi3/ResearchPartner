@@ -55,10 +55,10 @@ def main(argv: list[str] | None = None) -> int:
         print(f"CROSS-TIER FAIL: {c['status']}", file=sys.stderr)
         print(
             f"  src/*.py files: {c['src_count']}\n"
-            f"  Implementation Agent spawns: {c['impl_spawns']}\n"
-            f"  fix: spawn Implementation Agents for the unrecorded files,\n"
+            f"  Graduate Student spawns: {c['grad_spawns']}\n"
+            f"  fix: spawn Graduate Students for the unrecorded files,\n"
             f"       or add waiver rows to docs/gates/agent_spawn_log.md\n"
-            f"       (Role='implementation', Status='waived: <reason>').",
+            f"       (Role='graduate-student', Status='waived: <reason>').",
             file=sys.stderr,
         )
         return 2

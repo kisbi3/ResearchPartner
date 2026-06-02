@@ -38,9 +38,9 @@ Do not design Task 1 as any other kind of work (e.g., parameter sweep, new featu
 Each seed task must specify:
 
 1. **Title**: a short imperative description of the task.
-2. **Role**: Lead Agent acting in the Graduate Student role (owns orchestration), Implementation Agent (code), Scientific Validator (run+check), or Lead Agent.
+2. **Role**: graduate-student (writes + runs), code-reviewer (static review), scientific-validator (run + verdict), cache-log-auditor (artifact audit), or Lead Agent (professor).
 3. **Input files**: exact paths to code, data, parameter files, or prior output files.
-4. **Script to write**: exact path under `src/` for the Implementation Agent.
+4. **Script to write**: exact path under `src/` for the graduate-student.
 5. **Expected output**: exact file names, log entries, figure paths, or printed values.
 6. **Pass criterion**: the specific condition that means this task succeeded.
 7. **Fail criterion**: the specific condition that means this task failed and must not proceed.
@@ -48,9 +48,9 @@ Each seed task must specify:
 9. **Evidence record**: the file or log entry that `/sync-workflow` will use to refresh live workflow state.
 10. **Lead Task-Orchestration Block**: the pre-formatted task packet the Lead Agent uses while loading `skills/graduate-student/SKILL.md` for this task (see format below).
 
-### Lead Task-Orchestration Block Format
+### Graduate-Student Spawn Block Format
 
-Each task ends with a Lead task-orchestration block. This is not an `Agent()` prompt and must not spawn a Graduate Student subagent. Use the canonical template in [`docs/orchestration_protocol.md`](../../docs/orchestration_protocol.md) under **Task-Orchestration Template → Graduate Student Role** — do not duplicate it here. Seed-design's job is to fill in the task-specific fields and append the **Implementation spec** block the Lead needs in order to spawn its leaf Implementation Agent:
+Each task ends with the task spec the Lead uses to spawn one `graduate-student`. Use the canonical spawn block in [`docs/orchestration_protocol.md`](../../docs/orchestration_protocol.md) under **Leaf Spawn Block Templates → Graduate Student** — do not duplicate it here. Seed-design's job is to fill in the task-specific fields (files, pass/fail criteria, evidence destination) the Lead needs in order to spawn the graduate student:
 
 ```
 Implementation spec:
@@ -75,14 +75,14 @@ If the plan requires multiple tasks, list them in dependency order. Mark which t
 
 ## Task-Orchestration Mapping Rule
 
-**Each task in this seed corresponds to exactly one Lead-managed Graduate Student role pass.** Do not spawn Graduate Student subagents. Do not categorize tasks by "student type" (e.g. "baseline student tasks", "literature student tasks") — the Lead loads the same `graduate-student` role skill for each task and keeps orchestration in the main context.
+**Each task in this seed corresponds to exactly one spawned `graduate-student`.** Do not categorize tasks by "student type" (e.g. "baseline student", "literature student") — the Lead spawns a fresh `graduate-student` bound to one task instance, carrying that task's files, pass/fail criteria, and evidence destination.
 
 When the Lead Agent reads this seed, the orchestration protocol is:
 
-- For every task with `depends_on: []` (no inbound dependency), the Lead may coordinate the task packets as one batch, then directly spawn the needed leaf agents (`implementation-agent`, `scientific-validator`, `cache-log-auditor`) from the Lead context as task order permits.
-- A task with `depends_on: [Task K]` begins only after Task K's Lead-managed role pass has produced its evidence and decision.
+- For every task with `depends_on: []` (no inbound dependency), the Lead spawns the `graduate-student` agents in parallel — one `subagent_type: graduate-student` call per task in a single message. After a student reports its evidence and hypotheses, the Lead spawns the reviewers the task needs: `code-reviewer` (static review), `scientific-validator` (independent re-run + pass/fail verdict), then `cache-log-auditor` (artifact audit).
+- A task with `depends_on: [Task K]` begins only after Task K's evidence and the Lead's decision are recorded.
 
-If your seed yields three independent tasks plus one dependent task, the expected pattern is: one Lead-managed batch of 3 task packets, wait for their required leaf-agent reports and Lead code reviews, then begin the dependent task.
+If your seed yields three independent tasks plus one dependent task, the expected pattern is: spawn 3 `graduate-student` agents in parallel, review each (code-reviewer → scientific-validator → cache-log-auditor), then begin the dependent task.
 
 ## Waiver Visibility
 
@@ -118,7 +118,7 @@ For each task:
 
 #### Task N: [Title]
 
-- **Role**: Lead Agent acting in the Graduate Student role
+- **Role**: graduate-student
 - **Inputs**:
 - **Script to write**: `src/<filename>.py`
 - **Expected output**:

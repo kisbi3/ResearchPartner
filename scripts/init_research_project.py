@@ -46,6 +46,11 @@ PACKET_TEMPLATE = ROOT / "docs" / "run_templates" / "research_run_packet_templat
 ORIENT_NOTE_TEMPLATE = ROOT / "docs" / "run_templates" / "orient_note_template.md"
 INTERVIEW_NOTES_TEMPLATE = ROOT / "docs" / "run_templates" / "interview_notes_template.md"
 MODEL_SPEC_TEMPLATE = ROOT / "docs" / "run_templates" / "model_spec_template.md"
+# Researcher-owned gate-decision templates (the brake — see path_check_hooks.py).
+ORIENT_DECISION_TEMPLATE = ROOT / "docs" / "run_templates" / "orient_decision_template.md"
+INTERVIEW_DECISION_TEMPLATE = ROOT / "docs" / "run_templates" / "interview_decision_template.md"
+MODEL_DECISION_TEMPLATE = ROOT / "docs" / "run_templates" / "model_decision_template.md"
+SEED_DECISION_TEMPLATE = ROOT / "docs" / "run_templates" / "seed_decision_template.md"
 BASELINE_STRATEGY_TEMPLATE = (
     ROOT / "docs" / "run_templates" / "baseline_strategy_template.md"
 )
@@ -207,6 +212,12 @@ def scaffold_project(project: Path | str = ".") -> Path:
     gates = layout.gates_dir(project)
     _copy_if_absent(ORIENT_NOTE_TEMPLATE, gates / "orient_note.md")
     _copy_if_absent(INTERVIEW_NOTES_TEMPLATE, gates / "interview_notes.md")
+    # Researcher-owned decision files (the brake) — scaffolded with a blank
+    # ## Decision so each gate stays closed until the PI records a real decision.
+    _copy_if_absent(ORIENT_DECISION_TEMPLATE, gates / "orient_decision.md")
+    _copy_if_absent(INTERVIEW_DECISION_TEMPLATE, gates / "interview_decision.md")
+    _copy_if_absent(MODEL_DECISION_TEMPLATE, gates / "model_decision.md")
+    _copy_if_absent(SEED_DECISION_TEMPLATE, gates / "seed_decision.md")
 
     # ── Copy template files → docs/plan/ ─────────────────────────────────────
     plan = layout.plan_dir(project)

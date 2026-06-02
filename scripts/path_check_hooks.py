@@ -13,6 +13,7 @@ Usage (set in .claude/settings.local.json):
 Registered checks:
 
   PRE (BLOCKING — exit 2 fails the tool call):
+    docs/gates/*_decision.md          → human-owned (every agent write blocked)
     literature/reviews/*.md           → check_paper_review_quality
     AGENTS.md / GEMINI.md             → check_contract_sync
     docs/claims/*.md                  → check_claim_promotion_freshness
@@ -60,6 +61,25 @@ def _matches_contract(rel: str) -> bool:
 
 def _matches_claim(rel: str) -> bool:
     return rel.startswith("docs/claims/") and rel.endswith(".md")
+
+
+# The brake: researcher-owned gate-decision files. The lab (every agent,
+# including the Lead) drafts proposals in the matching *_note/_spec files, but
+# the *decision* is the PI's to write — so the lab cannot forge its own approval
+# or its own bypass. Enforced as a hard write-block (exit 2) on any agent
+# Write/Edit.
+_HUMAN_OWNED_DECISIONS = frozenset({
+    "docs/gates/orient_decision.md",
+    "docs/gates/interview_decision.md",
+    "docs/gates/model_decision.md",
+    "docs/gates/seed_decision.md",
+    "docs/plan/model_skip_waiver.md",
+    "docs/literature/literature_skip_waiver.md",
+})
+
+
+def _matches_human_owned(rel: str) -> bool:
+    return rel in _HUMAN_OWNED_DECISIONS
 
 
 def _matches_figure(rel: str) -> bool:
@@ -164,6 +184,23 @@ def _check_contract_sync_pre() -> tuple[int, list[str]]:
         return 0, [f"check_contract_sync dispatcher error: {exc}"]
 
 
+def _check_human_owned_pre(rel: str) -> tuple[int, list[str]]:
+    """Hard-block any agent write to a researcher-owned gate-decision file.
+
+    This is the brake. The lab proposes; only the researcher (PI) records the
+    decision. Because the agent cannot write these files, a gate that requires
+    one cannot be satisfied by the agent rubber-stamping its own results.
+    """
+    return 2, [
+        f"HUMAN-OWNED GATE FILE — {rel} records the researcher's (PI) decision "
+        "and cannot be written by an agent.\n"
+        "  The lab may draft its proposal in the matching gate note (e.g. "
+        "docs/gates/orient_note.md), but the decision is the researcher's to write.\n"
+        "  STOP: present the proposal to the researcher and ask them to record "
+        "their decision directly in this file. The gate stays closed until they do."
+    ]
+
+
 # ── POST hooks ───────────────────────────────────────────────────────────────
 
 def _check_figure_provenance_post(project: Path) -> tuple[int, list[str]]:
@@ -210,6 +247,9 @@ def main() -> int:
     warnings: list[str] = []
 
     if phase == "pre" and tool_name in ("Write", "Edit") and rel:
+        if _matches_human_owned(rel):
+            code, msgs = _check_human_owned_pre(rel)
+            (blocking_failures if code != 0 else warnings).extend(msgs)
         if _matches_literature_review(rel):
             code, msgs = _check_paper_review_pre(Path(file_path_str), project)
             (blocking_failures if code != 0 else warnings).extend(msgs)

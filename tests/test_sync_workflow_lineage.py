@@ -148,7 +148,7 @@ def test_frontmatter_paper_node(tmp_path):
 # ---------------------------------------------------------------------------
 
 def test_derive_gate_status_orient_pass(tmp_path):
-    """orient_note.md with all 4 sections filled → gate shows 'pass'."""
+    """orient_note.md (3 sections) + PI orient_decision.md → gate shows 'pass'."""
     sw = _load_sync()
     project = tmp_path / "proj"
     _scaffold_project(project)
@@ -156,8 +156,11 @@ def test_derive_gate_status_orient_pass(tmp_path):
     (project / "docs" / "gates" / "orient_note.md").write_text(
         "## Task Classification\n- New model\n\n"
         "## Responsible Role\n- Lead Agent\n\n"
-        "## First Professor Question\nWhat is the research question?\n\n"
-        "## Researcher Answer\nWe want to study financial time series.\n"
+        "## First Professor Question\nWhat is the research question?\n"
+    )
+    # Brake: the orient gate also requires the researcher's (PI) decision file.
+    (project / "docs" / "gates" / "orient_decision.md").write_text(
+        "## Decision\nApproved — proceed to interview.\n"
     )
     out = sw.sync(project)
     data = json.loads(out.read_text())

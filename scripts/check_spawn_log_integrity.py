@@ -10,8 +10,8 @@ the ``## Real-Time Event Log`` section.
 
 A spawn log row is "verified" when there is at least one nearby (within
 ``--window-min`` minutes, default 60) `start` event in the diagram event log
-whose description mentions ``implementation`` (the Implementation Agent spawn
-block opens with "You are an Implementation Agent"). Unverified rows are
+whose description mentions ``graduate`` (the Graduate Student spawn block
+opens with "You are a Graduate Student"). Unverified rows are
 reported with exit 2.
 
 This is heuristic — the diagram event-log timestamps are minute-precision
@@ -45,7 +45,7 @@ def parse_spawn_log(path: Path) -> list[dict]:
             continue
         if cells[0] == "Date" or "---" in cells[0]:
             continue
-        if cells[1].lower() != "implementation":
+        if cells[1].lower() != "graduate-student":
             continue
         if "YYYY-MM-DD" in cells[0]:
             continue
@@ -76,12 +76,12 @@ def parse_diagram_events(path: Path) -> list[dict]:
     return events
 
 
-def implementation_starts_by_date(events: list[dict]) -> dict[str, int]:
+def graduate_starts_by_date(events: list[dict]) -> dict[str, int]:
     counts: dict[str, int] = {}
     for ev in events:
         if ev["event"] != "start":
             continue
-        if "implementation" not in ev["desc"].lower():
+        if "graduate" not in ev["desc"].lower():
             continue
         counts[ev["date"]] = counts.get(ev["date"], 0) + 1
     return counts
@@ -116,14 +116,14 @@ def main(argv: list[str] | None = None) -> int:
 
     rows = parse_spawn_log(spawn_log)
     events = parse_diagram_events(diagram)
-    impl_starts_by_date = implementation_starts_by_date(events)
+    grad_starts_by_date = graduate_starts_by_date(events)
 
     if not rows:
-        print("no implementation rows in spawn log; nothing to verify")
+        print("no graduate-student rows in spawn log; nothing to verify")
         return 0
     if not events:
         print(
-            f"INTEGRITY WARN: spawn log has {len(rows)} implementation row(s) "
+            f"INTEGRITY WARN: spawn log has {len(rows)} graduate-student row(s) "
             f"but no parsable event log in {diagram} — cannot verify",
             file=sys.stderr,
         )
@@ -136,28 +136,28 @@ def main(argv: list[str] | None = None) -> int:
 
     suspicious: list[tuple[str, int, int]] = []
     for date, count in rows_by_date.items():
-        starts = impl_starts_by_date.get(date, 0)
+        starts = grad_starts_by_date.get(date, 0)
         if starts < count:
             suspicious.append((date, count, starts))
 
     if not suspicious:
         print(
-            f"spawn log verified: {len(rows)} implementation row(s) reconciled "
-            f"against {sum(impl_starts_by_date.values())} Agent() start event(s)"
+            f"spawn log verified: {len(rows)} graduate-student row(s) reconciled "
+            f"against {sum(grad_starts_by_date.values())} Agent() start event(s)"
         )
         return 0
 
     print("INTEGRITY FAIL: spawn log rows exceed recorded Agent() spawns:", file=sys.stderr)
     for date, count, starts in suspicious:
         print(
-            f"  {date}: {count} implementation row(s) but only {starts} Agent() start event(s)",
+            f"  {date}: {count} graduate-student row(s) but only {starts} Agent() start event(s)",
             file=sys.stderr,
         )
     print(
         "  fix: investigate whether forged rows were added to docs/gates/agent_spawn_log.md\n"
         "       (workflow_hooks.py auto-logs every Agent() call; mismatches mean\n"
-        "        the rows were typed by hand, not produced by a real Implementation\n"
-        "        Agent spawn).",
+        "        the rows were typed by hand, not produced by a real Graduate\n"
+        "        Student spawn).",
         file=sys.stderr,
     )
     return 2

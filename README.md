@@ -87,16 +87,22 @@ Platform routing:
 
 ## Research Model
 
-Research Partner uses a single-spawner model. The Lead Agent is the main conversation context, owns researcher dialogue and scientific judgment, and is the only role that spawns subagents. The Graduate Student is a Lead-loaded role for one seed task, not a spawned subagent.
+Research Partner is modelled on a research group. The **PI** is you, the human researcher: you own the science and the gate decisions. The **Lead Agent** is the professor — the main conversation context that owns researcher dialogue, scientific judgment, and is the *only* role that spawns subagents. The lab members are spawned leaf agents.
 
-Leaf agents are spawned directly by the Lead:
+**The brake (Human-Owned Decision Gate).** The harness's #1 principle — leave scientific judgment with the researcher — is enforced, not just suggested. The decision files `docs/gates/{orient,interview,model,seed}_decision.md` (and the skip waivers) are write-blocked for *every* agent: the lab drafts proposals in the matching note/spec files, but only you record the decision. Those gates stay closed — and the bypass env vars never waive your sign-off — until you fill in `## Decision`.
+
+Leaf agents are spawned directly by the Lead (by `subagent_type`):
 
 | Leaf agent | Purpose |
 |---|---|
-| Implementation Agent | Writes bounded code or figure-generation files; does not run or interpret results |
-| Scientific Validator | Runs and checks results against pre-set criteria; does not modify code or strengthen claims |
+| Graduate Student | Writes **and runs** code for one bounded task (parallelizable); reports evidence and its interpretation as hypotheses; never pronounces the binding verdict |
+| Code Reviewer | Reads the code statically — correctness, spec conformance, reproducibility hygiene; does not run it |
+| Scientific Validator | Independently re-runs and checks results against pre-set criteria; does not modify code or strengthen claims |
 | Cache-Log Auditor | Audits logs, cache, and output hygiene mechanically |
+| Workflow Manager | Refreshes workflow + lineage state; reports gate status and broken edges |
 | Peer-Review Professor | Single-shot adversarial review inside `meeting --scope review` or `--scope full` |
+
+Author ≠ validator: the graduate student that writes code never certifies its own result — an independent Scientific Validator pronounces pass/fail against the criterion you locked at the model/seed gate.
 
 The Lead Agent uses nine stances as mental modes, not extra agents: Socratic Interviewer, Ontologist, Seed Architect, Evaluator, Contrarian, Hacker, Simplifier, Researcher, and Architect. See `docs/orchestration_protocol.md` for spawn blocks, stance details, and completion-conference rules.
 
@@ -149,10 +155,11 @@ Installed skills:
 | `model-specification` | Record physical system, equations, variables, assumptions, and regimes |
 | `baseline-strategy` | Choose variation vs new model and the first verification target |
 | `seed-design` | Convert the research seed into testable task packets |
-| `graduate-student` | Lead-loaded task orchestration role for one seed task |
-| `implementation-agent` | Bounded code and figure-file implementation |
-| `scientific-validator` | Read/run validation against fixed criteria |
+| `graduate-student` | Spawned worker: writes and runs code for one bounded task (parallelizable); reports evidence and hypotheses |
+| `code-reviewer` | Static review of a graduate student's code (no execution) |
+| `scientific-validator` | Independent re-run + validation against fixed criteria |
 | `cache-log-auditor` | Mechanical audit of cache, logs, and outputs |
+| `workflow-manager` | Refresh workflow + lineage state; report gate status |
 | `peer-review-professor` | Adversarial review of claims and evidence |
 | `baseline-validation` | Validate toy model, known limit, reproduction, or conservation check |
 | `numerical-validation` | Check stability, convergence, uncertainty, and sensitivity |

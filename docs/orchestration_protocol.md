@@ -1,125 +1,100 @@
-# Orchestration Protocol — Single-Spawner Lead Agent + Leaf Agents
+# Orchestration Protocol — Professor-Led Lab (Single-Spawner) + Leaf Agents
 
-This document holds the multi-agent orchestration mechanics (role definitions, agent spawning protocol, spawn-block templates, live research graph rules, professor stances, completion conference). It is referenced from `AGENTS.md` / `GEMINI.md` so that subagents (Implementation Agent, Scientific Validator, Cache-Log Auditor, Peer-Review Professor) do not have to load these rules — they receive their role-specific instructions through their spawn block and their own `.claude/agents/<role>.md` definition plus `skills/<role>/SKILL.md`.
+This document holds the multi-agent orchestration mechanics (role definitions, agent spawning protocol, spawn-block templates, live research graph rules, professor stances, completion conference). It is referenced from `AGENTS.md` / `GEMINI.md` so that subagents (Graduate Student, Code Reviewer, Scientific Validator, Cache-Log Auditor, Workflow Manager, Peer-Review Professor) do not have to load these rules — they receive their role-specific instructions through their spawn block and their own `.claude/agents/<role>.md` definition plus `skills/<role>/SKILL.md`.
 
 **Who loads this file**
 
 - **Always**: Lead Agent (main session) — load explicitly at the start of any substantial research iteration.
-- **As needed**: the Lead Agent when coordinating a seed task in the Graduate Student role.
-- **Never required**: Implementation Agent, Scientific Validator, Cache-Log Auditor, Peer-Review Professor — their behavior is fully specified by their spawn block + their `.claude/agents/<role>.md` definition + their `skills/<role>/SKILL.md`.
+- **Never required**: the leaf agents (Graduate Student, Code Reviewer, Scientific Validator, Cache-Log Auditor, Workflow Manager, Peer-Review Professor) — their behavior is fully specified by their spawn block + their `.claude/agents/<role>.md` definition + their `skills/<role>/SKILL.md`.
 
-## Roles
+## The lab
 
-For substantial research plans, existing-project reviews, reproduction attempts, simulation campaigns, analysis pipelines, figure sets, or manuscript-claim work, organize the work as:
+Model the work as a research group. The PI (the human researcher) sets direction and owns the decisions; the Lead Agent is the professor who runs the group; the spawned agents are the lab members.
 
-- **Lead Agent** (this is the main conversation context — *not* a spawned agent): owns scientific judgment, assumptions, model meaning, validation gates, evidence sufficiency, reproduction fidelity, and final claim discipline. The Lead Agent is also the *only* role that has direct two-way dialogue with the researcher; spawned agents are single-shot. The Lead Agent holds the "professor" stances (Socratic Interviewer, Ontologist, Seed Architect, Evaluator, Contrarian, Hacker, Simplifier, Researcher, Architect) as needed during Orient → Interview → Specify → Evaluate → Review.
-- **Peer-Review Professor** (spawned subagent, `meeting --scope review` only): adversarial external reviewer with no project history; reads only the live workflow diagram and whatever artifact is explicitly shared. Uses adversarial stances (Adversarial, Domain Expert, Skeptic, Gap Finder, Simplifier) to find holes in claims. Load `skills/peer-review-professor/SKILL.md`. Single-shot critique, then done.
-- **Graduate Student role** (not spawned): a Lead-Agent operating mode loaded from `skills/graduate-student/SKILL.md` for one seed task. It owns task execution strategy, Lead code review, anomaly escalation, and evidence reporting in the main context. The Lead directly spawns any leaf agents this role needs.
-- **Leaf Coding Subagents** (spawned directly by the Lead Agent): Implementation Agent, Scientific Validator, and Cache-Log Auditor perform bounded implementation, validation, audit, analysis, or plotting tasks only after the Lead's task strategy is clear. They report commands, parameters, seeds, files, outputs, validation status, and failures. They never spawn other agents or decide that a result supports a stronger scientific claim.
-- **Workflow state automation** (*not* a spawned agent): the live workflow artifact is maintained automatically by `scripts/workflow_hooks.py` (registered as PreToolUse/PostToolUse on the `Agent` tool) and by explicit `/sync-workflow` refreshes. There is no separate diagram agent to spawn. The contract is to record process state only; never strengthen claims, infer mechanisms, or judge meaning.
+- **PI (human)** — not an agent. Owns the science and the gate decisions. The brake: the researcher-owned decision files (`docs/gates/{orient,interview,model,seed}_decision.md`, plus the skip waivers) are write-blocked for *every* agent, so the lab can propose but never sign its own approval. See `docs/hooks_reference.md`.
+- **Lead Agent — the professor** (the main conversation context, *not* a spawned agent): owns scientific judgment, assumptions, model meaning, validation gates, evidence sufficiency, reproduction fidelity, and final claim discipline. The only role with two-way dialogue with the PI and the **only spawner**. Holds the professor stances (Socratic Interviewer, Ontologist, Seed Architect, Evaluator, Contrarian, Hacker, Simplifier, Researcher, Architect) across Orient → Interview → Specify → Evaluate → Review. Discusses results *with* the graduate students.
+- **Graduate Student** (spawned leaf; may run in parallel): a junior researcher for one bounded task. Proposes an approach, writes and runs code under `src/`, records evidence, and reports its interpretation **as hypotheses** plus open questions. Does not pronounce the binding verdict, promote claims, sign decisions, or spawn. Load `skills/graduate-student/SKILL.md`.
+- **Code Reviewer** (spawned leaf; may run in parallel): reads a graduate student's code **statically** (no execution) and judges correctness, spec conformance, and reproducibility hygiene. Load `skills/code-reviewer/SKILL.md`.
+- **Scientific Validator** (spawned leaf): **independently re-runs** the code via `run_with_capture.py` and pronounces PASS/FAIL against the pre-set criterion — mechanically, no interpretation. This is the disinterested referee. Load `skills/scientific-validator/SKILL.md`.
+- **Cache-Log Auditor** (spawned leaf): audits the validated run's logs/errors/cache artifacts mechanically. Load `skills/cache-log-auditor/SKILL.md`.
+- **Workflow Manager** (spawned leaf): runs `scripts/sync_workflow.py`, refreshes the live workflow diagram + JSON, and reports gate status and broken lineage edges. Load `skills/workflow-manager/SKILL.md`.
+- **Peer-Review Professor** (spawned leaf, `meeting --scope review`/`full` only): adversarial external reviewer with no project history; reads only what is explicitly shared. Load `skills/peer-review-professor/SKILL.md`. Single-shot critique, then done.
 
-Role ownership across the loop (the loop itself is defined in `AGENTS.md`):
+### The integrity principle: author ≠ validator
 
-- **Lead Agent** owns Orient, Interview, Specify, Evaluate, Review, claim discipline, waiver judgment, and completion conference decisions.
-- **Lead Agent in the Graduate Student role** owns Seed and Validate planning for one task: converting the research seed into testable files, commands, inputs, outputs, pass/fail criteria, and required records.
-- **Leaf Coding Subagents** own bounded Execute tasks after the validation strategy is clear. They may implement, validate, audit, analyze, or plot, but they only report commands, parameters, seeds, files, outputs, validation status, and failures.
-- **workflow_hooks.py (hook-driven, not spawned)** records spawn events automatically; `/sync-workflow` refreshes active step, gate status, evidence links, blocked behaviors, waivers, stale artifacts, and next researcher review checkpoint.
+The graduate student that writes and runs code is the **author**. The author may interpret its own result, but only as a hypothesis. The binding pass/fail verdict is pronounced by a **different** agent (the Scientific Validator) re-running independently against a criterion the PI locked at the model/seed gate. Code review (is the code right?), behavioural validation (does the result meet the bar?), and artifact audit (are the run's artifacts clean?) are three separate, single-responsibility leaf agents. No agent certifies its own work; the PI's gate sits on top.
 
 ## Agent Spawning Protocol
 
-The Lead Agent is the only spawner. Live testing showed spawned subagents do not receive the `Agent` tool, so nested spawning is not part of the harness contract. Graduate Student is therefore a Lead-loaded role, not a spawned tier. Leaf roles are enforced by actually spawning separate agents using the `Agent()` tool with explicit `subagent_type` values.
+The Lead Agent (professor) is the only spawner. Live testing showed spawned subagents do not receive the `Agent` tool, so nested spawning is not part of the harness contract. Leaf roles are enforced by actually spawning separate agents using the `Agent()` tool with explicit `subagent_type` values.
 
 ### Single-Spawner Hierarchy
 
 ```
-Lead Agent (main context — not spawned)
-    │   owns: dialogue with researcher, scientific judgment, gate approval,
-    │          claim ceiling, waiver decisions, professor stances,
-    │          Graduate Student role for seed-task orchestration
+Lead Agent — professor (main context — not spawned)
+    │   owns: dialogue with the PI, scientific judgment, gate approval,
+    │          claim ceiling, professor stances, task breakdown
     │
-    ├─ Peer-Review Professor              ← spawned only in meeting --scope review
-    │       single-shot adversarial critique; reads shared artifacts; done
+    ├─ Graduate Student        ← spawned per task; writes + runs code; may run in PARALLEL
+    │       reports evidence + hypotheses; no binding verdict, promotion, or spawning
     │
-    ├─ Implementation Agent               ← spawned by Lead when code must be written
-    │       writes code to src/; does NOT run, spawn, or judge results
+    ├─ Code Reviewer           ← spawned to review a student's code STATICALLY (no run)
+    │       reports correctness / spec / reproducibility issues; may run in parallel
     │
-    ├─ Scientific Validator               ← spawned by Lead to run and check results
-    │       runs via run_with_capture.py; checks against pre-set criteria;
-    │       does NOT modify code, spawn, or strengthen claims
+    ├─ Scientific Validator    ← spawned to RE-RUN and check the pre-set criterion
+    │       independent PASS/FAIL; does NOT modify code, spawn, or interpret
     │
-    ├─ Cache-Log Auditor                  ← spawned by Lead after Scientific Validator
-    │       runs audit_run_outputs.py (reuses _layout.py);
-    │       checks logs/ errors/ cache/ mechanically;
-    │       does NOT interpret results, modify code, or spawn
+    ├─ Cache-Log Auditor       ← spawned after the Validator
+    │       audits logs/ errors/ cache/ mechanically; no interpretation
     │
-    ├─ Figure generation                  ← Implementation Agent work
-    │       writes requested figure-generation code/files to outputs/figures/;
-    │       does NOT interpret results
+    ├─ Workflow Manager        ← spawned to refresh workflow + lineage state
+    │       runs sync_workflow.py; reports gate status; no research code
     │
-    └─ workflow_hooks.py (hook-driven, not spawned)
-            automatic Agent spawn records + /sync-workflow refreshes
+    └─ Peer-Review Professor   ← spawned only in meeting --scope review/full
+            single-shot adversarial critique; reads shared artifacts; done
 ```
 
 ### When to Spawn
 
 | Situation | Who spawns | What to spawn |
 |---|---|---|
-| Seed task ready to execute | Lead Agent | No subagent; load `skills/graduate-student/SKILL.md` in the Lead context |
-| Multiple seed tasks, no dependency | Lead Agent | Coordinate a Lead-managed task batch; spawn leaf agents directly where task dependencies permit |
-| Adversarial review needed before promoting a claim | Lead Agent | Peer-Review Professor (via `meeting --scope review`) |
-| Code needs to be written | Lead Agent | Implementation Agent |
-| Code needs to be run and verified | Lead Agent | Scientific Validator |
-| After Scientific Validator completes | Lead Agent | Cache-Log Auditor |
-| Publication-quality figures needed | Lead Agent | Implementation Agent |
-| Workflow state changed | Automatic + Lead-triggered | `workflow_hooks.py` records Agent spawns; `/sync-workflow` refreshes state |
+| A bounded research/seed task is ready | Lead Agent | `graduate-student` (one per task; issue several in one message for parallel, independent tasks) |
+| A student's code is ready to review | Lead Agent | `code-reviewer` (static review) |
+| Reviewed code must be run and checked against the criterion | Lead Agent | `scientific-validator` |
+| After the Scientific Validator completes | Lead Agent | `cache-log-auditor` |
+| Workflow / lineage state needs a refresh | Lead Agent | `workflow-manager` (or `/sync-workflow`) |
+| Adversarial review before promoting a claim | Lead Agent | `peer-review-professor` (via `meeting --scope review`) |
 
 ### Parallel Task Coordination Rule
 
-**One seed task = one Lead-managed Graduate Student role pass.** Do not spawn Graduate Student subagents. Never split a single seed task across multiple orchestration roles; the Lead owns the task packet and any leaf-agent reports.
+**Graduate students run in parallel.** When the dependency map in `seed_design.md` shows tasks with no inbound dependency on each other, the Lead Agent issues several `graduate-student` spawns in one assistant message — one `subagent_type: graduate-student` call per task. Each student stays strictly inside its own task and its own files.
 
-**Graduate Student is not a subagent type.** It is the Lead's task-orchestration role. There is no "baseline student", "scan student", "literature student", or "figure student". The role pass is bound to one task *instance* (e.g. "Task 3: reproduce Fig. 4 of Guo 2026") — not to a task *category*. Whatever leaf agents that task needs (Implementation Agent, Scientific Validator, Cache-Log Auditor), the Lead spawns them directly.
-
-**Anti-pattern (forbidden):**
-
-```
-Lead Agent
-    ├─ Graduate Student subagent A  →  always does baseline work
-    ├─ Graduate Student subagent B  →  always does literature work
-    └─ Graduate Student subagent C  →  always does scan work
-```
-
-This is wrong for two reasons: (1) Graduate Student is not a spawned role, and (2) it implies role specialization that the harness does not define.
+A task with `depends_on: [Task 1]` begins only after Task 1's evidence and the Lead's decision are recorded. Code Reviewers may likewise be spawned in parallel across finished students. The Scientific Validator and Cache-Log Auditor run per validated artifact.
 
 **Correct pattern:**
 
 ```
-Lead Agent
-    │
-    ├─ Task 1 Graduate Student role pass → leaf agents as needed
-    ├─ Task 2 Graduate Student role pass → leaf agents as needed
-    └─ Task 3 Graduate Student role pass → leaf agents as needed
+Lead Agent (professor)
+    ├─ Task 1 → graduate-student → code-reviewer → scientific-validator → cache-log-auditor
+    ├─ Task 2 → graduate-student → code-reviewer → scientific-validator → cache-log-auditor
+    └─ Task 3 → graduate-student → …                       (Tasks 1–3 spawned in parallel)
 ```
 
-Each task pass uses the same `skills/graduate-student/SKILL.md` role instructions in the Lead context. The Lead may issue multiple independent leaf-agent `Agent()` calls in one assistant message when the dependency map permits.
-
-**How to use parallelism:** when the dependency map in `seed_design.md` shows leaf implementation or validation jobs with no inbound dependency on each other, the Lead Agent may issue them in one assistant message containing multiple `Agent()` tool calls. Do not create Graduate Student subagents to get parallelism.
-
-A task with `depends_on: [Task 1]` begins only after Task 1's evidence and Lead decision are recorded.
+The professor then convenes, discusses the hypotheses with the students, and brings the proposal to the PI at the gate.
 
 ### Agent Model Hierarchy
 
-Spawn each spawned tier with the appropriate model to balance quality and cost. The Lead Agent runs in whatever model the researcher chose for the main session; the table below applies only to spawned subagents.
+Spawn each tier with the appropriate model to balance quality and cost. The Lead Agent runs in whatever model the researcher chose for the main session; the table below applies only to spawned subagents.
 
 | Tier | Role | Recommended model | Reason |
 |---|---|---|---|
-| Lead Agent | Main context | (session default) | Holds dialogue + judgment; not spawned |
-| Graduate Student role | Lead-loaded task orchestration | (session default) | Keeps coordination and code review in the Lead context |
-| Implementation Agent | Leaf code writing only | `model: "haiku"` | Spec is fully defined; no physical judgment needed |
-| Scientific Validator | Leaf run code + check criteria | `model: "sonnet"` | Must correctly apply pass/fail criteria |
-| Cache-Log Auditor | Leaf log/cache verification | `model: "haiku"` | Mechanical checklist; no interpretation |
-| Peer-Review Professor | Leaf adversarial review | `model: "sonnet"` or higher | Must produce substantive critique |
-
-**Run-level override**: create `config/agent_models.yaml` in the run directory to override defaults per role. The Lead Agent reads this file before spawning agents. See `scripts/templates/agent_models.yaml` for the template.
+| Lead Agent | Main context (professor) | (session default) | Holds dialogue + judgment; not spawned |
+| Graduate Student | Leaf: write + run + interpret | `model: "sonnet"` | Needs research judgment, not just transcription |
+| Code Reviewer | Leaf: static code review | `model: "sonnet"` | Must catch real correctness/spec defects |
+| Scientific Validator | Leaf: run + check criteria | `model: "sonnet"` | Must apply pass/fail criteria exactly |
+| Cache-Log Auditor | Leaf: log/cache verification | `model: "haiku"` | Mechanical checklist; no interpretation |
+| Workflow Manager | Leaf: workflow refresh | `model: "haiku"` | Deterministic refresh + reporting |
+| Peer-Review Professor | Leaf: adversarial review | `model: "sonnet"` or higher | Must produce substantive critique |
 
 ### Role Agent Definitions And Tools
 
@@ -127,52 +102,50 @@ Claude Code loads `.claude/agents/<role>.md` for the selected leaf `subagent_typ
 
 Every role-agent description must start with `Explicitly spawned only` and must not contain auto-trigger examples such as "Use this agent when" or "Trigger when". This reduces opportunistic auto-delegation; it is a hygiene rule, not a hard runtime firewall.
 
-The `Agent` tool is reserved for the Lead Agent. In plain checker terms: Agent tool is reserved for the Lead Agent. No `.claude/agents/<role>.md` leaf definition may list `Agent` in `tools:`, and no leaf role may declare child `subagent_type` values.
+The `Agent` tool is reserved for the Lead Agent. No `.claude/agents/<role>.md` leaf definition may list `Agent` in `tools:`, and no leaf role may declare child `subagent_type` values.
 
 | Role | `subagent_type` | Agent tools | Static scope |
 |---|---|---|---|
-| Implementation Agent | `implementation-agent` | `Read, Write, Edit, Grep, Glob` | leaf agent; writes code/figure files from a precise spec; no code execution, claim judgment, or spawning |
-| Scientific Validator | `scientific-validator` | `Read, Grep, Glob, Bash` | leaf agent; runs validation commands and reports exact values; no Write/Edit or spawning |
-| Cache-Log Auditor | `cache-log-auditor` | `Read, Grep, Glob, Bash` | leaf agent; runs audit commands and reports artifact sufficiency; no Write/Edit or spawning |
-| Peer-Review Professor | `peer-review-professor` | `Read, Grep, Glob` | leaf agent; reads shared artifacts only; invoked only inside `meeting --scope review/full` |
-
-### Task-Orchestration Template
-
-The Graduate Student role template is a Lead-context task packet, not an `Agent()` spawn block.
-
-#### Graduate Student Role
-
-```text
-Lead Agent: load skills/graduate-student/SKILL.md for this one seed task.
-Run directory: <absolute path>
-Task: <copy exact task block from seed_design.md>
-Pass criterion: <exact criterion>
-Fail criterion: <exact criterion>
-On failure: <escalate / log-and-continue / retry with [change]>
-Evidence record: <file to write result into>
-```
+| Graduate Student | `graduate-student` | `Read, Write, Edit, Grep, Glob, Bash` | writes + runs code for one task; reports evidence + hypotheses; no binding verdict, claim promotion, or spawning; parallel |
+| Code Reviewer | `code-reviewer` | `Read, Grep, Glob` | static code review (no execution); reports correctness/spec/reproducibility issues; no verdict or spawning |
+| Scientific Validator | `scientific-validator` | `Read, Grep, Glob, Bash` | independent re-run + pass/fail verdict against pre-set criteria; no Write/Edit or spawning |
+| Cache-Log Auditor | `cache-log-auditor` | `Read, Grep, Glob, Bash` | audits run cache/logs/artifacts; no interpretation or spawning |
+| Workflow Manager | `workflow-manager` | `Read, Grep, Glob, Bash` | refreshes workflow/lineage state; no research code, runs, or interpretation |
+| Peer-Review Professor | `peer-review-professor` | `Read, Grep, Glob` | reads shared artifacts only; invoked only inside `meeting --scope review/full` |
 
 ### Leaf Spawn Block Templates
 
 Every leaf spawn block carries only what the Lead knows that the child does not: the role label, the load instruction, and the run-specific inputs. Constraints, prohibitions, and report formats are owned by each role's `.claude/agents/<role>.md` and `skills/<role>/SKILL.md` — do not duplicate them in the spawn prompt.
 
-#### Implementation Agent
+#### Graduate Student
 
-Use `model: "haiku"` and `subagent_type: implementation-agent`.
+Use `model: "sonnet"` and `subagent_type: graduate-student`. Issue several in one message for parallel, independent tasks.
 
 ```
-You are an Implementation Agent.
-Load skills/implementation-agent/SKILL.md — it defines your role, constraints,
+You are a Graduate Student.
+Load skills/graduate-student/SKILL.md — it defines your role, constraints,
 and report format.
 
-Run directory: <absolute path>
+Project root: <absolute path>
+Task: <copy the exact task block from seed_design.md>
 Write to: src/<filename>.py
-Specification:
-  - Equations: <exact equations>
-  - Parameters: <exact parameters with units>
-  - Algorithm: <method, step size, stopping criterion>
-  - Inputs: <what the script should accept>
-  - Outputs: <what the script should produce and where>
+Pass criterion: <exact criterion — recorded for the Scientific Validator, not for you to pronounce>
+Evidence record: docs/evidence/<file>
+On ambiguity: apply the most conservative reading and flag it.
+```
+
+#### Code Reviewer
+
+Use `model: "sonnet"` and `subagent_type: code-reviewer`. May be spawned in parallel across finished students.
+
+```
+You are a Code Reviewer.
+Load skills/code-reviewer/SKILL.md — it defines your static review checklist
+and report format.
+
+Project root: <absolute path>
+Review: src/<filename>.py
+Against spec: docs/plan/model_spec.md  (and the task block)
 ```
 
 #### Scientific Validator
@@ -184,9 +157,9 @@ You are a Scientific Validator.
 Load skills/scientific-validator/SKILL.md — it defines your role, constraints,
 and report format.
 
-Run directory: <absolute path>
+Project root: <absolute path>
 Script to validate: src/<filename>.py
-Run command: python scripts/run_with_capture.py --quiet <run_dir> src/<filename>.py [args]
+Run command: python scripts/run_with_capture.py --quiet <project_dir> src/<filename>.py [args]
 Pass criterion: <exact criterion — do not invent new criteria>
 Fail criterion: <exact criterion>
 Evidence record: <file to write result into>
@@ -201,16 +174,29 @@ You are a Cache-Log Auditor.
 Load skills/cache-log-auditor/SKILL.md — it defines your role, constraints,
 and report format.
 
-Run directory: <absolute path>
+Project root: <absolute path>
 Script stem: <filename without .py>
 Log path: <log file path from Scientific Validator's report>
-Expected cache files (relative to run_dir):
+Expected cache files (relative to project_dir):
   - <cache/filename1.npy>   ← omit section if no cache files are required
 Min numeric lines: <N>      ← default 3 if not specified in task
 
-Run: python scripts/audit_run_outputs.py <run_dir> <stem> --log <log_path> \
+Run: python scripts/audit_run_outputs.py <project_dir> <stem> --log <log_path> \
      [--expect-cache <rel_path> ...] [--min-numeric <N>]
 Evidence record: docs/gates/validation_log.md
+```
+
+#### Workflow Manager
+
+Use `model: "haiku"` and `subagent_type: workflow-manager`.
+
+```
+You are a Workflow Manager.
+Load skills/workflow-manager/SKILL.md — it defines your refresh + report format.
+
+Project root: <absolute path>
+Run: python scripts/sync_workflow.py
+Report: gate status (note any gate blocked on a PI decision file) and broken lineage edges.
 ```
 
 #### Peer-Review Professor
@@ -233,16 +219,17 @@ Question under review: <specific claim or decision>
 
 | Agent | Prohibited action |
 |---|---|
-| Implementation Agent | Running code; judging scientific validity; modifying pass/fail criteria |
-| Scientific Validator | Modifying code; inventing new criteria; interpreting physical meaning |
-| Cache-Log Auditor | Running research scripts; interpreting scientific content; deciding whether to retry |
-| Lead Agent in Graduate Student role | **Writing or patching code** (must re-spawn Implementation Agent for every change); strengthening claims before evidence review |
-| Lead Agent | Writing implementation code directly (must spawn Implementation Agent); skipping Lead code review before Validator handoff |
-| Any leaf Coding Subagent | Spawning agents; strengthening claim language without Lead Agent approval |
+| Graduate Student | Pronouncing the binding pass/fail verdict (that is the Scientific Validator); promoting claims past `observation`; writing a gate decision/waiver; spawning agents |
+| Code Reviewer | Running code; applying pass/fail criteria; modifying code; spawning agents |
+| Scientific Validator | Modifying code; inventing new criteria; interpreting physical meaning; spawning agents |
+| Cache-Log Auditor | Running research scripts; interpreting scientific content; deciding whether to retry; spawning agents |
+| Workflow Manager | Writing/running research code; interpreting results; authoring gate artifacts; spawning agents |
+| Lead Agent (professor) | Writing or signing any researcher-owned decision file (the brake — PI only); strengthening a claim past the validated evidence |
+| Any leaf agent | Spawning agents; strengthening claim language without Lead Agent approval |
 
 ## Live Linked Research Graph
 
-The workflow automation must maintain a **Live Linked Research Graph**, not just a static loop diagram. The Lead Agent and leaf Coding Subagents leave evidence and lineage records when progress changes; `workflow_hooks.py` supplements these with automatic Agent activity records, and `/sync-workflow` rebuilds the visible state. The graph should expose Code links, Result links, and Interpretation links for every important node when those artifacts exist.
+The workflow automation maintains a **Live Linked Research Graph**, not just a static loop diagram. The Lead Agent and leaf agents leave evidence and lineage records when progress changes; `workflow_hooks.py` supplements these with automatic Agent activity records, and `/sync-workflow` (or the Workflow Manager) rebuilds the visible state. The graph should expose Code links, Result links, and Interpretation links for every important node when those artifacts exist.
 
 Live graph records must include:
 
@@ -273,4 +260,4 @@ The Lead Agent holds these stances (the "professor stances") when starting or re
 
 ## Completion Conference
 
-When a reproduction, validation, figure-generation, or other substantial task is complete and visualization artifacts are ready, the Lead Agent must convene a completion conference summarizing all leaf-agent reports, Graduate Student role output, and the latest workflow state. The final report to the user must summarize the meeting, the workflow state, the visualization materials, evidence links, supported claims, unsupported claims, validation status, and remaining uncertainty.
+When a reproduction, validation, figure-generation, or other substantial task is complete and visualization artifacts are ready, the Lead Agent convenes a completion conference summarizing all leaf-agent reports (graduate-student evidence + hypotheses, code-review verdicts, validator verdicts, auditor verdicts) and the latest workflow state. The final report to the PI must summarize the meeting, the workflow state, the visualization materials, evidence links, supported claims, unsupported claims, validation status, and remaining uncertainty — and, where a gate decision is due, present the proposal for the PI to record in the researcher-owned decision file.

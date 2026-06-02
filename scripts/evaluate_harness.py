@@ -480,7 +480,7 @@ SCENARIOS = [
         name="multi_agent_spawn_protocol",
         skills=(
             "skills/graduate-student/SKILL.md",
-            "skills/implementation-agent/SKILL.md",
+            "skills/code-reviewer/SKILL.md",
             "skills/scientific-validator/SKILL.md",
             "skills/cache-log-auditor/SKILL.md",
             "skills/seed-design/SKILL.md",
@@ -494,8 +494,8 @@ SCENARIOS = [
             "Agent Spawning Protocol",
             "Single-Spawner Hierarchy",
             "Parallel Task Coordination Rule",
-            "One seed task = one Lead-managed Graduate Student role pass",
-            "Graduate Student is not a subagent type",
+            "Graduate students run in parallel",
+            "author ≠ validator",
             "Cache-Log Auditor",
             "Cross-Tier Prohibition",
         ),
@@ -522,7 +522,7 @@ SCENARIOS = [
     Scenario(
         name="computation_checkpoint_resumption",
         skills=(
-            "skills/implementation-agent/SKILL.md",
+            "skills/graduate-student/SKILL.md",
         ),
         docs=(
             "scripts/run_with_checkpoint.py",
@@ -564,9 +564,11 @@ SCENARIOS = [
         docs=(
             "docs/harness/spawn_contracts.json",
             "scripts/check_spawn_contracts.py",
-            ".claude/agents/implementation-agent.md",
+            ".claude/agents/graduate-student.md",
+            ".claude/agents/code-reviewer.md",
             ".claude/agents/scientific-validator.md",
             ".claude/agents/cache-log-auditor.md",
+            ".claude/agents/workflow-manager.md",
             ".claude/agents/peer-review-professor.md",
             "docs/orchestration_protocol.md",
         ),

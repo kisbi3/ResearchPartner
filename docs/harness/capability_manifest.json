@@ -72,7 +72,7 @@
         "scripts/check_bash_code_write.py",
         "scripts/check_cross_tier_compliance.py"
       ],
-      "docs": ["docs/hooks_reference.md", "skills/implementation-agent/SKILL.md"],
+      "docs": ["docs/hooks_reference.md", "skills/graduate-student/SKILL.md"],
       "artifact_paths": ["docs/gates/agent_spawn_log.md"],
       "workflow_gate_keys": []
     },
@@ -129,9 +129,11 @@
       "scripts": ["scripts/check_spawn_contracts.py"],
       "docs": [
         "docs/harness/spawn_contracts.json",
-        ".claude/agents/implementation-agent.md",
+        ".claude/agents/graduate-student.md",
+        ".claude/agents/code-reviewer.md",
         ".claude/agents/scientific-validator.md",
         ".claude/agents/cache-log-auditor.md",
+        ".claude/agents/workflow-manager.md",
         ".claude/agents/peer-review-professor.md",
         "docs/orchestration_protocol.md"
       ],

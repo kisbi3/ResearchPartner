@@ -12,9 +12,12 @@ a one-line reason for skipping. This lowers the claim ceiling to at most
 Pass conditions for a given run directory (any one is sufficient):
 
 1. <run>/docs/plan/model_spec.md exists AND contains non-placeholder content in
-   both "## Physical System" and "## Governing Equations" sections; OR
+   both "## Physical System" and "## Governing Equations" sections, AND
+   <run>/docs/gates/model_decision.md has a non-empty "## Decision" (the
+   researcher's sign-off — write-blocked for agents); OR
 2. <run>/docs/plan/model_skip_waiver.md exists AND has at least one
-   non-empty, non-comment line (the skip reason).
+   non-empty, non-comment line (the skip reason). The waiver is itself a
+   PI-owned, agent-write-blocked file, so it needs no second sign-off.
 
 All other states fail.
 """
@@ -30,6 +33,7 @@ sys.path.insert(0, str(_SCRIPTS_DIR))
 from _layout import (  # noqa: E402
     model_spec as _model_spec,
     model_skip_waiver as _model_skip_waiver,
+    model_decision as _model_decision,
 )
 import _project_root as project_root_mod  # noqa: E402
 
@@ -97,7 +101,22 @@ def check_project(project_root: Path) -> tuple[int, list[str]]:
             "before proceeding to seed-design or execute."
         ]
 
-    return 0, ["Model gate passed: physical system and governing equations are recorded."]
+    # Brake: the lab records the model spec, but the DECISION to adopt it is the
+    # researcher's (PI) to write in the human-owned model_decision.md. (The skip
+    # waiver path above is itself a PI-owned file, so it needs no second sign-off.)
+    decision = _model_decision(project_root)
+    if not decision.exists() or not _section_has_content(
+        decision.read_text(encoding="utf-8"), "## Decision"
+    ):
+        return 1, [
+            "Model spec is recorded, but the researcher's decision is not.\n"
+            "  The decision belongs in docs/gates/model_decision.md (## Decision),\n"
+            "  which is write-blocked for agents. Present the model spec to the\n"
+            "  researcher and ask them to record their decision directly. The gate\n"
+            "  stays closed until they do (or use a model_skip_waiver — also PI-owned)."
+        ]
+
+    return 0, ["Model gate passed: model spec recorded and researcher decision signed."]
 
 
 # Backward-compat alias retained for one release.
@@ -117,7 +136,7 @@ def main(argv: list[str] | None = None) -> int:
              "Default: walk up from cwd looking for the `.research-harness` marker. "
              "`--run` kept as alias for one release.",
     )
-    args = parser.parse_args(argv if argv is not None else [])
+    args = parser.parse_args(argv)
     try:
         project = project_root_mod.resolve_project(args.project, require=True)
     except project_root_mod.ProjectRootNotFoundError as exc:

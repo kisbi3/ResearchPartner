@@ -78,7 +78,7 @@ def main(argv: list[str] | None = None) -> int:
         default=".",
         help="Directory to scan recursively (default: current directory).",
     )
-    args = parser.parse_args(argv if argv is not None else [])
+    args = parser.parse_args(argv)
     root = Path(args.root).resolve()
     missing = check(root)
 

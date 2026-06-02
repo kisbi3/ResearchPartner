@@ -87,16 +87,22 @@ task-intake -> professor-interview -> literature-review-planning -> model-specif
 
 ## 연구 모델
 
-Research Partner는 single-spawner 모델을 사용합니다. Lead Agent는 메인 대화 컨텍스트이고, 연구자 대화와 과학적 판단을 소유하며, subagent를 spawn할 수 있는 유일한 역할입니다. Graduate Student는 seed task 하나에 대해 Lead가 로드하는 역할이지 spawn되는 subagent가 아닙니다.
+Research Partner는 연구실(research group)을 본떠 설계되었습니다. **PI**는 사람 연구자, 즉 당신입니다 — 과학과 게이트 결정을 소유합니다. **Lead Agent**는 교수입니다 — 메인 대화 컨텍스트로, 연구자 대화와 과학적 판단을 소유하고 subagent를 spawn하는 *유일한* 역할입니다. 연구실 구성원은 spawn되는 leaf agent들입니다.
 
-Leaf agent는 Lead가 직접 spawn합니다:
+**브레이크(Human-Owned Decision Gate).** 하네스의 #1 원칙 — 과학적 판단은 연구자에게 남긴다 — 은 권고가 아니라 강제됩니다. 결정 파일 `docs/gates/{orient,interview,model,seed}_decision.md`(및 skip waiver)는 *모든* agent에게 쓰기 차단됩니다: 연구실은 대응하는 note/spec 파일에 제안 초안을 쓰지만, 결정은 오직 당신만 기록합니다. 해당 게이트는 — bypass 환경변수로도 당신의 사인오프를 면제할 수 없으며 — 당신이 `## Decision`을 채우기 전까지 닫혀 있습니다.
+
+Leaf agent는 Lead가 `subagent_type`으로 직접 spawn합니다:
 
 | Leaf agent | 목적 |
 |---|---|
-| Implementation Agent | 제한된 코드 또는 figure-generation 파일 작성; 실행이나 해석은 하지 않음 |
-| Scientific Validator | 고정된 기준으로 실행과 검증; 코드 수정이나 claim 강화는 하지 않음 |
+| Graduate Student | 하나의 bounded task에 대해 코드를 **작성하고 실행**(병렬 가능); 증거와 자기 해석을 가설로 보고; binding verdict는 내리지 않음 |
+| Code Reviewer | 코드를 정적으로 리뷰 — 정확성, spec 준수, 재현성 위생; 실행하지 않음 |
+| Scientific Validator | 독립적으로 재실행하고 고정된 기준으로 검증; 코드 수정이나 claim 강화는 하지 않음 |
 | Cache-Log Auditor | log, cache, output hygiene를 기계적으로 감사 |
+| Workflow Manager | workflow + lineage 상태 갱신; 게이트 상태와 끊긴 edge 보고 |
 | Peer-Review Professor | `meeting --scope review` 또는 `--scope full` 안에서만 실행되는 단발성 adversarial review |
+
+작성자 ≠ 검증자: 코드를 작성한 graduate student는 자기 결과를 스스로 인증하지 않습니다 — 독립적인 Scientific Validator가 당신이 model/seed 게이트에서 잠근 기준에 대해 pass/fail을 판정합니다.
 
 Lead Agent는 별도 agent가 아니라 mental mode로 9개 stance를 사용합니다: Socratic Interviewer, Ontologist, Seed Architect, Evaluator, Contrarian, Hacker, Simplifier, Researcher, Architect. spawn block, stance 세부 내용, completion-conference 규칙은 `docs/orchestration_protocol.md`에 있습니다.
 
@@ -149,10 +155,11 @@ Lead Agent는 별도 agent가 아니라 mental mode로 9개 stance를 사용합�
 | `model-specification` | 물리계, 방정식, 변수, 가정, regime 기록 |
 | `baseline-strategy` | variation vs new model과 첫 verification target 선택 |
 | `seed-design` | research seed를 testable task packet으로 변환 |
-| `graduate-student` | seed task 하나에 대한 Lead-loaded task orchestration 역할 |
-| `implementation-agent` | 제한된 code 및 figure-file 구현 |
-| `scientific-validator` | 고정 기준에 따라 읽기/실행/검증 |
+| `graduate-student` | spawn되는 작업자: 하나의 bounded task에 대해 코드를 작성하고 실행(병렬 가능); 증거와 가설 보고 |
+| `code-reviewer` | graduate student 코드의 정적 리뷰(실행 없음) |
+| `scientific-validator` | 독립 재실행 + 고정 기준에 따른 검증 |
 | `cache-log-auditor` | cache, log, output의 기계적 감사 |
+| `workflow-manager` | workflow + lineage 상태 갱신; 게이트 상태 보고 |
 | `peer-review-professor` | claim과 evidence의 adversarial review |
 | `baseline-validation` | toy model, known limit, reproduction, conservation check 검증 |
 | `numerical-validation` | stability, convergence, uncertainty, sensitivity 확인 |
