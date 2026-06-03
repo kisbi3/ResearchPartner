@@ -6,6 +6,7 @@ from __future__ import annotations
 import html
 import json
 import os
+import sys
 import argparse
 from datetime import datetime, timezone
 from pathlib import Path
@@ -13,17 +14,12 @@ import re
 
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import _project_root as project_root_mod  # noqa: E402
+
 SOURCE = ROOT / "workflow_map.json"
 OUTPUT = ROOT / "workflow_map.html"
 TEMPLATE = ROOT / "docs" / "workflow_map.template.html"
-# Runs live inside the harness/project root by default — see init_research_project.py
-# for the rationale (downstream installs would otherwise create runs at disk root).
-RUNS_ROOT = ROOT / "ResearchPartner-runs"
-_LEGACY_RUNS_ROOT = ROOT.parent / "ResearchPartner-runs"
-if not RUNS_ROOT.exists() and _LEGACY_RUNS_ROOT.exists():
-    # Fall back to the legacy sibling location so existing runs are still
-    # discoverable until the user moves them.
-    RUNS_ROOT = _LEGACY_RUNS_ROOT
 
 DASHBOARD_DOCUMENT_GROUPS = [
     {
@@ -200,33 +196,20 @@ def relative_href(path: str) -> str:
 
 
 def latest_live_workflow_path(project_root: Path | None = None) -> Path | None:
-    """Locate the live workflow diagram.
+    """Locate the live workflow diagram under the project root (layout v3).
 
-    v3: the project root IS the research root. When `project_root` is given,
-    look at `<project_root>/docs/process/live_workflow_diagram.md` directly.
-    Falls back to the legacy RUNS_ROOT scan for the v2 wrapping-directory
-    layout (still useful for existing test fixtures).
+    The project root IS the research root. Look for the diagram at
+    ``<project_root>/docs/process/live_workflow_diagram.md``, falling back to
+    the older within-project ``<project_root>/docs/live_workflow_diagram.md``
+    location. Returns None when no project root is given or no diagram exists.
     """
-    if project_root is not None:
-        candidate = project_root / "docs" / "process" / "live_workflow_diagram.md"
-        if candidate.exists():
-            return candidate
-        candidate = project_root / "docs" / "live_workflow_diagram.md"
-        if candidate.exists():
-            return candidate
-        # fall through to RUNS_ROOT scan in case the project_root passed in is
-        # actually the harness checkout (legacy invocation)
-    if not RUNS_ROOT.exists():
+    if project_root is None:
         return None
-    candidates = sorted(
-        [
-            *RUNS_ROOT.glob("*/docs/process/live_workflow_diagram.md"),
-            *RUNS_ROOT.glob("*/docs/live_workflow_diagram.md"),
-        ],
-        key=lambda path: path.stat().st_mtime,
-        reverse=True,
-    )
-    return candidates[0] if candidates else None
+    for rel in ("docs/process/live_workflow_diagram.md", "docs/live_workflow_diagram.md"):
+        candidate = project_root / rel
+        if candidate.exists():
+            return candidate
+    return None
 
 
 def run_relative_path(path: Path, base_dir: Path | None = None) -> str:
@@ -859,8 +842,8 @@ def placeholder_live_workflow_map() -> dict:
         "id": "live_research_run",
         "title": "Live Research Workflow: no active run",
         "description": (
-            "No live workflow artifact was found. Start or update a run under "
-            "ResearchPartner-runs/*/docs/process/live_workflow_diagram.md."
+            "No live workflow artifact was found. Start or update a run; the live "
+            "diagram lives at <project-root>/docs/process/live_workflow_diagram.md."
         ),
         "dashboard": {
             "title": "Current Run Dashboard",
@@ -955,16 +938,16 @@ def write_outputs(
     user asks for it explicitly via `--central`. The run-local map inside the
     current run directory remains the single source of truth the researcher opens.
 
-    `project_root` pins the search to a specific project directory instead of
-    scanning RUNS_ROOT. Pass this when calling from init_research_project.py.
+    `project_root` pins the diagram search to a specific project directory
+    (layout v3 — the project root IS the research root).
     """
     written = []
     if central:
         central_json = OUTPUT.parent / "workflow_map.live.json"
-        # Prefer the existing sidecar over a fresh RUNS_ROOT scan so that a
-        # manually reset placeholder is not silently overwritten just because a
-        # completed run's live_workflow_diagram.md is still on disk.
-        # Only scan when the sidecar is absent or --force is set.
+        # Prefer the existing sidecar over a fresh rebuild so that a manually
+        # reset placeholder is not silently overwritten just because a completed
+        # run's live_workflow_diagram.md is still on disk.
+        # Only rebuild when the sidecar is absent or --force is set.
         if not force and central_json.exists():
             try:
                 central_data = json.loads(central_json.read_text(encoding="utf-8"))
@@ -979,7 +962,11 @@ def write_outputs(
         else:
             central_data = None
         if central_data is None:
-            central_data = build_data(include_paper_logic=include_paper_logic, base_dir=OUTPUT.parent)
+            central_data = build_data(
+                include_paper_logic=include_paper_logic,
+                base_dir=OUTPUT.parent,
+                project_root=project_root,
+            )
             central_json.write_text(json.dumps(central_data, indent=2), encoding="utf-8")
             written.append(central_json)
         OUTPUT.parent.mkdir(parents=True, exist_ok=True)
@@ -1032,11 +1019,20 @@ def main() -> int:
              "per-run workflow_map.html inside the active run directory is the "
              "single source of truth a researcher should open).",
     )
+    parser.add_argument(
+        "--project",
+        type=Path,
+        default=None,
+        help="Project root to read the live diagram from. Default: walk up from "
+             "cwd to the .research-harness marker (layout v3).",
+    )
     args = parser.parse_args()
+    project_root = project_root_mod.resolve_project(args.project, require=False)
     for path in write_outputs(
         include_paper_logic=args.include_paper_logic,
         force=args.force,
         central=args.central,
+        project_root=project_root,
     ):
         try:
             display = path.relative_to(ROOT)

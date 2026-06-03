@@ -1,6 +1,5 @@
 import importlib.util
 import json
-import os
 import re
 import sys
 from pathlib import Path
@@ -17,6 +16,12 @@ def load_generator():
     sys.modules["generate_workflow_map"] = module
     spec.loader.exec_module(module)
     return module
+
+
+# Layout v3: the project root IS the research root (marked by .research-harness);
+# there is no ResearchPartner-runs/<run>/ wrapper. Discovery functions take an
+# explicit `project_root`, so tests build a single project directory and pass it
+# in rather than monkeypatching a runs-root scan.
 
 
 LIVE_WORKFLOW_FIXTURE = """\
@@ -49,31 +54,30 @@ LIVE_WORKFLOW_FIXTURE = """\
 """
 
 
-def _make_live_run(tmp_path, monkeypatch, generator):
-    runs_root = tmp_path / "ResearchPartner-runs"
-    run_docs = runs_root / "2026-05-15-fixture-run" / "docs"
+def _make_live_run(tmp_path, generator, name="2026-05-15-fixture-run"):
+    """Create a v3 project with a live diagram at docs/live_workflow_diagram.md."""
+    proj = tmp_path / name
+    run_docs = proj / "docs"
     run_docs.mkdir(parents=True)
     (run_docs / "live_workflow_diagram.md").write_text(LIVE_WORKFLOW_FIXTURE, encoding="utf-8")
-    monkeypatch.setattr(generator, "RUNS_ROOT", runs_root)
+    return proj
 
 
-def test_latest_live_workflow_path_reads_current_scaffold_layout(tmp_path, monkeypatch):
+def test_latest_live_workflow_path_reads_current_scaffold_layout(tmp_path):
     generator = load_generator()
-    runs_root = tmp_path / "ResearchPartner-runs"
-    run_docs = runs_root / "2026-05-17-current-layout" / "docs" / "process"
+    run_root = tmp_path / "2026-05-17-current-layout"
+    run_docs = run_root / "docs" / "process"
     run_docs.mkdir(parents=True)
     live_path = run_docs / "live_workflow_diagram.md"
     live_path.write_text(LIVE_WORKFLOW_FIXTURE, encoding="utf-8")
-    monkeypatch.setattr(generator, "RUNS_ROOT", runs_root)
 
-    assert generator.latest_live_workflow_path() == live_path
-    assert generator.build_data()["maps"][0]["id"] == "live_research_run"
+    assert generator.latest_live_workflow_path(project_root=run_root) == live_path
+    assert generator.build_data(project_root=run_root)["maps"][0]["id"] == "live_research_run"
 
 
 def test_live_map_uses_run_root_for_current_process_layout(tmp_path, monkeypatch):
     generator = load_generator()
-    runs_root = tmp_path / "ResearchPartner-runs"
-    run_root = runs_root / "2026-05-17-current-layout"
+    run_root = tmp_path / "2026-05-17-current-layout"
     process_docs = run_root / "docs" / "process"
     process_docs.mkdir(parents=True)
     live_path = process_docs / "live_workflow_diagram.md"
@@ -82,10 +86,9 @@ def test_live_map_uses_run_root_for_current_process_layout(tmp_path, monkeypatch
     (run_root / "docs" / "gates" / "orient_note.md").write_text("# Orient\n", encoding="utf-8")
     (run_root / "docs" / "plan").mkdir(parents=True)
     (run_root / "docs" / "plan" / "research_plan.md").write_text("# Plan\n", encoding="utf-8")
-    monkeypatch.setattr(generator, "RUNS_ROOT", runs_root)
     monkeypatch.setattr(generator, "OUTPUT", tmp_path / "harness" / "workflow_map.html")
 
-    map_data = generator.build_data()["maps"][0]
+    map_data = generator.build_data(project_root=run_root)["maps"][0]
 
     assert map_data["title"] == "Live Research Workflow: 2026-05-17-current-layout"
     assert any(
@@ -142,27 +145,22 @@ def test_live_map_uses_run_root_for_current_process_layout(tmp_path, monkeypatch
     }
 
 
-def test_latest_live_workflow_path_prefers_newest_current_or_legacy_layout(tmp_path, monkeypatch):
+def test_latest_live_workflow_path_prefers_process_over_docs_location(tmp_path):
+    """Within one project, the docs/process/ diagram wins over the older docs/ one."""
     generator = load_generator()
-    runs_root = tmp_path / "ResearchPartner-runs"
-    legacy_docs = runs_root / "2026-05-16-legacy-layout" / "docs"
-    current_docs = runs_root / "2026-05-17-current-layout" / "docs" / "process"
-    legacy_docs.mkdir(parents=True)
-    current_docs.mkdir(parents=True)
-    legacy_path = legacy_docs / "live_workflow_diagram.md"
-    current_path = current_docs / "live_workflow_diagram.md"
+    run_root = tmp_path / "2026-05-17-current-layout"
+    process_docs = run_root / "docs" / "process"
+    process_docs.mkdir(parents=True)
+    legacy_path = run_root / "docs" / "live_workflow_diagram.md"
+    process_path = process_docs / "live_workflow_diagram.md"
     legacy_path.write_text(LIVE_WORKFLOW_FIXTURE, encoding="utf-8")
-    current_path.write_text(LIVE_WORKFLOW_FIXTURE, encoding="utf-8")
-    os.utime(legacy_path, (1_700_000_000, 1_700_000_000))
-    os.utime(current_path, (1_800_000_000, 1_800_000_000))
-    monkeypatch.setattr(generator, "RUNS_ROOT", runs_root)
+    process_path.write_text(LIVE_WORKFLOW_FIXTURE, encoding="utf-8")
 
-    assert generator.latest_live_workflow_path() == current_path
+    assert generator.latest_live_workflow_path(project_root=run_root) == process_path
 
 
 def _setup_run_for_write_outputs(tmp_path, monkeypatch, generator):
-    runs_root = tmp_path / "ResearchPartner-runs"
-    run_root = runs_root / "2026-05-17-current-layout"
+    run_root = tmp_path / "2026-05-17-current-layout"
     process_docs = run_root / "docs" / "process"
     process_docs.mkdir(parents=True)
     (process_docs / "live_workflow_diagram.md").write_text(LIVE_WORKFLOW_FIXTURE, encoding="utf-8")
@@ -170,7 +168,6 @@ def _setup_run_for_write_outputs(tmp_path, monkeypatch, generator):
     output = tmp_path / "harness" / "workflow_map.html"
     source.parent.mkdir(parents=True)
     source.write_text(json.dumps({"maps": []}), encoding="utf-8")
-    monkeypatch.setattr(generator, "RUNS_ROOT", runs_root)
     monkeypatch.setattr(generator, "SOURCE", source)
     monkeypatch.setattr(generator, "OUTPUT", output)
     return run_root, output
@@ -181,7 +178,7 @@ def test_write_outputs_refreshes_latest_run_local_dashboard(tmp_path, monkeypatc
     generator = load_generator()
     run_root, output = _setup_run_for_write_outputs(tmp_path, monkeypatch, generator)
 
-    written = generator.write_outputs()
+    written = generator.write_outputs(project_root=run_root)
 
     # Central dashboard is OFF by default — must NOT be in written.
     assert output not in written
@@ -201,18 +198,18 @@ def test_write_outputs_with_central_flag_also_writes_central(tmp_path, monkeypat
     generator = load_generator()
     run_root, output = _setup_run_for_write_outputs(tmp_path, monkeypatch, generator)
 
-    written = generator.write_outputs(central=True)
+    written = generator.write_outputs(central=True, project_root=run_root)
 
     assert output in written
     assert output.exists()
     assert run_root / "workflow_map.html" in written
 
 
-def test_default_build_data_contains_only_live_research_workflow(tmp_path, monkeypatch):
+def test_default_build_data_contains_only_live_research_workflow(tmp_path):
     generator = load_generator()
-    _make_live_run(tmp_path, monkeypatch, generator)
+    run_root = _make_live_run(tmp_path, generator)
 
-    data = generator.build_data()
+    data = generator.build_data(project_root=run_root)
 
     assert data["maps"][0]["id"] == "live_research_run"
     assert data["maps"][0]["title"].startswith("Live Research Workflow")
@@ -235,11 +232,11 @@ def test_static_research_workflow_includes_interview_gate():
     )
 
 
-def test_live_nodes_include_result_summaries_and_images(tmp_path, monkeypatch):
+def test_live_nodes_include_result_summaries_and_images(tmp_path):
     generator = load_generator()
-    _make_live_run(tmp_path, monkeypatch, generator)
+    run_root = _make_live_run(tmp_path, generator)
 
-    nodes = {node["id"]: node for node in generator.build_data()["maps"][0]["nodes"]}
+    nodes = {node["id"]: node for node in generator.build_data(project_root=run_root)["maps"][0]["nodes"]}
 
     assert "final_relative_error" in nodes["baseline"]["result_summary"]
     assert any(image["path"].endswith("amplitude_decay.png") for image in nodes["baseline"]["images"])
@@ -335,10 +332,10 @@ def test_embedded_workflow_data_remains_valid_json():
     assert "missing" not in statuses
 
 
-def test_legacy_cartographer_update_events_are_ignored(tmp_path, monkeypatch):
+def test_legacy_cartographer_update_events_are_ignored(tmp_path):
     generator = load_generator()
-    runs_root = tmp_path / "ResearchPartner-runs"
-    run_docs = runs_root / "2026-05-14-linked-graph" / "docs"
+    run_root = tmp_path / "2026-05-14-linked-graph"
+    run_docs = run_root / "docs"
     run_docs.mkdir(parents=True)
     (run_docs / "live_workflow_diagram.md").write_text(
         "# Live Workflow\n\n"
@@ -355,9 +352,8 @@ def test_legacy_cartographer_update_events_are_ignored(tmp_path, monkeypatch):
         "## Next Review Checkpoint\n\n- Researcher decision needed: inspect figure\n",
         encoding="utf-8",
     )
-    monkeypatch.setattr(generator, "RUNS_ROOT", runs_root)
 
-    nodes = {node["id"]: node for node in generator.build_data()["maps"][0]["nodes"]}
+    nodes = {node["id"]: node for node in generator.build_data(project_root=run_root)["maps"][0]["nodes"]}
     assert "legacy-cartographer-node" not in nodes
     assert "toy_baseline" in nodes
 
@@ -385,9 +381,9 @@ LITERATURE_WORKFLOW_FIXTURE = """\
 """
 
 
-def _make_literature_run(tmp_path, monkeypatch, generator):
-    runs_root = tmp_path / "ResearchPartner-runs"
-    run_docs = runs_root / "2026-05-19-literature-run" / "docs"
+def _make_literature_run(tmp_path, generator, name="2026-05-19-literature-run"):
+    run_root = tmp_path / name
+    run_docs = run_root / "docs"
     run_docs.mkdir(parents=True)
     (run_docs / "live_workflow_diagram.md").write_text(LITERATURE_WORKFLOW_FIXTURE, encoding="utf-8")
     lit_dir = run_docs / "literature"
@@ -409,14 +405,14 @@ def _make_literature_run(tmp_path, monkeypatch, generator):
         "# Replanning Memo\n\nDecision: proceed with current model spec.\n",
         encoding="utf-8",
     )
-    monkeypatch.setattr(generator, "RUNS_ROOT", runs_root)
+    return run_root
 
 
-def test_literature_gate_node_has_result_summary_and_links(tmp_path, monkeypatch):
+def test_literature_gate_node_has_result_summary_and_links(tmp_path):
     generator = load_generator()
-    _make_literature_run(tmp_path, monkeypatch, generator)
+    run_root = _make_literature_run(tmp_path, generator)
 
-    nodes = {node["id"]: node for node in generator.build_data()["maps"][0]["nodes"]}
+    nodes = {node["id"]: node for node in generator.build_data(project_root=run_root)["maps"][0]["nodes"]}
     node = nodes["literature_review_and_replanning"]
 
     # result_summary is populated from the plan and queue files
@@ -431,34 +427,32 @@ def test_literature_gate_node_has_result_summary_and_links(tmp_path, monkeypatch
     assert "replanning_memo" in link_paths
 
 
-def test_literature_gate_result_summary_without_files(tmp_path, monkeypatch):
+def test_literature_gate_result_summary_without_files(tmp_path):
     """When the literature files are absent the builder returns 'not recorded' and
     gate_specific_links returns no dead links."""
     generator = load_generator()
-    runs_root = tmp_path / "ResearchPartner-runs"
-    run_docs = runs_root / "2026-05-19-no-lit-files" / "docs"
+    run_root = tmp_path / "2026-05-19-no-lit-files"
+    run_docs = run_root / "docs"
     run_docs.mkdir(parents=True)
     (run_docs / "live_workflow_diagram.md").write_text(LITERATURE_WORKFLOW_FIXTURE, encoding="utf-8")
-    monkeypatch.setattr(generator, "RUNS_ROOT", runs_root)
 
-    nodes = {node["id"]: node for node in generator.build_data()["maps"][0]["nodes"]}
+    nodes = {node["id"]: node for node in generator.build_data(project_root=run_root)["maps"][0]["nodes"]}
     node = nodes["literature_review_and_replanning"]
 
     assert node["result_summary"]["gate_status"] == "not recorded"
     assert node["result_summary"]["papers_total"] == "not recorded"
     assert node["result_summary"]["papers_open_requests"] == "not recorded"
     # gate_specific_links returns nothing when files are missing — avoids dead links
-    run_root = runs_root / "2026-05-19-no-lit-files"
     specific = generator.gate_specific_links("literature_review_and_replanning", run_root)
     assert specific == []
 
 
-def test_literature_summary_appears_in_dashboard_recommended_review(tmp_path, monkeypatch):
+def test_literature_summary_appears_in_dashboard_recommended_review(tmp_path):
     """literature/summary.md and literature/reviews/ are both listed under Recommended Review."""
     generator = load_generator()
-    _make_literature_run(tmp_path, monkeypatch, generator)
+    run_root = _make_literature_run(tmp_path, generator)
 
-    map_data = generator.build_data()["maps"][0]
+    map_data = generator.build_data(project_root=run_root)["maps"][0]
     rec = next(g for g in map_data["dashboard"]["document_groups"] if g["id"] == "recommended_review")
     labels = [doc["label"] for doc in rec["documents"]]
 
@@ -500,7 +494,7 @@ flowchart LR
 """
 
 
-def test_mermaid_edges_create_replanning_back_edge(tmp_path, monkeypatch):
+def test_mermaid_edges_create_replanning_back_edge(tmp_path):
     """Mermaid workflow diagram edges override sequential chaining.
 
     The literature gate's L --> I back-edge must appear in the node's 'edges' list,
@@ -508,13 +502,12 @@ def test_mermaid_edges_create_replanning_back_edge(tmp_path, monkeypatch):
     the literature gate (not sequentially to seed).
     """
     generator = load_generator()
-    runs_root = tmp_path / "ResearchPartner-runs"
-    run_docs = runs_root / "2026-05-19-mermaid-run" / "docs"
+    run_root = tmp_path / "2026-05-19-mermaid-run"
+    run_docs = run_root / "docs"
     run_docs.mkdir(parents=True)
     (run_docs / "live_workflow_diagram.md").write_text(MERMAID_WORKFLOW_FIXTURE, encoding="utf-8")
-    monkeypatch.setattr(generator, "RUNS_ROOT", runs_root)
 
-    nodes = {node["id"]: node for node in generator.build_data()["maps"][0]["nodes"]}
+    nodes = {node["id"]: node for node in generator.build_data(project_root=run_root)["maps"][0]["nodes"]}
 
     # Forward edge: interview → literature
     assert "literature_review_and_replanning" in nodes["interview_gate"]["edges"]
@@ -534,12 +527,12 @@ def test_literature_summary_action_guidance_is_recorded():
     assert guidance.get("why")
 
 
-def test_mermaid_threshold_requires_ceil_half_nodes(tmp_path, monkeypatch):
+def test_mermaid_threshold_requires_ceil_half_nodes(tmp_path):
     """With 3 gate nodes, 1 Mermaid match is below the ceiling-half threshold (2);
     sequential chaining must be used instead."""
     generator = load_generator()
-    runs_root = tmp_path / "ResearchPartner-runs"
-    run_docs = runs_root / "2026-05-19-threshold-run" / "docs"
+    run_root = tmp_path / "2026-05-19-threshold-run"
+    run_docs = run_root / "docs"
     run_docs.mkdir(parents=True)
     # Only the first gate appears in the Mermaid diagram; the other two don't.
     (run_docs / "live_workflow_diagram.md").write_text(
@@ -560,9 +553,8 @@ def test_mermaid_threshold_requires_ceil_half_nodes(tmp_path, monkeypatch):
         "## Next Review Checkpoint\n\n- None\n",
         encoding="utf-8",
     )
-    monkeypatch.setattr(generator, "RUNS_ROOT", runs_root)
 
-    nodes = {node["id"]: node for node in generator.build_data()["maps"][0]["nodes"]}
+    nodes = {node["id"]: node for node in generator.build_data(project_root=run_root)["maps"][0]["nodes"]}
 
     # Sequential chaining should apply: baseline → refinement_trend → fixed_ratio
     assert nodes["baseline"]["edges"] == ["refinement_trend"]

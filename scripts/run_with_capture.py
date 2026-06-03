@@ -8,7 +8,7 @@ Usage
 
 Examples
 --------
-    python scripts/run_with_capture.py C:/ResearchPartner-runs/my-run src/simulate.py
+    python scripts/run_with_capture.py C:/MyProject src/simulate.py
     python scripts/run_with_capture.py . src/scan.py --k 60 --omega0 20
     python scripts/run_with_capture.py --quiet --tail 30 . src/scan.py
 
