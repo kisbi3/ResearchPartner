@@ -374,6 +374,41 @@ def test_ci_enforcement_checker_accepts_fail_on_partial_workflow():
     assert evaluator.run_ci_enforcement_check() == []
 
 
+def test_evaluation_report_labels_structural_score_and_behavioral_probes():
+    evaluator = load_evaluator()
+    results = [
+        {
+            "name": "probe_scenario",
+            "status": "pass",
+            "score": 100,
+            "missing_skills": [],
+            "missing_docs": [],
+            "missing_rule_terms": [],
+            "missing_checks": [],
+            "behavioral_checks": ["check_harness_manifest"],
+        }
+    ]
+
+    report = evaluator.format_report(results)
+
+    assert "# Structural Harness Evaluation Report" in report
+    assert "Structural score basis" in report
+    assert "Behavioral checker probes: 1 run, 1 pass, 0 fail" in report
+
+
+def test_evaluate_scenario_records_behavioral_checks(monkeypatch):
+    evaluator = load_evaluator()
+    scenario = {
+        scenario.name: scenario for scenario in evaluator.SCENARIOS
+    }["capability_manifest_and_hook_registry"]
+
+    monkeypatch.setattr(evaluator, "run_manifest_check", lambda: [], raising=False)
+
+    result = evaluator.evaluate_scenario(scenario, evaluator.harness_rule_text())
+
+    assert result["behavioral_checks"] == ["check_harness_manifest"]
+
+
 def test_harness_rule_text_includes_hooks_reference():
     evaluator = load_evaluator()
 

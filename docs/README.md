@@ -27,7 +27,7 @@ Use these files during ordinary research iterations:
 ## Subfolders
 
 - `adoption/`: existing-project intake, artifact inventory, adoption log, and retrofit validation plan.
-- `harness/`: harness evaluation plan, scenarios, log, pilot protocol, and the Claude Code unified implementation plan.
+- `harness/`: harness evaluation plan, scenarios, log, pilot protocol, self-hosting maintenance procedure, and the Claude Code unified implementation plan.
 - `logs/`: anomaly, hypothesis, negative-result, open-question, reproduction, tacit-pattern, and toy-model logs.
 - `lineage/`: reusable iteration lineage templates.
 - `run_templates/`: templates for live workflow diagrams and full research run packets.

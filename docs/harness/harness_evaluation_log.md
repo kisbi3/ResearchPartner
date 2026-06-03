@@ -9,6 +9,7 @@
 | HE-005 | 2026-05-13 | Strong-partner framing and intentional anomaly pilot | `python scripts/evaluate_harness.py`; `python -m pytest tests`; `python -m pytest ResearchPartner-runs/.../tests`; `python scripts/validate_workflow_links.py` | 8 pass, 0 partial, 0 fail, average 100; harness tests passed; run tests passed | Framing now explicitly rejects full automation, and the numerical-instability anomaly path was exercised; remaining gap is researcher review of whether the partner-style stop feels clear enough | Ask researcher to choose fixed-ratio convergence, multi-mode validation, or another anomaly class |
 | HE-006 | 2026-05-14 | Docs shallow-structure reorganization | `python -m pytest tests/test_evaluate_harness.py tests/test_generate_workflow_map.py -q`; `python scripts/evaluate_harness.py`; `python scripts/validate_workflow_links.py`; `python scripts/run_baseline_validation.py` | 7 tests passed; 12 pass, 0 partial, 0 fail, average 100; workflow links passed; baseline harness check passed | Structural paths are updated, but tracked Python cache files can still change during validation | Decide whether generated `__pycache__` files should remain tracked |
 | HE-007 | 2026-06-03 | Behavioral re-evaluation + enforcement hardening | hook-firing probes (`path_check_hooks`, `enforce_gate_sequence`, `check_src_write_authorization`); `python -m pytest tests -q`; `python scripts/evaluate_harness.py --fail-on-partial` | 264 tests pass; 30 pass / 0 partial / 0 fail, avg 100; probes confirmed the brake + cross-tier block and exposed a gate-sequence rewording bypass (fixed this cycle) | Self-hosting over-gating of harness dev; `update_harness.py` does not refresh hooks; `evaluate_harness` still presence-based | Re-run after addressing the deferred backlog (see HE-007 detail) or at next adoption |
+| HE-008 | 2026-06-03 | Operational hardening follow-up | `python scripts/check_contract_sync.py`; `python scripts/check_harness_manifest.py`; `python scripts/check_spawn_contracts.py`; `python scripts/check_domain_manifest.py`; `python scripts/evaluate_harness.py --fail-on-partial`; `python -m pytest -q`; `git worktree prune --verbose` + worktree audit | contract/manifest/spawn/domain checks passed; structural harness report 30 pass / 0 partial / 0 fail, avg 100; behavioral checker probes 4 run / 4 pass / 0 fail; 271 tests passed; worktree prune had no stale metadata | Registered and unregistered local `.claude/worktrees` directories remain; deletion requires owner review to avoid disrupting other sessions | Re-run after worktree owner review or before publishing the branch |
 
 ## HE-007 Detail — 2026-06-03
 
@@ -39,6 +40,23 @@
    - Recommendation: (a) plus reliance on CI `pytest`.
 
 4. **Workflow weight (by design).** 7+ mandatory gates before code, 25 skills; mitigated by the literature/model waivers (baseline-strategy and the PI gates cannot be waived). Accept as-is; revisit only if a researcher reports friction in exploratory use.
+
+## HE-008 Detail — 2026-06-03
+
+**Method.** Followed up on the HE-007 backlog and the direct source review. The cycle used TDD for behavior changes, then ran the deterministic checker suite and full pytest.
+
+**Changes made.**
+- `evaluate_harness.py` now labels its output as a structural harness evaluation report and prints the structural score basis plus behavioral checker-probe counts, so the 30/30 score is not mistaken for full runtime proof.
+- `update_harness.py --apply --upgrade-hooks` now merges current hook registration into `.claude/settings.local.json` by reusing the project `init_research_project.py` hook merge logic. Dry-run mode explicitly does not mutate hook settings.
+- The tracked `.claude/settings.local.json` is kept to portable hook registration only, and `check_harness_manifest.py` now rejects tracked local permissions.
+- `docs/harness/self_hosting_development.md` documents the sanctioned source-repo self-hosting procedure without adding a permanent self-development bypass.
+- README and README.ko document hook refresh, `--upgrade-hooks`, portable tracked hook settings, and the self-hosting procedure.
+
+**Worktree audit.** `git worktree prune --verbose` found no stale metadata. Audit found 22 registered worktrees, 13 unregistered directories under `.claude/worktrees`, and 3 nested registered worktrees. No directories were deleted automatically because clean worktree removal can still disrupt another active Codex thread.
+
+**Researcher review.** Researcher approved proceeding through the full backlog in sequence.
+
+**Remaining gap.** The remaining worktree cleanup is an ownership/coordination task, not a harness-code defect. Remove only after confirming the corresponding thread/branch is no longer needed.
 
 ## Rules
 

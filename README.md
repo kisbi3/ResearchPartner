@@ -47,11 +47,11 @@ python scripts\check_contract_sync.py
 python scripts\check_harness_version.py
 ```
 
-Install writes `harness.lock.json` with owned-file hashes so a project can report its installed harness stamp and local harness edits. `install.py --force` refreshes harness-owned files only; project-owned research artifacts under `docs/gates/`, `docs/plan/`, and `docs/process/` are preserved. Use `python scripts\update_harness.py --project <project-dir> --source <harness-source>` to dry-run a selective update; add `--apply` to write harness-owned updates, review `.harness-new` sidecars for conflicts, and use `--adopt` only to stamp an unstamped legacy project.
+Install writes `harness.lock.json` with owned-file hashes so a project can report its installed harness stamp and local harness edits. `install.py --force` refreshes harness-owned files only; project-owned research artifacts under `docs/gates/`, `docs/plan/`, and `docs/process/` are preserved. Use `python scripts\update_harness.py --project <project-dir> --source <harness-source>` to dry-run a selective update; add `--apply` to write harness-owned updates, review `.harness-new` sidecars for conflicts, then run `python scripts\init_research_project.py` from the project root to refresh live hooks. Or add `--upgrade-hooks` with `--apply` to merge hook registration during the update. Use `--adopt` only to stamp an unstamped legacy project.
 
 Start the first run by asking the assistant to begin with task intake. The project marker `.research-harness`, `docs\process\live_workflow_diagram.md`, literature workspace, project packet, and `outputs/` are scaffolded by initialization. Use `/sync-workflow` after gate, evidence, or lineage changes.
 
-The live enforcement hooks live in `.claude/settings.local.json`. If that file does not exist, initialization writes it; if it already exists (common when adopting the harness into a project that already uses Claude Code), initialization **merges** the harness hooks into it — preserving your existing permissions and custom hooks, and skipping any harness hook already present (idempotent). If the file exists but cannot be parsed, initialization leaves it untouched and prints a warning that the hooks were not installed. Re-run `python scripts\init_research_project.py` after editing the file to install them.
+The live enforcement hooks live in `.claude/settings.local.json`. If that file does not exist, initialization writes it; if it already exists (common when adopting the harness into a project that already uses Claude Code), initialization **merges** the harness hooks into it — preserving your existing permissions and custom hooks, and skipping any harness hook already present (idempotent). The tracked harness copy of this file should contain portable hook registration only, not machine-local permissions. If the file exists but cannot be parsed, initialization leaves it untouched and prints a warning that the hooks were not installed. Re-run `python scripts\init_research_project.py` after editing the file to install them.
 
 ## Using It
 
@@ -121,7 +121,7 @@ Commands:
 | Audit existing project | `python scripts\audit_existing_project.py <project-root>` | Inventory scripts, figures, outputs, and validation gaps |
 | Evaluate harness | `python scripts\evaluate_harness.py --fail-on-partial` | Check scenario coverage; partial now fails CI |
 | Check harness stamp | `python scripts\check_harness_version.py --project <project-dir>` | Report installed harness stamp and locally modified owned files |
-| Update vendored harness | `python scripts\update_harness.py --project <project-dir> --source <harness-source> [--apply]` | Dry-run or apply non-destructive harness-owned updates; conflicts become `.harness-new` sidecars |
+| Update vendored harness | `python scripts\update_harness.py --project <project-dir> --source <harness-source> [--apply] [--upgrade-hooks]` | Dry-run or apply non-destructive harness-owned updates; conflicts become `.harness-new` sidecars; use `--upgrade-hooks` with `--apply` to refresh hooks |
 | Install test dependencies | `python -m pip install -r requirements.txt` | Install `pytest` and `PyYAML` |
 | CI harness checks | `.github/workflows/harness-checks.yml` | Run deterministic gates on push and pull request |
 | Sync live workflow | `python scripts\sync_workflow.py --project <project-dir> [--validate-edges]` | Refresh gate status, lineage, and live JSON |
@@ -189,6 +189,8 @@ Research Partner separates surface guidance from blocking enforcement.
 | CI | `harness-checks.yml` with `evaluate_harness.py --fail-on-partial` | Makes new failed or partial harness scenarios red on every PR |
 
 The deterministic spine is documented in `docs/hooks_reference.md`: capability manifest, spawn contracts, finding lifecycle, contract sync with word budget, and CI. This section belongs in README for researchers and contributors; it is intentionally not copied into `AGENTS.md`, which remains a slim resident contract.
+
+Maintainers working inside this source repo should follow `docs/harness/self_hosting_development.md` when live hooks over-gate harness source edits.
 
 ## Vision
 
