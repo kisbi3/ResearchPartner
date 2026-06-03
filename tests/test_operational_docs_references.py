@@ -22,6 +22,8 @@ OPERATIONAL_FILES = [
     ROOT / "scripts" / "run_baseline_validation.py",
 ]
 
+SELF_HOSTING_DOC = ROOT / "docs" / "harness" / "self_hosting_development.md"
+
 REFERENCE_PATTERN = re.compile(
     r"(skills/[A-Za-z0-9_.-]+/SKILL\.md|docs/run_templates/[A-Za-z0-9_.-]+\.md)"
 )
@@ -56,3 +58,15 @@ def test_operational_docs_do_not_describe_cartographer_as_current_runtime():
                 stale.append(f"{doc.relative_to(ROOT)} contains {term!r}")
 
     assert stale == []
+
+
+def test_self_hosting_development_procedure_is_documented():
+    text = SELF_HOSTING_DOC.read_text(encoding="utf-8")
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    readme_ko = (ROOT / "README.ko.md").read_text(encoding="utf-8")
+
+    assert "self-hosting over-gating" in text
+    assert ".research-harness" in text
+    assert "RESEARCH_HARNESS_SELF_DEV" not in text
+    assert "docs/harness/self_hosting_development.md" in readme
+    assert "docs/harness/self_hosting_development.md" in readme_ko

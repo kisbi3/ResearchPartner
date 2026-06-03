@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 from datetime import datetime, timezone
+import importlib.util
 import json
 import shutil
 import sys
@@ -203,7 +204,42 @@ def _adopt_project(project: Path, source_root: Path, source_files: dict[str, Pat
     _write_lockfile(source_root, project, files, installed_at=None)
 
 
-def _print_plan(project: Path, source_root: Path, plan: Plan, *, apply: bool) -> None:
+def _load_init_module(project: Path):
+    module_path = project / "scripts" / "init_research_project.py"
+    if not module_path.is_file():
+        raise FileNotFoundError(
+            "scripts/init_research_project.py missing; apply harness updates before refreshing hooks"
+        )
+    spec = importlib.util.spec_from_file_location("project_init_research_project", module_path)
+    module = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    spec.loader.exec_module(module)
+    return module
+
+
+def _upgrade_hooks(project: Path) -> list[str]:
+    init_module = _load_init_module(project)
+    settings_path = project / ".claude" / "settings.local.json"
+    settings_path.parent.mkdir(parents=True, exist_ok=True)
+    harness_settings = json.loads(init_module._CLAUDE_SETTINGS_CONTENT)
+    if not settings_path.exists():
+        settings_path.write_text(init_module._CLAUDE_SETTINGS_CONTENT, encoding="utf-8")
+        return ["created .claude/settings.local.json"]
+
+    try:
+        existing_settings = json.loads(settings_path.read_text(encoding="utf-8"))
+        if not isinstance(existing_settings, dict):
+            raise ValueError("top-level JSON is not an object")
+    except (json.JSONDecodeError, OSError, ValueError) as exc:
+        raise ValueError(f"{settings_path} could not be parsed; hook refresh skipped ({exc})")
+
+    merged, added = init_module._merge_hook_settings(existing_settings, harness_settings)
+    if added:
+        settings_path.write_text(json.dumps(merged, indent=2) + "\n", encoding="utf-8")
+    return added
+
+
+def _print_plan(project: Path, source_root: Path, plan: Plan, *, apply: bool, upgrade_hooks: bool) -> None:
     mode = "apply" if apply else "dry-run"
     print(f"Harness update plan ({mode})")
     print(f"Project: {project}")
@@ -215,6 +251,10 @@ def _print_plan(project: Path, source_root: Path, plan: Plan, *, apply: bool) ->
             print(f"- {rel_path}")
     if not apply:
         print("Dry run only; rerun with --apply to write harness updates.")
+        if upgrade_hooks:
+            print("Dry run only; hook refresh not applied.")
+    elif upgrade_hooks:
+        print("Hook refresh requested; applying after harness updates.")
     else:
         print(
             "Next: refresh hooks with "
@@ -244,6 +284,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     mode.add_argument("--apply", action="store_true", help="Write planned updates and refresh the lockfile.")
     mode.add_argument("--adopt", action="store_true", help="Stamp an unstamped legacy project without updating files.")
     mode.add_argument("--dry-run", action="store_true", help="Print the update plan without writing files.")
+    parser.add_argument(
+        "--upgrade-hooks",
+        action="store_true",
+        help="With --apply, merge current harness hook registration into .claude/settings.local.json.",
+    )
     return parser.parse_args(argv)
 
 
@@ -275,9 +320,15 @@ def main(argv: list[str] | None = None) -> int:
         lock_files = lock["files"]
         plan = _plan_update(project, source_files, lock_files)
         apply = bool(args.apply)
-        _print_plan(project, source_root, plan, apply=apply)
+        _print_plan(project, source_root, plan, apply=apply, upgrade_hooks=args.upgrade_hooks)
         if apply:
             _apply_plan(project, source_root, plan, lock.get("installed_at"))
+            if args.upgrade_hooks:
+                added_hooks = _upgrade_hooks(project)
+                if added_hooks:
+                    print(f"Hook refresh: merged {len(added_hooks)} harness enforcement hook(s).")
+                else:
+                    print("Hook refresh: hooks already current.")
         return 0
     except Exception as exc:
         print(f"ERROR: {exc}", file=sys.stderr)

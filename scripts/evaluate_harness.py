@@ -780,6 +780,7 @@ def evaluate_scenario(scenario: Scenario, rule_text: str) -> dict[str, object]:
         "missing_docs": missing_docs,
         "missing_rule_terms": missing_terms,
         "missing_checks": missing_checks,
+        "behavioral_checks": list(scenario.checks),
     }
 
 
@@ -788,15 +789,21 @@ def format_report(results: list[dict[str, object]]) -> str:
     partial = sum(1 for result in results if result["status"] == "partial")
     failing = sum(1 for result in results if result["status"] == "fail")
     average = round(sum(int(result["score"]) for result in results) / len(results))
+    behavioral_total = sum(len(result.get("behavioral_checks", [])) for result in results)
+    behavioral_failed = sum(1 for result in results if result.get("missing_checks"))
+    behavioral_passed = behavioral_total - behavioral_failed
 
     lines = [
-        "# Harness Evaluation Report",
+        "# Structural Harness Evaluation Report",
         "",
         f"- Scenarios: {len(results)}",
         f"- Pass: {passing}",
         f"- Partial: {partial}",
         f"- Fail: {failing}",
         f"- Average score: {average}",
+        "- Structural score basis: required skills, docs, rule terms, and selected "
+        "checker probes. Treat this as coverage/drift evidence, not full runtime proof.",
+        f"- Behavioral checker probes: {behavioral_total} run, {behavioral_passed} pass, {behavioral_failed} fail",
         "",
         "| Scenario | Status | Score | Gaps |",
         "|---|---|---:|---|",

@@ -123,6 +123,61 @@ def test_apply_updates_unmodified_owned_file_and_lock(tmp_path, capsys):
     assert lock["files"]["AGENTS.md"] == sha256(source / "AGENTS.md")
 
 
+def test_upgrade_hooks_dry_run_does_not_mutate_settings(tmp_path, capsys):
+    updater = load_updater()
+    source = tmp_path / "source"
+    project = tmp_path / "project"
+    make_source_tree(source)
+    install_project(source, project)
+    (project / ".claude").mkdir(exist_ok=True)
+    settings = project / ".claude" / "settings.local.json"
+    settings.write_text('{"hooks": {}}\n', encoding="utf-8")
+
+    assert updater.main(
+        ["--project", str(project), "--source", str(source), "--upgrade-hooks"]
+    ) == 0
+
+    captured = capsys.readouterr()
+    assert "hook refresh not applied" in captured.out
+    assert settings.read_text(encoding="utf-8") == '{"hooks": {}}\n'
+
+
+def test_apply_upgrade_hooks_merges_project_hook_settings(tmp_path, capsys):
+    updater = load_updater()
+    source = tmp_path / "source"
+    project = tmp_path / "project"
+    make_source_tree(source)
+    install_project(source, project)
+    (project / ".claude").mkdir(exist_ok=True)
+    (project / "scripts" / "init_research_project.py").write_text(
+        (ROOT / "scripts" / "init_research_project.py").read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+    settings = project / ".claude" / "settings.local.json"
+    settings.write_text(
+        json.dumps({"permissions": {"allow": ["Bash(date)"]}, "hooks": {}}),
+        encoding="utf-8",
+    )
+
+    assert updater.main(
+        [
+            "--project",
+            str(project),
+            "--source",
+            str(source),
+            "--apply",
+            "--upgrade-hooks",
+        ]
+    ) == 0
+
+    captured = capsys.readouterr()
+    merged = json.loads(settings.read_text(encoding="utf-8"))
+    assert "Hook refresh: merged" in captured.out
+    assert merged["permissions"]["allow"] == ["Bash(date)"]
+    assert "PreToolUse" in merged["hooks"]
+    assert "PostToolUse" in merged["hooks"]
+
+
 def test_conflict_keeps_local_edit_and_writes_harness_new_sidecar(tmp_path, capsys):
     updater = load_updater()
     source = tmp_path / "source"
