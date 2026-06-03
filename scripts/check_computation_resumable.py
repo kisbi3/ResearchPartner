@@ -10,7 +10,6 @@ discard the stale checkpoint.
 CLI
 ---
     python scripts/check_computation_resumable.py --project <project_dir>
-    python scripts/check_computation_resumable.py --all
     python scripts/check_computation_resumable.py --project <project_dir> --json
     python scripts/check_computation_resumable.py --project <project_dir> --clear <stem>
 
@@ -32,21 +31,6 @@ _SCRIPTS = Path(__file__).resolve().parent
 sys.path.insert(0, str(_SCRIPTS))
 from _layout import cache_dir, logs_dir  # noqa: E402
 import _project_root as project_root_mod  # noqa: E402
-
-
-def find_runs_root() -> Path | None:
-    """Legacy v2: locate a sibling ResearchPartner-runs directory.
-
-    Inlined here from the deleted update_workflow_diagram.py so the
-    ``--all`` mode keeps working for projects still organised under
-    ``ResearchPartner-runs/<run>/``.
-    """
-    root = _SCRIPTS.parent
-    for parent in list(root.parents)[:6]:
-        candidate = parent / "ResearchPartner-runs"
-        if candidate.is_dir():
-            return candidate
-    return None
 
 
 def _mtime_str(path: Path) -> str:
@@ -131,19 +115,13 @@ def format_report(records: list[dict]) -> str:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    group = parser.add_mutually_exclusive_group(required=False)
-    group.add_argument(
+    parser.add_argument(
         "--project", "--run",
         dest="project",
         type=Path,
         default=None,
         help="Project root directory. Default: walk up from cwd looking for "
              "the `.research-harness` marker. `--run` kept as alias for one release.",
-    )
-    group.add_argument(
-        "--all",
-        action="store_true",
-        help="Scan all run directories under ResearchPartner-runs/.",
     )
     parser.add_argument(
         "--json", action="store_true", help="Emit JSON instead of plain text."
@@ -157,9 +135,6 @@ def main(argv: list[str] | None = None) -> int:
 
     # --clear shortcut
     if args.clear:
-        if args.all:
-            print("ERROR: --clear is incompatible with --all.", file=sys.stderr)
-            return 1
         try:
             project = project_root_mod.resolve_project(args.project, require=True)
         except project_root_mod.ProjectRootNotFoundError as exc:
@@ -173,19 +148,12 @@ def main(argv: list[str] | None = None) -> int:
         print(f"No checkpoint found: {ckpt}", file=sys.stderr)
         return 1
 
-    if not args.all:
-        try:
-            project = project_root_mod.resolve_project(args.project, require=True)
-        except project_root_mod.ProjectRootNotFoundError as exc:
-            print(f"ERROR: {exc}", file=sys.stderr)
-            return 1
-        runs = [project]
-    else:
-        runs_root = find_runs_root()
-        if runs_root is None:
-            print("ERROR: ResearchPartner-runs directory not found.", file=sys.stderr)
-            return 1
-        runs = sorted(d for d in runs_root.iterdir() if d.is_dir())
+    try:
+        project = project_root_mod.resolve_project(args.project, require=True)
+    except project_root_mod.ProjectRootNotFoundError as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 1
+    runs = [project]
 
     records: list[dict] = []
     for run in runs:
