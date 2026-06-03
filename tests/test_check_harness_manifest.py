@@ -101,6 +101,39 @@ def test_manifest_requires_project_dir_hook_paths(tmp_path):
     assert any("CLAUDE_PROJECT_DIR" in problem for problem in problems)
 
 
+def test_project_settings_reject_local_permissions(tmp_path):
+    checker = load_checker()
+    project = tmp_path / "project"
+    (project / "docs" / "harness").mkdir(parents=True)
+    (project / "scripts").mkdir()
+    (project / "skills" / "task-intake").mkdir(parents=True)
+    (project / ".claude").mkdir()
+    (project / "scripts" / "check_contract_sync.py").write_text("", encoding="utf-8")
+    (project / "scripts" / "check_orient_recorded.py").write_text("", encoding="utf-8")
+    (project / "skills" / "task-intake" / "SKILL.md").write_text("", encoding="utf-8")
+    manifest = _minimal_manifest()
+    (project / "docs" / "harness" / "capability_manifest.json").write_text(
+        json.dumps(manifest), encoding="utf-8"
+    )
+    (project / ".claude" / "settings.local.json").write_text(
+        json.dumps(
+            {
+                "permissions": {
+                    "allow": [
+                        'Bash(Get-ChildItem -Path "C:\\ResearchPartner\\.claude\\worktrees\\old" -Recurse)'
+                    ]
+                },
+                "hooks": {},
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    problems = checker.validate_project(project)
+
+    assert any("local permissions" in problem for problem in problems)
+
+
 def test_wired_hook_missing_from_registry_or_known_uncovered_fails(tmp_path):
     checker = load_checker()
     manifest = json.loads((ROOT / "docs" / "harness" / "capability_manifest.json").read_text())

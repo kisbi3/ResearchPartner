@@ -215,6 +215,11 @@ def _print_plan(project: Path, source_root: Path, plan: Plan, *, apply: bool) ->
             print(f"- {rel_path}")
     if not apply:
         print("Dry run only; rerun with --apply to write harness updates.")
+    else:
+        print(
+            "Next: refresh hooks with "
+            "`python scripts/init_research_project.py` from the project root."
+        )
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:

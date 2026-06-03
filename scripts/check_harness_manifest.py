@@ -99,6 +99,18 @@ def _wired_hooks(settings_path: Path) -> list[dict[str, str]]:
     return wired
 
 
+def _local_settings_problems(settings_path: Path) -> list[str]:
+    if not settings_path.exists():
+        return []
+    data = _load_json(settings_path)
+    if data.get("permissions"):
+        return [
+            ".claude/settings.local.json contains local permissions; "
+            "tracked harness settings must only register portable hooks"
+        ]
+    return []
+
+
 def validate_manifest(project: Path | str, manifest_path: Path | str) -> list[str]:
     project = Path(project)
     manifest_path = Path(manifest_path)
@@ -185,7 +197,9 @@ def validate_manifest(project: Path | str, manifest_path: Path | str) -> list[st
             )
 
     known_uncovered = set(_string_list(manifest.get("known_uncovered_wired_hooks")))
-    wired_hooks = _wired_hooks(project / ".claude" / "settings.local.json")
+    settings_path = project / ".claude" / "settings.local.json"
+    problems.extend(_local_settings_problems(settings_path))
+    wired_hooks = _wired_hooks(settings_path)
     for wired in wired_hooks:
         command = wired["command"]
         script = wired["script"]

@@ -115,6 +115,8 @@ def test_apply_updates_unmodified_owned_file_and_lock(tmp_path, capsys):
 
     captured = capsys.readouterr()
     assert "UPDATE: 1" in captured.out
+    assert "refresh hooks" in captured.out
+    assert "init_research_project.py" in captured.out
     assert (project / "AGENTS.md").read_text(encoding="utf-8") == "AGENTS.md v2\n"
     lock = read_lock(project)
     assert lock["installed_at"] == installed_at
