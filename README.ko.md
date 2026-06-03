@@ -89,7 +89,9 @@ task-intake -> professor-interview -> literature-review-planning -> model-specif
 
 ## 연구 모델
 
-Research Partner는 연구실(research group)을 본떠 설계되었습니다. **PI**는 사람 연구자, 즉 당신입니다 — 과학과 게이트 결정을 소유합니다. **Lead Agent**는 교수입니다 — 메인 대화 컨텍스트로, 연구자 대화와 과학적 판단을 소유하고 subagent를 spawn하는 *유일한* 역할입니다. 연구실 구성원은 spawn되는 leaf agent들입니다.
+Research Partner는 연구실(research group)을 본떠 설계되었습니다: 당신이 소유한 교수 연구실입니다. **PI**는 사람 연구자, 즉 당신입니다 — 과학과 게이트 결정을 소유합니다. **Lead Agent**는 교수입니다 — 메인 대화 컨텍스트로, 연구자 대화와 과학적 판단을 소유하고 subagent를 spawn하는 *유일한* 역할입니다. 연구실 구성원은 spawn되는 leaf agent들입니다.
+
+전형적인 iteration은 체크리스트가 아니라 연구실 사이클로 읽힙니다: PI 요청 -> 교수 질문 -> 연구원 실행 -> 독립 검증 -> 교수 요약 -> PI 결정. 각 화살표는 지속 가능한 artifact를 남기며, 마지막 결정은 오직 당신만 사인할 수 있습니다(아래 브레이크 참조).
 
 **브레이크(Human-Owned Decision Gate).** 하네스의 #1 원칙 — 과학적 판단은 연구자에게 남긴다 — 은 권고가 아니라 강제됩니다. 결정 파일 `docs/gates/{orient,interview,model,seed}_decision.md`(및 skip waiver)는 *모든* agent에게 쓰기 차단됩니다: 연구실은 대응하는 note/spec 파일에 제안 초안을 쓰지만, 결정은 오직 당신만 기록합니다. 해당 게이트는 — bypass 환경변수로도 당신의 사인오프를 면제할 수 없으며 — 당신이 `## Decision`을 채우기 전까지 닫혀 있습니다.
 

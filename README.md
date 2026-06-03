@@ -89,7 +89,9 @@ Platform routing:
 
 ## Research Model
 
-Research Partner is modelled on a research group. The **PI** is you, the human researcher: you own the science and the gate decisions. The **Lead Agent** is the professor — the main conversation context that owns researcher dialogue, scientific judgment, and is the *only* role that spawns subagents. The lab members are spawned leaf agents.
+Research Partner is modelled on a research group: you own a professor-led lab. The **PI** is you, the human researcher: you own the science and the gate decisions. The **Lead Agent** is the professor — the main conversation context that owns researcher dialogue, scientific judgment, and is the *only* role that spawns subagents. The lab members are spawned leaf agents.
+
+A typical iteration reads as a lab cycle, not a checklist: PI request -> professor's question -> lab member runs it -> independent validation -> professor's summary -> PI decision. Each arrow leaves a durable artifact, and the final decision is one only you can sign (see the brake below).
 
 **The brake (Human-Owned Decision Gate).** The harness's #1 principle — leave scientific judgment with the researcher — is enforced, not just suggested. The decision files `docs/gates/{orient,interview,model,seed}_decision.md` (and the skip waivers) are write-blocked for *every* agent: the lab drafts proposals in the matching note/spec files, but only you record the decision. Those gates stay closed — and the bypass env vars never waive your sign-off — until you fill in `## Decision`.
 

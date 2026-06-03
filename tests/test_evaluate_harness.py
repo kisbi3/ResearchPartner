@@ -31,7 +31,7 @@ def test_multi_agent_orchestration_scenarios_are_evaluated():
 def test_harness_evaluator_includes_hook_scenarios():
     evaluator = load_evaluator()
 
-    assert len(evaluator.SCENARIOS) == 30
+    assert len(evaluator.SCENARIOS) == 31
 
 
 def test_orchestration_scenarios_require_run_templates():
@@ -416,3 +416,25 @@ def test_harness_rule_text_includes_hooks_reference():
 
     assert "Scientific Loop Hook Catalog" in text
     assert "checker validates only declared structure" in text
+
+
+def test_professor_led_lab_framing_scenario_is_evaluated():
+    evaluator = load_evaluator()
+    scenarios = {scenario.name: scenario for scenario in evaluator.SCENARIOS}
+
+    assert "professor_led_lab_framing" in scenarios
+    scenario = scenarios["professor_led_lab_framing"]
+    assert "README.ko.md" in scenario.docs
+    assert "you own a professor-led lab" in scenario.rule_terms
+    assert "당신이 소유한 교수 연구실" in scenario.rule_terms
+
+
+def test_harness_rule_text_scans_korean_readme_for_lab_framing():
+    # Option B: README.ko.md is part of the scanned contract text so the
+    # Korean lab-framing phrase is actually guarded against drift rather
+    # than silently unscanned.
+    evaluator = load_evaluator()
+
+    text = evaluator.harness_rule_text()
+
+    assert "당신이 소유한 교수 연구실" in text
