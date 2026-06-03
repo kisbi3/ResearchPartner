@@ -12,8 +12,11 @@ exists. Context counts as either:
 1. The spawn prompt itself mentions `meeting` and a `--scope review` (or
    `--scope full`) marker, indicating the meeting skill is driving the
    spawn.
-2. A meeting artifact `<run>/docs/meetings/YYYY-MM-DD-*.md` was created or
-   modified within the last 10 minutes — proving an active meeting session.
+2. A meeting artifact `docs/meetings/YYYY-MM-DD-*.md` under the project
+   root was created or modified within the last 10 minutes — proving an
+   active meeting session. (Layout v3: the project root marked by
+   `.research-harness` IS the research root; there is no
+   `ResearchPartner-runs/<run>/` wrapper.)
 
 Otherwise the spawn is blocked with exit 2 and a fix message.
 
@@ -29,6 +32,10 @@ import re
 import sys
 import time
 from pathlib import Path
+
+_SCRIPTS_DIR = Path(__file__).resolve().parent
+sys.path.insert(0, str(_SCRIPTS_DIR))
+import _project_root as project_root_mod  # noqa: E402
 
 MEETING_FRESHNESS_SECONDS = 10 * 60
 
@@ -58,27 +65,23 @@ def prompt_indicates_meeting(prompt: str) -> bool:
     return any(p.search(prompt) for p in MEETING_OK_PATTERNS)
 
 
-def find_active_runs_root() -> Path | None:
-    for parent in list(Path(__file__).resolve().parents)[:8]:
-        cand = parent / "ResearchPartner-runs"
-        if cand.is_dir():
-            return cand
-    return None
+def fresh_meeting_exists(project: Path, window: int = MEETING_FRESHNESS_SECONDS) -> tuple[bool, str]:
+    """Return (True, reason) when a meeting artifact was touched within `window`.
 
-
-def fresh_meeting_exists(window: int = MEETING_FRESHNESS_SECONDS) -> tuple[bool, str]:
-    root = find_active_runs_root()
-    if root is None:
-        return False, "no ResearchPartner-runs directory found"
+    Layout v3: meetings live at ``<project_root>/docs/meetings/*.md`` (the
+    project root marked by ``.research-harness`` IS the research root — there
+    is no ``ResearchPartner-runs/<run>/`` wrapper). The meeting skill,
+    ``sync_workflow.py``, and ``generate_workflow_map.py`` all write/read that
+    path.
+    """
+    meetings = project / "docs" / "meetings"
+    if not meetings.is_dir():
+        return False, "no docs/meetings directory under project root"
     now = time.time()
-    for run_dir in root.iterdir():
-        meetings = run_dir / "docs" / "meetings"
-        if not meetings.is_dir():
-            continue
-        for f in meetings.glob("*.md"):
-            age = now - f.stat().st_mtime
-            if age <= window:
-                return True, f"{f.name} (touched {int(age)}s ago)"
+    for f in meetings.glob("*.md"):
+        age = now - f.stat().st_mtime
+        if age <= window:
+            return True, f"{f.name} (touched {int(age)}s ago)"
     return False, f"no meeting artifact touched within {window}s"
 
 
@@ -111,7 +114,12 @@ def main() -> int:
     if prompt_indicates_meeting(combined):
         return 0
 
-    ok, reason = fresh_meeting_exists()
+    try:
+        project = project_root_mod.resolve_project(None, require=True)
+    except project_root_mod.ProjectRootNotFoundError:
+        return 0  # not inside a research project — don't block
+
+    ok, reason = fresh_meeting_exists(project)
     if ok:
         return 0
 

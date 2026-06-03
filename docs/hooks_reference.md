@@ -67,7 +67,7 @@ Checker detail (`check_claim_promotion.py`, the non-wired count/diversity layer)
 A Peer-Review Professor may only be spawned from within a `meeting --scope review` (or `--scope full`) session.
 
 - **Hook**: PreToolUse on `Agent` → `scripts/check_peer_review_invocation.py`
-- **Decision**: block when the spawn prompt names the Peer-Review role unless either (a) the same prompt references the `meeting` skill with `--scope review`/`--scope full`, or (b) a `<run>/docs/meetings/*.md` artifact was touched within the last 10 minutes.
+- **Decision**: block when the spawn prompt names the Peer-Review role unless either (a) the same prompt references the `meeting` skill with `--scope review`/`--scope full`, or (b) a `docs/meetings/*.md` artifact under the project root (layout v3 — marked by `.research-harness`, no `ResearchPartner-runs/<run>/` wrapper) was touched within the last 10 minutes.
 - **Bypass**: `RESEARCH_HARNESS_BYPASS_MEETING_GATE=1`.
 
 ## Workflow Sync Hook
