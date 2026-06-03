@@ -10,6 +10,7 @@
 | HE-006 | 2026-05-14 | Docs shallow-structure reorganization | `python -m pytest tests/test_evaluate_harness.py tests/test_generate_workflow_map.py -q`; `python scripts/evaluate_harness.py`; `python scripts/validate_workflow_links.py`; `python scripts/run_baseline_validation.py` | 7 tests passed; 12 pass, 0 partial, 0 fail, average 100; workflow links passed; baseline harness check passed | Structural paths are updated, but tracked Python cache files can still change during validation | Decide whether generated `__pycache__` files should remain tracked |
 | HE-007 | 2026-06-03 | Behavioral re-evaluation + enforcement hardening | hook-firing probes (`path_check_hooks`, `enforce_gate_sequence`, `check_src_write_authorization`); `python -m pytest tests -q`; `python scripts/evaluate_harness.py --fail-on-partial` | 264 tests pass; 30 pass / 0 partial / 0 fail, avg 100; probes confirmed the brake + cross-tier block and exposed a gate-sequence rewording bypass (fixed this cycle) | Self-hosting over-gating of harness dev; `update_harness.py` does not refresh hooks; `evaluate_harness` still presence-based | Re-run after addressing the deferred backlog (see HE-007 detail) or at next adoption |
 | HE-008 | 2026-06-03 | Operational hardening follow-up | `python scripts/check_contract_sync.py`; `python scripts/check_harness_manifest.py`; `python scripts/check_spawn_contracts.py`; `python scripts/check_domain_manifest.py`; `python scripts/evaluate_harness.py --fail-on-partial`; `python -m pytest -q`; `git worktree prune --verbose` + worktree audit | contract/manifest/spawn/domain checks passed; structural harness report 30 pass / 0 partial / 0 fail, avg 100; behavioral checker probes 4 run / 4 pass / 0 fail; 271 tests passed; worktree prune had no stale metadata | Registered and unregistered local `.claude/worktrees` directories remain; deletion requires owner review to avoid disrupting other sessions | Re-run after worktree owner review or before publishing the branch |
+| HE-009 | 2026-06-03 | Research-utility assessment from current main | direct source review; `python scripts/check_contract_sync.py`; `python scripts/check_harness_manifest.py`; `python scripts/check_spawn_contracts.py`; `python scripts/check_domain_manifest.py`; `python scripts/evaluate_harness.py --fail-on-partial`; `python -m pytest tests -q`; worktree audit | contract/manifest/spawn/domain checks passed; structural harness report 30 pass / 0 partial / 0 fail, avg 100; behavioral checker probes 4 run / 4 pass / 0 fail; 271 tests passed | Harness is useful for evidence discipline and claim control, but still needs real researcher UX measurement and coordinated worktree cleanup | Re-run after a timed real-project pilot or after worktree owner review |
 
 ## HE-007 Detail — 2026-06-03
 
@@ -57,6 +58,31 @@
 **Researcher review.** Researcher approved proceeding through the full backlog in sequence.
 
 **Remaining gap.** The remaining worktree cleanup is an ownership/coordination task, not a harness-code defect. Remove only after confirming the corresponding thread/branch is no longer needed.
+
+## HE-009 Detail - 2026-06-03
+
+**Scope.** Evaluated how the harness is built and whether it is useful for real physics research work. No research code or harness feature code was changed during this assessment.
+
+**Architecture assessment.** The harness is a staged research-governance layer, not a one-shot automation tool. It combines resident instructions (`AGENTS.md`/`GEMINI.md`), 25 skills, six leaf-agent roles, gate documents, workflow/lineage artifacts, hook scripts, install/update ownership rules, deterministic checkers, and CI. The core design preserves the chain from physical assumptions to model definition, analytical checks, numerical implementation, validation, figures, and manuscript claims. The Lead Agent owns judgment and researcher dialogue; leaf agents execute bounded work; author and validator roles are separated.
+
+**Research utility.** The design is materially useful for research when the task involves claims, baselines, figures, validation, anomalies, literature-dependent novelty, or manuscript text. Its strongest contribution is forcing evidence discipline: assumptions and units must be named, baselines are explicit, researcher-owned decision gates prevent automation from approving itself, claims are tied to fresh artifacts, and validator/reviewer roles reduce self-confirmation. It does not determine physical truth by itself; it makes unsupported jumps harder to hide.
+
+**Scenario coverage.** `evaluate_harness.py --fail-on-partial` reports 30 pass / 0 partial / 0 fail, average 100, and labels the result as structural coverage plus selected checker probes. Full pytest also passed with 271 tests. This is strong maintenance evidence, but not a substitute for a real researcher pilot.
+
+**Usability risks.**
+- Workflow weight remains the main research risk: 7+ mandatory gates and 25 skills can slow early exploration if the researcher only wants a quick observation.
+- The evaluation script is improved but still mostly structural; runtime behavior is better represented by pytest and hook probes.
+- Local worktree sprawl remains a coordination risk: registered and unregistered `.claude/worktrees` directories should not be removed without owner review.
+- Scientific quality still depends on researcher-supplied observables, baselines, regimes, and decision records.
+
+**Minimal improvements.**
+1. Run a timed pilot on one real research task and record friction: first useful answer time, number of stops, whether each stop changed a research decision, and whether the researcher accepted the gate wording.
+2. Add a lightweight "exploratory observation" path that keeps claim ceilings low while reducing ceremony for quick parameter pokes or sanity checks.
+3. Expand behavioral evaluation scenarios only where they cover real bypass risks; avoid turning `evaluate_harness.py` into a duplicate of pytest.
+4. Add a worktree ownership report before cleanup so registered, nested, and unregistered worktrees can be reviewed without guessing.
+5. Keep `update_harness.py --upgrade-hooks` and README/README.ko hook-refresh instructions as required acceptance checks whenever hook registration changes.
+
+**Researcher review.** Pending. This assessment should be reviewed by the researcher for whether the workflow weight feels acceptable in real use.
 
 ## Rules
 
