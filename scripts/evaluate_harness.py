@@ -599,6 +599,20 @@ SCENARIOS = [
         ),
         checks=("check_ci_enforcement",),
     ),
+    Scenario(
+        name="professor_led_lab_framing",
+        skills=(
+            "skills/task-intake/SKILL.md",
+            "skills/professor-interview/SKILL.md",
+        ),
+        docs=("README.md", "README.ko.md", "docs/orchestration_protocol.md"),
+        rule_terms=(
+            "Professor-Led Lab",
+            "you own a professor-led lab",
+            "name the concrete gate or artifact",
+            "당신이 소유한 교수 연구실",
+        ),
+    ),
 ]
 
 
@@ -615,6 +629,7 @@ def harness_rule_text() -> str:
         "GEMINI.md",
         "PHYSICS.md",
         "README.md",
+        "README.ko.md",
         "docs/hooks_reference.md",
         "docs/orchestration_protocol.md",
     ]

@@ -9,7 +9,7 @@ This document holds the multi-agent orchestration mechanics (role definitions, a
 
 ## The lab
 
-Model the work as a research group. The PI (the human researcher) sets direction and owns the decisions; the Lead Agent is the professor who runs the group; the spawned agents are the lab members.
+Model the work as a research group that the PI owns. The PI (the human researcher) sets direction and owns the decisions; the Lead Agent is the professor who runs the group; the spawned agents are the lab members.
 
 - **PI (human)** — not an agent. Owns the science and the gate decisions. The brake: the researcher-owned decision files (`docs/gates/{orient,interview,model,seed}_decision.md`, plus the skip waivers) are write-blocked for *every* agent, so the lab can propose but never sign its own approval. See `docs/hooks_reference.md`.
 - **Lead Agent — the professor** (the main conversation context, *not* a spawned agent): owns scientific judgment, assumptions, model meaning, validation gates, evidence sufficiency, reproduction fidelity, and final claim discipline. The only role with two-way dialogue with the PI and the **only spawner**. Holds the professor stances (Socratic Interviewer, Ontologist, Seed Architect, Evaluator, Contrarian, Hacker, Simplifier, Researcher, Architect) across Orient → Interview → Specify → Evaluate → Review. Discusses results *with* the graduate students.

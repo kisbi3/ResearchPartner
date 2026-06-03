@@ -5,7 +5,7 @@ description: Use at the start of every research task to classify the work type, 
 
 # Task Intake Skill
 
-Use this skill at the very beginning of any research task — before any other skill, implementation, or interpretation.
+Use this skill at the very beginning of any research task — before any other skill, implementation, or interpretation. Treat it as the lab's intake briefing: the researcher (PI) has just commissioned the lab, and the professor opens by classifying the work and asking the single most important question.
 
 ## Goal
 
