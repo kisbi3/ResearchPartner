@@ -443,13 +443,16 @@ class TestPeerReviewInvocation:
         })
         assert rc == 0
 
-    def test_blocks_peer_review_without_meeting(self):
+    def test_blocks_peer_review_without_meeting(self, run_dir):
+        # cwd is a fresh v3 project with no docs/meetings/, so the freshness
+        # fallback cannot fire and a spawn whose prompt omits the meeting flags
+        # is blocked. (cwd matters: the hook resolves the project root from it.)
         rc, _, err = run_hook(self.SCRIPT, {
             "tool_name": "Agent",
             "tool_input": {
                 "prompt": "You are a Peer-Review Professor. Load skills/peer-review-professor/SKILL.md"
             },
-        })
+        }, cwd=run_dir)
         assert rc == 2
         assert "PEER-REVIEW BLOCK" in err
 
@@ -474,6 +477,23 @@ class TestPeerReviewInvocation:
                 "prompt": "Load skills/peer-review-professor/SKILL.md"
             },
         }, env=env)
+        assert rc == 0
+
+    def test_allows_when_fresh_meeting_artifact_exists(self, run_dir):
+        # Fallback path "b" (v3 layout): an active meeting wrote
+        # docs/meetings/<date>-*.md within the freshness window, so a
+        # peer-review spawn is allowed even when its prompt does NOT echo the
+        # meeting --scope flags. Pre-v3 this scanned a non-existent
+        # ResearchPartner-runs/<run>/ tree and could never fire.
+        meetings = run_dir / "docs" / "meetings"
+        meetings.mkdir(parents=True, exist_ok=True)
+        (meetings / "2026-06-03-x.md").write_text("# meeting\n", encoding="utf-8")
+        rc, _, _ = run_hook(self.SCRIPT, {
+            "tool_name": "Agent",
+            "tool_input": {
+                "prompt": "You are a Peer-Review Professor. Load skills/peer-review-professor/SKILL.md"
+            },
+        }, cwd=run_dir)
         assert rc == 0
 
 
