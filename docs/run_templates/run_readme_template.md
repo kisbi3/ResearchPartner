@@ -49,7 +49,7 @@ python scripts/run_with_capture.py <run_dir> src/<script>.py [args]
 
 Example:
 ```bash
-python scripts/run_with_capture.py C:/ResearchPartner-runs/my-run src/simulate.py
+python scripts/run_with_capture.py . src/simulate.py
 ```
 
 ---

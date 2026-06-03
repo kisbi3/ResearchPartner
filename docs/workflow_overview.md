@@ -155,7 +155,7 @@ Open `workflow_map.html` in a browser. Click any node to see:
 - responsible docs
 - responsible scripts
 
-The default HTML is generated from the latest `ResearchPartner-runs/*/docs/process/live_workflow_diagram.md` artifact, with legacy fallback for older `docs/live_workflow_diagram.md` runs, by:
+The default HTML is generated from the project's `docs/process/live_workflow_diagram.md` artifact — the project root is located by walking up from the working directory to the `.research-harness` marker (layout v3), falling back to the older within-project `docs/live_workflow_diagram.md` location — by:
 
 ```bash
 python scripts/generate_workflow_map.py
