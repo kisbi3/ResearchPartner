@@ -34,15 +34,17 @@ SKILLS = [
 ]
 
 LOCAL_TARGETS = {
-    "claude":      lambda root: root / ".claude" / "commands",
-    "antigravity": lambda root: root / ".agents" / "workflows",
-    "codex":       lambda root: root / ".codex" / "skills",
+    "claude":              lambda root: root / ".claude" / "commands",
+    "antigravity_wf":      lambda root: root / ".agents" / "workflows",
+    "antigravity_skill":   lambda root: root / ".agents" / "skills",
+    "codex":               lambda root: root / ".codex" / "skills",
 }
 
 GLOBAL_TARGETS = {
-    "claude":      lambda _: Path.home() / ".claude" / "commands",
-    "antigravity": lambda _: Path.home() / ".gemini" / "antigravity" / "global_workflows",
-    "codex":       lambda _: Path.home() / ".codex" / "skills",
+    "claude":              lambda _: Path.home() / ".claude" / "commands",
+    "antigravity_wf":      lambda _: Path.home() / ".gemini" / "antigravity" / "global_workflows",
+    "antigravity_skill":   lambda _: Path.home() / ".gemini" / "antigravity-cli" / "skills",
+    "codex":               lambda _: Path.home() / ".codex" / "skills",
 }
 
 
@@ -92,22 +94,34 @@ def install(root: Path, targets: dict) -> None:
             skipped.append(name)
             continue
 
+        # Claude Code command
         copy_file(skill_md, targets["claude"](root) / f"{name}.md")
-        copy_file(skill_md, targets["antigravity"](root) / f"{name}.md")
+        
+        # Antigravity XML Workflow
+        copy_file(skill_md, targets["antigravity_wf"](root) / f"{name}.md")
 
+        # Antigravity UI Skill
+        try:
+            make_junction(skill_dir, targets["antigravity_skill"](root) / name)
+        except Exception as e:
+            copy_file(skill_md, targets["antigravity_skill"](root) / name / "SKILL.md")
+            print(f"  WARN  {name}  antigravity skill junction failed ({e}), used copy instead")
+
+        # Codex UI Skill
         try:
             make_junction(skill_dir, targets["codex"](root) / name)
         except Exception as e:
             copy_file(skill_md, targets["codex"](root) / name / "SKILL.md")
-            print(f"  WARN  {name}  junction failed ({e}), used copy instead")
+            print(f"  WARN  {name}  codex junction failed ({e}), used copy instead")
 
         print(f"  OK    {name}")
         ok.append(name)
 
     print(f"\n{len(ok)} skill(s) installed, {len(skipped)} skipped.")
-    print(f"  Claude Code   : {targets['claude'](root)}")
-    print(f"  Antigravity   : {targets['antigravity'](root)}")
-    print(f"  Codex CLI     : {targets['codex'](root)}")
+    print(f"  Claude Code      : {targets['claude'](root)}")
+    print(f"  Antigravity WF   : {targets['antigravity_wf'](root)}")
+    print(f"  Antigravity Skill: {targets['antigravity_skill'](root)}")
+    print(f"  Codex CLI        : {targets['codex'](root)}")
 
 
 def main() -> None:

@@ -110,6 +110,19 @@ lineage:
 
 The `limits` edge is essential — it shows on the lineage graph which downstream result or claim is at risk. An anomaly with no outbound `limits` edge is flagged by `scripts/check_lineage_coverage.py`.
 
+## Finding Lifecycle
+
+When an anomaly or bug could affect a claim at `mechanism` or
+`generalization`, record the finding in the affected
+`docs/claims/<claim_id>.md` file under `## Finding Lifecycle`. Start as
+`candidate`, then move only after an independent check to one of the resolved
+states such as `validated_blocker`, `validated_limitation`, `false_alarm`,
+`needs_researcher_judgment`, `evidence_linked`, or `researcher_reviewed`.
+
+Do not let a candidate anomaly support promotion. If the anomaly limits or
+blocks a claim, make the limitation visible in the claim file and lineage graph
+instead of silently weakening the interpretation in conversation only.
+
 When the anomaly is **resolved**, update `status` to `resolved` (or `superseded`) in the same file and re-run `/sync-workflow`. Do not delete the file — the audit trail of what was wrong and how it was fixed is part of the research record.
 
 Run `/sync-workflow` after creating or updating the anomaly file to update the live workflow map. See `skills/sync-workflow/SKILL.md` for the full front-matter spec.

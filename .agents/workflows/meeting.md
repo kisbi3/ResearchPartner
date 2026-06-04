@@ -35,7 +35,7 @@ Use this skill whenever "does this make sense?" cannot be answered reliably alon
 | Lead Agent | `quick`, `review` | Can add the Peer-Review Professor. Cannot add the researcher directly. |
 | Researcher | Any scope | Can convene any combination. May add custom participants beyond the defaults. |
 
-When the Lead is acting in the Graduate Student role and needs a `review` or `full` meeting, the Lead exits the role pass and convenes it directly.
+When a graduate student's results call for a `review` or `full` meeting, the Lead (professor) convenes it directly — leaf agents never convene meetings or spawn the peer reviewer themselves.
 
 ## Shared Context
 

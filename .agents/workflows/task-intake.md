@@ -5,7 +5,7 @@ description: Use at the start of every research task to classify the work type, 
 
 # Task Intake Skill
 
-Use this skill at the very beginning of any research task — before any other skill, implementation, or interpretation.
+Use this skill at the very beginning of any research task — before any other skill, implementation, or interpretation. Treat it as the lab's intake briefing: the researcher (PI) has just commissioned the lab, and the professor opens by classifying the work and asking the single most important question.
 
 ## Goal
 
@@ -51,10 +51,10 @@ Assign the primary responsible role based on the task type:
 | Task type | Primary role |
 |---|---|
 | New model, Manuscript claim, Literature, Reproduction | Lead Agent |
-| Simulation, Analysis, Figure (first pass) | Lead Agent loads Graduate Student role → directly spawns Implementation Agent + Scientific Validator + Cache-Log Auditor as needed |
-| Anomaly / bug | Lead Agent (classification + Graduate Student role) → directly spawns Implementation Agent for reproduction if needed |
-| Existing project onboarding | Lead Agent inventory + Graduate Student role for retrofit plan |
-| Maintenance, Harness evaluation | Lead Agent + `harness-evaluation` skill (no code changes), or Lead directly spawns Implementation Agent if files must be edited |
+| Simulation, Analysis, Figure (first pass) | Lead Agent (professor) → spawns graduate-student(s), then code-reviewer + scientific-validator + cache-log-auditor as needed |
+| Anomaly / bug | Lead Agent (classification) → spawns a graduate-student for reproduction if needed |
+| Existing project onboarding | Lead Agent inventory + a graduate-student for retrofit code |
+| Maintenance, Harness evaluation | Lead Agent + `harness-evaluation` skill (no code changes), or Lead spawns a graduate-student if research files must be edited |
 | Workflow state update | Lead Agent via `/sync-workflow` (on-demand, not spawned) |
 
 If any part of the task involves a new claim, a baseline gate, or a gate waiver, the Lead Agent must be active.
