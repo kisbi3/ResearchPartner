@@ -85,7 +85,7 @@ Platform routing:
 | Codex / Copilot-style agents | `AGENTS.md` | Resident contract, kept under a word budget |
 | Gemini CLI | `GEMINI.md` | Must stay byte-identical with `AGENTS.md` |
 | Claude Code | `AGENTS.md` or project `CLAUDE.md` | Project hooks and `.claude/agents/<role>.md` apply when installed |
-| Slash commands | `python scripts\install_skills.py [--global]` | Installs skills for Claude Code, Gemini/Antigravity, and Codex surfaces |
+| Slash commands | `python scripts\install_skills.py [--global]` | Installs skills for Claude Code, Gemini/Antigravity-cli, and Codex surfaces |
 
 ## Research Model
 

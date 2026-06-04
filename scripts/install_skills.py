@@ -6,13 +6,15 @@ Codex CLI, and Antigravity CLI.
 Re-run whenever a SKILL.md is updated.
 
 Project-local install (default):
-  .claude/commands/<name>.md        (Claude Code)
-  .agents/workflows/<name>.md       (Antigravity CLI)
-  .codex/skills/<name>/SKILL.md     (Codex CLI — directory junction on Windows)
+  .claude/commands/<name>.md           (Claude Code)
+  .agents/workflows/<name>.md          (Antigravity CLI XML Workflow)
+  .agents/skills/<name>/SKILL.md       (Antigravity CLI UI Skill)
+  .codex/skills/<name>/SKILL.md        (Codex CLI — directory junction)
 
 Global install (--global):
   ~/.claude/commands/<name>.md
   ~/.gemini/antigravity/global_workflows/<name>.md
+  ~/.gemini/antigravity-cli/skills/<name>/SKILL.md
   ~/.codex/skills/<name>/SKILL.md
 """
 

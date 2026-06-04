@@ -85,7 +85,7 @@ task-intake -> professor-interview -> literature-review-planning -> model-specif
 | Codex / Copilot 스타일 agent | `AGENTS.md` | 단어수 예산이 걸린 resident contract |
 | Gemini CLI | `GEMINI.md` | `AGENTS.md`와 byte-identical이어야 함 |
 | Claude Code | `AGENTS.md` 또는 프로젝트 `CLAUDE.md` | 설치 시 프로젝트 hooks와 `.claude/agents/<role>.md` 적용 |
-| Slash commands | `python scripts\install_skills.py [--global]` | Claude Code, Gemini/Antigravity, Codex surface에 skill 설치 |
+| Slash commands | `python scripts\install_skills.py [--global]` | Claude Code, Gemini/Antigravity-cli, Codex surface에 skill 설치 |
 
 ## 연구 모델
 
