@@ -227,16 +227,6 @@
       "enforcement": "hard"
     },
     {
-      "id": "write-workflow-pre",
-      "event": "PreToolUse",
-      "matcher": "Write|Edit",
-      "script": "scripts/workflow_hooks.py",
-      "command": "python \"$CLAUDE_PROJECT_DIR/scripts/workflow_hooks.py\" pre",
-      "path_base": "CLAUDE_PROJECT_DIR",
-      "interpreter": "python",
-      "enforcement": "deterministic"
-    },
-    {
       "id": "bash-code-write",
       "event": "PreToolUse",
       "matcher": "Bash|PowerShell",
@@ -287,16 +277,6 @@
       "enforcement": "hard"
     },
     {
-      "id": "write-workflow-post",
-      "event": "PostToolUse",
-      "matcher": "Write|Edit",
-      "script": "scripts/workflow_hooks.py",
-      "command": "python \"$CLAUDE_PROJECT_DIR/scripts/workflow_hooks.py\" post",
-      "path_base": "CLAUDE_PROJECT_DIR",
-      "interpreter": "python",
-      "enforcement": "deterministic"
-    },
-    {
       "id": "write-path-post",
       "event": "PostToolUse",
       "matcher": "Write|Edit",
@@ -305,16 +285,6 @@
       "path_base": "CLAUDE_PROJECT_DIR",
       "interpreter": "python",
       "enforcement": "hard"
-    },
-    {
-      "id": "bash-workflow-post",
-      "event": "PostToolUse",
-      "matcher": "Bash|PowerShell",
-      "script": "scripts/workflow_hooks.py",
-      "command": "python \"$CLAUDE_PROJECT_DIR/scripts/workflow_hooks.py\" post",
-      "path_base": "CLAUDE_PROJECT_DIR",
-      "interpreter": "python",
-      "enforcement": "deterministic"
     },
     {
       "id": "bash-path-post",

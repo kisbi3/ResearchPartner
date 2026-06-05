@@ -335,11 +335,11 @@ Hook registrations live in `.claude/settings.local.json`. Current shape:
 | Phase | Matcher | Script |
 |---|---|---|
 | PreToolUse | `Agent` | `enforce_gate_sequence.py`, `workflow_hooks.py pre`, `check_peer_review_invocation.py` |
-| PreToolUse | `Write\|Edit` | `check_src_write_authorization.py`, `path_check_hooks.py pre`, `workflow_hooks.py pre` |
+| PreToolUse | `Write\|Edit` | `check_src_write_authorization.py`, `path_check_hooks.py pre` |
 | PreToolUse | `Bash\|PowerShell` | `check_bash_code_write.py`, `check_seed_before_full_run.py`, `warn_orphan_checkpoints.py` |
 | PostToolUse | `Agent` | `workflow_hooks.py post`, `check_spawn_log_integrity.py` |
-| PostToolUse | `Write\|Edit` | `workflow_hooks.py post`, `path_check_hooks.py post` |
-| PostToolUse | `Bash\|PowerShell` | `workflow_hooks.py post`, `path_check_hooks.py post` |
+| PostToolUse | `Write\|Edit` | `path_check_hooks.py post` |
+| PostToolUse | `Bash\|PowerShell` | `path_check_hooks.py post` |
 
 Hook commands should use `python "$CLAUDE_PROJECT_DIR/scripts/<script>.py"` so installed projects run the hook from the project root regardless of the shell's current working directory.
 

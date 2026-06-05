@@ -134,8 +134,7 @@ _CLAUDE_SETTINGS_CONTENT = """\
         "matcher": "Write|Edit",
         "hooks": [
           {"type": "command", "command": "python \\\"$CLAUDE_PROJECT_DIR/scripts/check_src_write_authorization.py\\\""},
-          {"type": "command", "command": "python \\\"$CLAUDE_PROJECT_DIR/scripts/path_check_hooks.py\\\" pre"},
-          {"type": "command", "command": "python \\\"$CLAUDE_PROJECT_DIR/scripts/workflow_hooks.py\\\" pre"}
+          {"type": "command", "command": "python \\\"$CLAUDE_PROJECT_DIR/scripts/path_check_hooks.py\\\" pre"}
         ]
       },
       {
@@ -158,14 +157,12 @@ _CLAUDE_SETTINGS_CONTENT = """\
       {
         "matcher": "Write|Edit",
         "hooks": [
-          {"type": "command", "command": "python \\\"$CLAUDE_PROJECT_DIR/scripts/workflow_hooks.py\\\" post"},
           {"type": "command", "command": "python \\\"$CLAUDE_PROJECT_DIR/scripts/path_check_hooks.py\\\" post"}
         ]
       },
       {
         "matcher": "Bash|PowerShell",
         "hooks": [
-          {"type": "command", "command": "python \\\"$CLAUDE_PROJECT_DIR/scripts/workflow_hooks.py\\\" post"},
           {"type": "command", "command": "python \\\"$CLAUDE_PROJECT_DIR/scripts/path_check_hooks.py\\\" post"}
         ]
       }
