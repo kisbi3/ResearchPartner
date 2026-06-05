@@ -223,6 +223,16 @@ These were identified alongside the gate-sequence gap but are separate changes:
   `baseline-strategy` / `baseline-validation` / `baseline_registry`. Option C
   partly closes this by routing the first retrofit through the baseline gate;
   the skill text should also point there explicitly.
+  **STATUS: APPLIED (2026-06-05).** `scripts/seed_adoption_baseline.py` bridges
+  the signed decision's `## Reproduction Baseline` into a baseline-strategy
+  Variation note + a `reproduction` row (`Status=planned`) in
+  `baseline_registry.md` — mapping brownfield reproduction onto the
+  baseline-strategy Variation path. Non-destructive, idempotent. The Baseline
+  gate stays closed until the lab reproduces the target and flips the row to
+  `pass`; the skill/README/hooks_reference now point to the full
+  inventory → adoption decision → seed → reproduce → validate flow. Verified:
+  refuses non-adoption / empty-baseline; seeds strategy + planned row; gate
+  closed at `planned`, open at `pass`; idempotent re-run skips.
 
 ---
 

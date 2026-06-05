@@ -78,13 +78,20 @@ so onboarding uses the **adoption decision gate** instead of re-authoring them:
    Baseline-strategy gates become **satisfied-by-adoption**, so the first
    retrofit (e.g. a graduate-student reproducing the chosen figure) may run
    without a from-scratch model spec.
-4. The **Baseline gate is NOT waived.** The chosen result must actually be
-   reproduced and recorded in `docs/gates/baseline_registry.md` (route the first
-   retrofit through baseline-strategy / baseline-validation) before any claim on
-   it is validated. Adopted-but-unreproduced artifacts stay at `unknown`/`partial`
-   and must not support strengthened claims — this is **enforced**: the
-   claim-promotion gate blocks a promoted claim citing any adopted artifact not
-   yet marked `validated` (or `waived`) in `existing_results_inventory.md`.
+4. **Bridge the chosen baseline into the baseline machinery.** Run
+   `python scripts/seed_adoption_baseline.py`. It reads the signed decision's
+   `## Reproduction Baseline` and drafts a baseline-strategy *Variation* note
+   (`docs/plan/baseline_strategy.md`) plus a `reproduction` row in
+   `docs/gates/baseline_registry.md` with `Status=planned` — turning the chosen
+   result into a tracked reproduction target. (Brownfield reproduction *is* the
+   baseline-strategy Variation path.)
+5. The **Baseline gate is NOT waived.** Actually reproduce the target, then flip
+   its `baseline_registry.md` Status to `pass` (this opens the Baseline gate) and
+   mark the artifact `validated` in `existing_results_inventory.md`. Until then,
+   adopted-but-unreproduced artifacts stay at `unknown`/`partial` and must not
+   support strengthened claims — this is **enforced**: the claim-promotion gate
+   blocks a promoted claim citing any adopted artifact not yet marked `validated`
+   (or `waived`) in `existing_results_inventory.md`.
 
 ## Output Format
 
