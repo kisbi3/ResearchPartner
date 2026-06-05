@@ -68,6 +68,7 @@ import yaml  # PyYAML — required for front-matter parsing
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import _layout as layout  # noqa: E402
 import _project_root as project_root_mod  # noqa: E402
+from check_adoption_recorded import is_adoption_mode  # noqa: E402
 
 # ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -90,6 +91,11 @@ ALLOWED_RELATIONS = {
     "evolved_from", "reproduces", "cites_paper",
     "supports", "contradicts", "limits",
 }
+
+# Canonical name of the synthetic brownfield-adoption gate row. Emitted only
+# when a PI-signed adoption_decision.md puts the project in adoption mode; it is
+# not keyed off a single file stem (its status comes from is_adoption_mode()).
+ADOPTION_GATE_NAME = "Adoption (brownfield)"
 
 # Gate name canonicalisation — file stem → gate name as it appears in the
 # Gate Status table of live_workflow_diagram.md (case-sensitive).
@@ -457,7 +463,9 @@ def _gate_status_from_script(project: Path, stem: str) -> str | None:
     return "pass" if rc == 0 else None
 
 
-def derive_gate_statuses(project: Path, records: list[dict]) -> dict[str, str]:
+def derive_gate_statuses(
+    project: Path, records: list[dict], adoption: bool = False,
+) -> dict[str, str]:
     """Map canonical gate name → status, derived from docs/gates/ records.
 
     Multiple files can feed one gate (e.g. baseline_registry.md and
@@ -468,6 +476,13 @@ def derive_gate_statuses(project: Path, records: list[dict]) -> dict[str, str]:
     literature_review_plan, baseline_strategy), the script is called as a
     subprocess to determine pass/fail rather than relying solely on a
     ``Status:`` body-text pattern.
+
+    Brownfield onboarding: when ``adoption`` is True (a PI-signed
+    ``adoption_decision.md``), a synthetic ``Adoption (brownfield)`` gate row is
+    emitted as ``pass``. This surfaces adoption mode on the dashboard so the
+    display matches what ``enforce_gate_sequence.py`` already honours (model and
+    baseline-strategy gates satisfied-by-adoption). The Adoption row appears
+    only for brownfield projects; greenfield runs never emit it.
     """
     strength = {"pending": 0, "in_progress": 1, "waived": 2, "blocked": 3,
                 "partial": 3, "fail": 4, "passed": 5, "pass": 5}
@@ -489,7 +504,36 @@ def derive_gate_statuses(project: Path, records: list[dict]) -> dict[str, str]:
             statuses[gate] = raw
         elif strength.get(raw, 0) > strength.get(statuses[gate], 0):
             statuses[gate] = raw
+    if adoption:
+        statuses[ADOPTION_GATE_NAME] = "pass"
     return statuses
+
+
+def derive_gate_notes(statuses: dict[str, str], adoption: bool) -> dict[str, str]:
+    """Map canonical gate name → Note-cell text for adoption-mode annotation.
+
+    The reproduction baseline is NOT waived by adoption, so the
+    ``Baseline or reproduction target`` status itself stays whatever the
+    registry/strategy files say. The note only *explains* the satisfied-by-
+    adoption semantics so the dashboard does not read as a silent contradiction
+    of the gate-sequence enforcer.
+    """
+    if not adoption:
+        return {}
+    notes = {
+        ADOPTION_GATE_NAME:
+            "PI-signed; model + baseline-strategy satisfied-by-adoption",
+    }
+    base = statuses.get("Baseline or reproduction target", "pending")
+    if base in ("pass", "passed"):
+        notes["Baseline or reproduction target"] = (
+            "strategy satisfied-by-adoption; reproduction passed"
+        )
+    else:
+        notes["Baseline or reproduction target"] = (
+            "strategy satisfied-by-adoption; reproduction still required"
+        )
+    return notes
 
 
 # ── Markdown mirror (in-place updates) ────────────────────────────────────────
@@ -511,13 +555,42 @@ def _update_active_step_section(content: str, step: str) -> str:
     return content + "\n\n" + new_section
 
 
-def _update_gate_table(content: str, statuses: dict[str, str]) -> str:
-    """Rewrite the Status cells of the Gate Status table in place."""
+def _ensure_adoption_row(content: str) -> str:
+    """Insert the Adoption (brownfield) row after Interview gate, if absent.
+
+    Idempotent: a re-sync that finds the row already present leaves it alone
+    (``_update_gate_table`` then rewrites its Status/Note cells). Called only in
+    adoption mode, so greenfield dashboards never gain the row.
+    """
+    if re.search(rf"\|\s*{re.escape(ADOPTION_GATE_NAME)}\s*\|", content):
+        return content
+    lines = content.splitlines(keepends=True)
+    out: list[str] = []
+    inserted = False
+    for line in lines:
+        out.append(line)
+        if not inserted and re.match(r"\|\s*Interview gate\s*\|", line):
+            out.append(f"| {ADOPTION_GATE_NAME} | pending |  |\n")
+            inserted = True
+    return "".join(out)
+
+
+def _update_gate_table(
+    content: str, statuses: dict[str, str], notes: dict[str, str] | None = None,
+) -> str:
+    """Rewrite the Status (and optionally Note) cells of the Gate Status table."""
+    notes = notes or {}
     for gate, status in statuses.items():
         emoji = GATE_STATUS_EMOJI.get(status, "")
         gate_esc = re.escape(gate)
-        pattern = re.compile(rf"(\|\s*{gate_esc}\s*\|)([^|]*)(\|[^|\n]*\|)")
-        replacement = rf"\1 `{status}`{emoji} \3"
+        note = notes.get(gate)
+        # Split the Note cell out so it can be rewritten independently:
+        #   \1 = "| Gate |"  \2 = status cell  \3 = "|"  \4 = note cell  \5 = "|"
+        pattern = re.compile(rf"(\|\s*{gate_esc}\s*\|)([^|]*)(\|)([^|\n]*)(\|)")
+        if note is not None:
+            replacement = rf"\1 `{status}`{emoji} \3 {note} \5"
+        else:
+            replacement = rf"\1 `{status}`{emoji} \3\4\5"
         content = pattern.sub(replacement, content, count=1)
     return content
 
@@ -559,6 +632,8 @@ def update_markdown_mirror(
     project: Path,
     statuses: dict[str, str],
     active_step: str | None,
+    adoption: bool = False,
+    notes: dict[str, str] | None = None,
 ) -> Path:
     """Update Active Step + Gate Status in place; preserve everything else."""
     md_path = layout.live_workflow_diagram(project)
@@ -569,7 +644,9 @@ def update_markdown_mirror(
         content = _scaffold_diagram(project)
     if active_step is not None:
         content = _update_active_step_section(content, active_step)
-    content = _update_gate_table(content, statuses)
+    if adoption:
+        content = _ensure_adoption_row(content)
+    content = _update_gate_table(content, statuses, notes)
     md_path.write_text(content, encoding="utf-8")
     return md_path
 
@@ -720,8 +797,16 @@ def _refresh_html(project: Path) -> None:
 def sync(project: Path, active_step: str | None = None) -> Path:
     """Full sync: walk filesystem, write JSON, update markdown mirror."""
     records = collect_artifacts(project)
-    gate_statuses = derive_gate_statuses(project, records)
-    update_markdown_mirror(project, gate_statuses, active_step)
+    adoption = is_adoption_mode(project)
+    if adoption:
+        # A signed adoption_decision.md is satisfied, not pending — the file has
+        # no ``Status:`` line so body inference would otherwise leave it pending.
+        for rec in records:
+            if rec["stem"] == "adoption_decision":
+                rec["body_status"] = "passed"
+    gate_statuses = derive_gate_statuses(project, records, adoption)
+    gate_notes = derive_gate_notes(gate_statuses, adoption)
+    update_markdown_mirror(project, gate_statuses, active_step, adoption, gate_notes)
     live_map = build_live_json(project, records, gate_statuses)
     data = {
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),

@@ -139,6 +139,14 @@ The Gate Status table in the markdown mirror is rewritten from a fixed mapping o
 
 When multiple files feed one gate, the strongest non-`pending` status wins. To force a specific gate to a specific status without editing a gate file, set `lineage.status` in front-matter on whichever file the table draws from.
 
+### Adoption mode (brownfield)
+
+When `docs/gates/adoption_decision.md` is PI-signed (the project is in **adoption mode**, see the `existing-research-onboarding` skill), the sync surfaces that state so the dashboard matches what `enforce_gate_sequence.py` already honours:
+
+- An extra **`Adoption (brownfield)`** row is inserted after the Interview gate, shown as `pass` with the note *"PI-signed; model + baseline-strategy satisfied-by-adoption"*. Greenfield projects never get this row.
+- The signed `adoption_decision.md` node is reported as `passed` (it has no `Status:` line, so without this it would read `pending`).
+- The **`Baseline or reproduction target`** row keeps its real status (the reproduction is **not** waived by adoption) but gains the note *"strategy satisfied-by-adoption; reproduction still required"* — or *"… reproduction passed"* once the registry flips to `pass`. The status itself stays honest; only the note explains the satisfied-by-adoption semantics.
+
 ## What this skill does NOT do
 
 - It does not invent edges. If `supports`, `evolved_from`, etc. are not declared in front-matter, they are not in the graph.

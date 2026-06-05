@@ -75,7 +75,7 @@ task-intake -> professor-interview -> literature-review-planning -> model-specif
 2. 기존 파일을 보존하면서 하네스를 초기화하고, 초안으로 생성된 `docs/adoption/*` inventory(intake, results inventory, retrofit plan)를 교정합니다.
 3. PI가 `docs/gates/adoption_decision.md`에 서명하여 기존 모델을 수용하고 기존 결과 하나를 reproduction baseline으로 선택합니다. 이렇게 하면 프로젝트가 adoption 모드로 들어가, model 및 baseline-strategy 게이트가 satisfied-by-adoption 처리됩니다 — 따라서 첫 retrofit을 처음부터 새 model spec을 작성하지 않고 진행할 수 있습니다. 단, baseline 게이트는 면제되지 않으며, 선택한 결과를 실제로 재현해야만 그에 대한 claim이 검증됩니다.
 4. `python scripts\seed_adoption_baseline.py`를 실행해 선택한 reproduction baseline을 추적되는 `reproduction` 타깃으로 만듭니다(baseline-strategy Variation 노트 + `baseline_registry.md`의 `planned` 행). 이를 재현한 뒤 행을 `pass`로 전환하고, results inventory에서 해당 산출물을 `validated`로 표시합니다.
-5. `/sync-workflow`로 artifact에서 live state를 다시 구성합니다.
+5. `/sync-workflow`로 artifact에서 live state를 다시 구성합니다. adoption 모드에서는 대시보드에 `Adoption (brownfield)` gate 행이 `pass`로 표시되고 baseline 행에 `strategy satisfied-by-adoption; reproduction still required` 주석이 붙어, 표시가 gate-sequence enforcer와 일치합니다.
 6. 오래된 figure나 manuscript 문구를 강화하기 전에 validation, provenance, lineage, claim check를 실행합니다. adoption 모드에서는 아직 `validated`가 아닌 산출물을 인용하는 promoted claim은 재현될 때까지 차단됩니다.
 
 선택적 도메인 워크스페이스는 marker가 있는 프로젝트 하나 안에 reproduction, thread, subproblem, integration용 `domains/<name>/` 영역을 둡니다. Step 1에서는 project-level gate, claim check, lineage check, provenance check 동작을 바꾸지 않으며, `domains/`가 없는 프로젝트는 계속 프로젝트 루트가 기본 domain으로 resolve됩니다.
