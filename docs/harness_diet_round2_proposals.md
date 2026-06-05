@@ -44,10 +44,9 @@ pytest -q                                        # repo tests (incl. test_check_
 ## Item 2 — MERGE research-plan-review + researcher-review-loop
 
 - **Report claim**: UPHOLD / "safest merge, no enforcing checker."
-- **True coupling**: there is no *gate* checker, but BOTH are enumerated by `evaluate_harness.py` (scenarios at lines 32/50/85/127/153/190/209…) and distributed by `install_skills.py`; `researcher-review-loop` also appears in `workflow_map.json` and `run_baseline_validation.py`.
-- **Coordinated edit set**: create the merged skill; update every `evaluate_harness.py` scenario that names either source to the merged path; update `install_skills.py` SKILLS; update `run_baseline_validation.py` and docs; archive the two originals.
-- **Risk**: medium (many `evaluate_harness.py` touch-points; a missed one fails CI). Genuinely no hard-gate desync, so it is the *least* dangerous merge — but still a coordinated CI edit, not a drop-in.
-- **Recommendation**: viable as a deliberate, test-gated change. Best first candidate **if** the PI wants one consolidation done properly with the gate run after.
+- **True coupling**: there is no *gate* checker, but BOTH are enumerated by `evaluate_harness.py` in **16 scenario skill-lists** (research-plan-review at L32/50/85/127/153/209/280/307/457; researcher-review-loop at L87/128/190/258/282/339/402), mirrored in `docs/harness/harness_evaluation_scenarios.md`; `researcher-review-loop` also appears in `workflow_map.json`, and both in `run_baseline_validation.py`. (Correction: neither is in the `install_skills.py` SKILLS list — they are **not** distributed as slash commands, contrary to an earlier draft of this note.)
+- **Full-read finding (2026-06-05)**: reading both skills end-to-end shows they are **not duplicates** — they are two distinct lifecycle gates. `research-plan-review` vets a PLAN *before* execution (forward-looking 14-item checklist + risk labels; artifacts `docs/research_plan.md` / `research_state.md`); `researcher-review-loop` reviews a RESULT *after* an iteration (backward-looking 10-item packet + decision logging; artifacts `researcher_review_log.md` / `decision_log.md`). The shared field *names* (model/assumptions/units/baseline/validation/claims) are the same scientific dimensions evaluated at opposite ends of the lifecycle, not redundant content. Round 1 already added "When NOT to use" guards that separate their triggers.
+- **DECISION (PI, 2026-06-05): do NOT merge.** Merging would re-collapse two just-narrowed gates into one over-broad skill and churn the 16-reference CI gate for only field-list dedup. Kept as-is. If de-duplication is ever wanted, factor the shared scientific-dimension list into one referenced fragment without merging the gates.
 
 ## Item 3 — MERGE claim-to-evidence + scientific-verification-before-claim
 
@@ -78,13 +77,15 @@ pytest -q                                        # repo tests (incl. test_check_
 - **True coupling**: `capability_manifest.json` hook_registry registers `workflow_hooks.py pre/post` on the Write|Edit and Bash matchers (the same slots that are dead, since `workflow_hooks.main()` returns 0 for non-Agent tools). Removing the 3 entries from `settings.local.json` without editing the manifest registry fails `check_harness_manifest.py` (wired≠registry). Re-running `init_research_project.py` would also re-add them unless the source registry changes.
 - **Coordinated edit set**: drop the 3 dead entries from `settings.local.json` **and** the matching `hook_registry` rows in `capability_manifest.json` (or move them to `known_uncovered_wired_hooks`), then re-run init and the manifest checker.
 - **Risk**: low *behaviorally* (the wiring is provably dead — `workflow_hooks.py` L281-282), but it is a **hook-config + manifest** edit, which the diet was scoped to avoid. Still the cleanest of the six.
-- **Recommendation**: safe to do as a deliberate paired edit (settings + manifest) with the manifest checker as the gate. Good second candidate after Item 2 if the PI wants tangible cleanup.
+- **Recommendation**: safe to do as a deliberate paired edit (settings + manifest) with the manifest checker as the gate.
+- **STATUS: APPLIED (2026-06-05, commit c8d8807).** Removed from `settings.local.json`, `capability_manifest.json` hook_registry, the `init_research_project.py` install template, and the `docs/hooks_reference.md` wiring table. Verified: contract-sync / spawn-contracts / manifest / lineage pass, pytest 273 pass, `evaluate_harness` partial count unchanged.
 
 ---
 
 ## Bottom line / recommended next round
 
 - **Drop**: Item 5 (generated artifact, not cruft) and figure-provenance narrowing (DOWNGRADE→KEEP from round 1).
-- **Do, one at a time, each with the full verification gate run after**: Item 6 (settings+manifest paired edit) → Item 2 (the no-hard-gate merge). These are the two with real payoff and bounded, testable coupling.
+- **Done**: Item 6 (dead workflow_hooks wiring) — applied 2026-06-05 (commit c8d8807), full verification gate green.
+- **Rejected after full read**: Item 2 — the two skills are distinct lifecycle gates, not duplicates; not merged (PI decision 2026-06-05).
 - **PI decision + dedicated tested change**: Items 1, 3, 4 — higher coupling, lower payoff (Item 1) or hard-gate/silent-failure risk (Items 3, 4).
 - **Correction to the audit**: the harness-legacy-scan report measured *content duplication* but not the *registry/CI/generator graph*. Any future diet must treat `evaluate_harness.py`, `spawn_contracts.json`, `capability_manifest.json`, and `install_skills.py` as the coupling that decides whether a change is low-risk.
