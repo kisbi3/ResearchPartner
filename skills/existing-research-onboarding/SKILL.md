@@ -62,8 +62,12 @@ The harness gate chain is greenfield-shaped — it normally expects a freshly
 authored model spec and baseline strategy. An existing project already has both,
 so onboarding uses the **adoption decision gate** instead of re-authoring them:
 
-1. **Inventory first.** Run `python scripts/audit_existing_project.py <root>` and
-   fill `docs/adoption/existing_project_intake.md`,
+1. **Inventory first.** Run `python scripts/audit_existing_project.py <root>
+   --write-drafts`. It drafts the adoption inventory — one row per detected
+   figure with a guessed generating script, input data, seed/RNG sites, and git
+   recency — into `docs/adoption/*.draft.md`. **Correct the draft** (every field
+   is a guess, not evidence), then move verified rows into
+   `docs/adoption/existing_project_intake.md`,
    `existing_results_inventory.md`, and `retrofit_validation_plan.md`. This is the
    lab's proposal — do not interpret or rerun yet.
 2. **PI signs `docs/gates/adoption_decision.md`** (`## Decision`), recording the

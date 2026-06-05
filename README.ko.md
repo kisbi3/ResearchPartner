@@ -71,8 +71,8 @@ task-intake -> professor-interview -> literature-review-planning -> model-specif
 
 시나리오 B, 기존 프로젝트 (brownfield onboarding):
 
-1. `python scripts\audit_existing_project.py <project-root>`로 scripts, figures, outputs, validation gaps를 inventory합니다.
-2. 기존 파일을 보존하면서 하네스를 초기화하고, `docs/adoption/*` inventory(intake, results inventory, retrofit plan)를 채웁니다.
+1. `python scripts\audit_existing_project.py <project-root>`로 scripts, figures, outputs, validation gaps를 inventory합니다. 또한 adoption inventory 초안을 만들어 줍니다 — 감지된 figure마다 생성 스크립트 추정, 입력 데이터, seed/RNG 사이트, git 최근성을 한 행으로 제시합니다(`--write-drafts`는 이를 `docs/adoption/*.draft.md`로 쓰며, 이미 편집된 파일은 덮어쓰지 않습니다).
+2. 기존 파일을 보존하면서 하네스를 초기화하고, 초안으로 생성된 `docs/adoption/*` inventory(intake, results inventory, retrofit plan)를 교정합니다.
 3. PI가 `docs/gates/adoption_decision.md`에 서명하여 기존 모델을 수용하고 기존 결과 하나를 reproduction baseline으로 선택합니다. 이렇게 하면 프로젝트가 adoption 모드로 들어가, model 및 baseline-strategy 게이트가 satisfied-by-adoption 처리됩니다 — 따라서 첫 retrofit을 처음부터 새 model spec을 작성하지 않고 진행할 수 있습니다. 단, baseline 게이트는 면제되지 않으며, 선택한 결과를 실제로 재현해야만 그에 대한 claim이 검증됩니다.
 4. `/sync-workflow`로 artifact에서 live state를 다시 구성합니다.
 5. 오래된 figure나 manuscript 문구를 강화하기 전에 validation, provenance, lineage, claim check를 실행합니다.
@@ -121,7 +121,7 @@ Lead Agent는 별도 agent가 아니라 mental mode로 9개 stance를 사용합�
 | 프로젝트 초기화 | `python scripts\init_research_project.py --project <project-dir>` | 연구 프로젝트 marker와 기본 구조 생성 |
 | domain workspace scaffold | `python scripts\scaffold_domain.py --project <project-dir> --name <slug> --type reproduction` | project-level gate를 이동하지 않고 선택적 `domains\<slug>\` workspace와 typed manual 추가 |
 | domain manifest 검증 | `python scripts\check_domain_manifest.py --project <project-dir>` | `domains/`가 있을 때 domain manual 구조를 검증하고 없으면 dormant 통과 |
-| 기존 프로젝트 감사 | `python scripts\audit_existing_project.py <project-root>` | scripts, figures, outputs, validation gaps inventory |
+| 기존 프로젝트 감사 | `python scripts\audit_existing_project.py <project-root>` | scripts/figures/outputs/gaps inventory + adoption inventory 초안(figure→script→data 추정, seed 사이트, git 최근성); `--write-drafts`로 `docs/adoption/*.draft.md` 생성 |
 | 하네스 평가 | `python scripts\evaluate_harness.py --fail-on-partial` | scenario coverage 확인; partial도 이제 CI 실패 |
 | harness stamp 확인 | `python scripts\check_harness_version.py --project <project-dir>` | 설치된 harness stamp와 로컬에서 수정된 owned file 보고 |
 | vendored harness 업데이트 | `python scripts\update_harness.py --project <project-dir> --source <harness-source> [--apply] [--upgrade-hooks]` | 비파괴 harness-owned 업데이트를 dry-run 또는 적용; 충돌은 `.harness-new` sidecar로 남김; `--apply`와 함께 `--upgrade-hooks`를 쓰면 hook도 갱신 |

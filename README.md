@@ -71,8 +71,8 @@ Scenario A, new model or simulation:
 
 Scenario B, existing project (brownfield onboarding):
 
-1. Run `python scripts\audit_existing_project.py <project-root>` to inventory scripts, figures, outputs, and validation gaps.
-2. Initialize the harness in place, preserving project files, and fill the `docs/adoption/*` inventory (intake, results inventory, retrofit plan).
+1. Run `python scripts\audit_existing_project.py <project-root>` to inventory scripts, figures, outputs, and validation gaps. It also drafts the adoption inventory — one row per detected figure with a guessed generating script, input data, seed/RNG sites, and git recency (`--write-drafts` writes these as `docs/adoption/*.draft.md`, never overwriting an edited file).
+2. Initialize the harness in place, preserving project files, and correct the drafted `docs/adoption/*` inventory (intake, results inventory, retrofit plan).
 3. The PI signs `docs/gates/adoption_decision.md`, accepting the existing model and choosing one existing result as the reproduction baseline. This puts the project in adoption mode: the model and baseline-strategy gates become satisfied-by-adoption, so the first retrofit can run without authoring a from-scratch model spec. The baseline gate is not waived — the chosen result must actually be reproduced before any claim on it is validated.
 4. Use `/sync-workflow` to rebuild live state from artifacts.
 5. Use validation, provenance, lineage, and claim checks before strengthening old figures or manuscript text.
@@ -121,7 +121,7 @@ Commands:
 | Init project | `python scripts\init_research_project.py --project <project-dir>` | Mark and scaffold a research project |
 | Scaffold domain workspace | `python scripts\scaffold_domain.py --project <project-dir> --name <slug> --type reproduction` | Add an optional `domains\<slug>\` workspace and typed manual without moving project-level gates |
 | Check domain manifest | `python scripts\check_domain_manifest.py --project <project-dir>` | Validate opted-in domain manuals; dormant when `domains/` is absent |
-| Audit existing project | `python scripts\audit_existing_project.py <project-root>` | Inventory scripts, figures, outputs, and validation gaps |
+| Audit existing project | `python scripts\audit_existing_project.py <project-root>` | Inventory scripts/figures/outputs/gaps and draft the adoption inventory (guessed figure→script→data, seed sites, git recency); `--write-drafts` for `docs/adoption/*.draft.md` |
 | Evaluate harness | `python scripts\evaluate_harness.py --fail-on-partial` | Check scenario coverage; partial now fails CI |
 | Check harness stamp | `python scripts\check_harness_version.py --project <project-dir>` | Report installed harness stamp and locally modified owned files |
 | Update vendored harness | `python scripts\update_harness.py --project <project-dir> --source <harness-source> [--apply] [--upgrade-hooks]` | Dry-run or apply non-destructive harness-owned updates; conflicts become `.harness-new` sidecars; use `--upgrade-hooks` with `--apply` to refresh hooks |
