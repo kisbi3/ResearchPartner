@@ -179,6 +179,14 @@ Installed skills:
 | `existing-research-onboarding` | Retrofit the harness onto an existing project |
 | `harness-evaluation` | Evaluate whether the harness itself is working |
 
+Named Dynamic Workflows:
+
+Self-contained multi-agent workflow scripts under `.claude/workflows/*.js` are invocable by name (session-independent) instead of resending a full script. Each begins with an `export const meta = { name, description, phases }` literal whose `name` matches the filename.
+
+| Workflow | Purpose |
+|---|---|
+| `harness-legacy-scan` | Read-only audit of the harness for stale rules, duplication, global-context tax, over-broad skills, product overlap, and risky permissions; emits a classified KEEP/SHRINK/MOVE/SPLIT/CONVERT/DELETE report with an adversarial counter-review. Never modifies files. |
+
 ## How Discipline Is Enforced
 
 Research Partner separates surface guidance from blocking enforcement.

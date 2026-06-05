@@ -179,6 +179,14 @@ Lead Agent는 별도 agent가 아니라 mental mode로 9개 stance를 사용합�
 | `existing-research-onboarding` | 기존 프로젝트에 하네스 retrofit |
 | `harness-evaluation` | 하네스 자체가 제대로 작동하는지 평가 |
 
+이름으로 호출하는 Dynamic Workflow:
+
+`.claude/workflows/*.js`에 있는 자기완결형 멀티에이전트 워크플로우 스크립트는 전체 스크립트를 다시 보낼 필요 없이 이름만으로(세션 비종속) 호출할 수 있습니다. 각 파일은 `export const meta = { name, description, phases }` 리터럴로 시작하며 `name`이 파일명과 일치합니다.
+
+| Workflow | 목적 |
+|---|---|
+| `harness-legacy-scan` | 하네스의 낡은 규칙, 중복, 전역 컨텍스트 세금, 과도하게 넓은 스킬, 제품 기능 중복, 위험한 권한을 읽기 전용으로 감사하고, KEEP/SHRINK/MOVE/SPLIT/CONVERT/DELETE로 분류한 리포트와 적대적 반박 검토를 생성합니다. 파일을 수정하지 않습니다. |
+
 ## 규율은 어떻게 강제되는가
 
 Research Partner는 표면화와 차단을 분리합니다.
