@@ -1,6 +1,6 @@
 ---
 name: claim-to-evidence
-description: Use when reviewing abstracts, introductions, results, discussions, conclusions, captions, manuscript text, or any scientific claim that needs evidence mapping.
+description: Use when mapping specific scientific claims in abstracts, introductions, results, discussions, conclusions, captions, or manuscript text to their supporting evidence and flagging unsupported or overclaimed statements. Not for routine prose that asserts no claim.
 ---
 
 # Claim-to-Evidence Skill
@@ -114,3 +114,11 @@ that exist on disk.
 This is a structural gate. The checker verifies the declared lifecycle and
 resolvable paths; it cannot prove that the Lead Agent actually read the files.
 Do not present the checker result as proof of reading.
+
+## When NOT to use this skill
+
+- Routine prose, notes, README/docs edits, code comments, or status updates that assert no scientific claim.
+- Deciding what language a single result justifies *before* it is written down, or strengthening one claim -> use `scientific-verification-before-claim`.
+- Checking whether numerical results are reliable enough to claim anything at all -> use `numerical-validation`.
+- Reviewing a research plan before results exist, when there are no concrete claims to map yet -> use `research-plan-review`.
+- A result contradicts assumptions or looks wrong; resolve that first -> use `anomaly-debugging`, then map claims here.

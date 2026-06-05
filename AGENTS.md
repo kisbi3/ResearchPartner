@@ -51,38 +51,19 @@ The following are not just prose. They are wired hooks, deterministic checkers, 
 - [Human-Owned Decision Gate](docs/hooks_reference.md#human-owned-decision-gate-hard-enforced) (HARD ENFORCED): every agent Write/Edit to `docs/gates/{orient,interview,model,seed}_decision.md` (and the skip waivers) is blocked; the orient/interview/model/seed gates require the PI's `## Decision`, and the bypass env vars never waive it. This is the brake.
 - [Cross-Tier Write Hook](docs/hooks_reference.md#cross-tier-write-hook-hard-enforced) (HARD ENFORCED): research `.py`/`.ipynb` writes (everything except `docs/`, `literature/`, `scripts/`, `tools/`) go through spawned graduate students, not the Lead.
 - [Bash Code-Write Hook](docs/hooks_reference.md#bash-code-write-hook-hard-enforced) (HARD ENFORCED): shell write syntax follows the same code-write restriction.
-- [Cross-Tier Compliance Gate](docs/hooks_reference.md#cross-tier-compliance-gate-hook): stage-gate backstop for cross-tier writes.
-- [Spawn Log Integrity Hook](docs/hooks_reference.md#spawn-log-integrity-hook): reconciles spawn-log rows with recorded Agent events.
 - [Claim Promotion Gate Hook](docs/hooks_reference.md#claim-promotion-gate-hook): the freshness + finding-lifecycle structural check is HARD ENFORCED (wired PreToolUse block on `docs/claims/*.md` writes); the count + diversity check (`check_claim_promotion.py`) is a Lead-run + CI checker, not a write-time block.
 - [Peer-Review Invocation Hook](docs/hooks_reference.md#peer-review-invocation-hook-hard-enforced) (HARD ENFORCED): Peer-Review Professor runs only inside `meeting --scope review` or `--scope full`.
-- [Capability Manifest Hook](docs/hooks_reference.md#capability-manifest-hook): registry, hook coverage, workflow gate keys, and portable `$CLAUDE_PROJECT_DIR` commands must stay synchronized.
-- [Spawn Contract Consistency Gate](docs/hooks_reference.md#spawn-contract-consistency-gate): `.claude/agents/*.md`, `spawn_contracts.json`, and orchestration docs must agree; the `Agent` tool is reserved for the Lead Agent.
-- [CI Enforcement Gate](docs/hooks_reference.md#ci-enforcement-gate): GitHub Actions runs deterministic repo-state checkers on push and pull request; CI does not replace live Claude Code hook firing.
+- Catalog backstops (Cross-Tier Compliance Gate, Spawn Log Integrity, Capability Manifest, Spawn Contract Consistency Gate, CI Enforcement Gate): see `docs/hooks_reference.md`.
 
 ## Scientific Hook Index
 
-Detailed behavior is in `docs/hooks_reference.md#scientific-loop-hook-catalog`. Keep AGENTS/GEMINI resident text short; put expanded rules there.
+The full hook catalog (session/intake, gate, numerical, claim/figure, literature, computation, and workflow-state hooks) lives in `docs/hooks_reference.md#scientific-loop-hook-catalog`. Keep AGENTS/GEMINI resident text short; consult that catalog for expanded rules.
 
-- [Session Resumption Hook](docs/hooks_reference.md#session-resumption-hook): check resumable in-flight tasks before continuing.
-- [Task Intake Hook](docs/hooks_reference.md#task-intake-hook): classify work and record the first professor question.
-- [Ambiguity Hook](docs/hooks_reference.md#ambiguity-hook): remain in Interview/Specify while core research objects are unclear.
-- [Assumption/Units Hook](docs/hooks_reference.md#assumptionunits-hook): record assumptions, units, boundaries, initial conditions, nondimensionalization, and regimes.
-- [Unit Conversion Hook](docs/hooks_reference.md#unit-conversion-hook): record formulas and reference scales for unit changes.
-- [Approximation Regime Hook](docs/hooks_reference.md#approximation-regime-hook): mark approximations and validity regimes.
-- [Orient Gate Hook](docs/hooks_reference.md#orient-gate-hook), [Interview Gate Hook](docs/hooks_reference.md#interview-gate-hook), [Literature Gate Hook](docs/hooks_reference.md#literature-gate-hook), [Model Gate Hook](docs/hooks_reference.md#model-gate-hook), [Baseline Strategy Gate Hook](docs/hooks_reference.md#baseline-strategy-gate-hook), and [Baseline Gate Hook](docs/hooks_reference.md#baseline-gate-hook): record and enforce staged gate artifacts.
-- [Graduate Student Hook](docs/hooks_reference.md#graduate-student-hook): spawned graduate students write and run code for one bounded task and report evidence plus hypotheses; the binding pass/fail verdict belongs to the scientific-validator.
-- [Code-before-Test Hook](docs/hooks_reference.md#code-before-test-hook), [Numerical Stability Hook](docs/hooks_reference.md#numerical-stability-hook), [Parameter Change Hook](docs/hooks_reference.md#parameter-change-hook), [Randomness/Reproducibility Hook](docs/hooks_reference.md#randomnessreproducibility-hook), and [Data Lineage Hook](docs/hooks_reference.md#data-lineage-hook): protect numerical credibility and reproducibility.
-- [Figure Provenance Hook](docs/hooks_reference.md#figure-provenance-hook), [Claim Strength Hook](docs/hooks_reference.md#claim-strength-hook), [Finding Lifecycle Hook](docs/hooks_reference.md#finding-lifecycle-hook), [Literature Claim Hook](docs/hooks_reference.md#literature-claim-hook), [Manuscript Drift Hook](docs/hooks_reference.md#manuscript-drift-hook), and [Artifact Freshness Hook](docs/hooks_reference.md#artifact-freshness-hook): keep claims tied to fresh evidence.
-- [Literature Replanning Hook](docs/hooks_reference.md#literature-replanning-hook) and [Literature Replanning Loop](docs/hooks_reference.md#literature-replanning-loop): confirm literature, review PDFs directly, map novelty, and select reproduction targets.
-- [Anomaly Hook](docs/hooks_reference.md#anomaly-hook), [Scope Creep Hook](docs/hooks_reference.md#scope-creep-hook), [Reviewer Simulation Hook](docs/hooks_reference.md#reviewer-simulation-hook), [Waiver Hook](docs/hooks_reference.md#waiver-hook), and [Negative Result Hook](docs/hooks_reference.md#negative-result-hook): make risks and failed paths explicit.
-- [Environment Capture Hook](docs/hooks_reference.md#environment-capture-hook), [Workflow State Hook](docs/hooks_reference.md#workflow-state-hook), [Lineage Coverage Gate](docs/hooks_reference.md#lineage-coverage-gate), [Broken-Edge Linter](docs/hooks_reference.md#broken-edge-linter), [Stage Checkpoint Hook](docs/hooks_reference.md#stage-checkpoint-hook), [Log Rotation Hook](docs/hooks_reference.md#log-rotation-hook), and [Retrospective Hook](docs/hooks_reference.md#retrospective-hook): keep state compact, linked, and auditable.
-- [Meeting Hook](docs/hooks_reference.md#meeting-hook) and [Meeting Trigger Hook](docs/hooks_reference.md#meeting-trigger-hook): recommend review when claims, anomalies, or validation signals exceed solo confidence.
-- [Computation Checkpoint Hook](docs/hooks_reference.md#computation-checkpoint-hook), [Long-Running Computation Hook](docs/hooks_reference.md#long-running-computation-hook), and [Cluster Submission Hook](docs/hooks_reference.md#cluster-submission-hook): manage long or external computation without hiding state.
-- [Live Linked Research Graph](docs/hooks_reference.md#live-linked-research-graph), [Workflow Visualization](docs/hooks_reference.md#workflow-visualization), and [Re-spawn Monitoring](docs/hooks_reference.md#re-spawn-monitoring-not-a-hook--surfaces-in-stage-checkpoint): maintain visible workflow, lineage, and quality hotspots.
+- SOFT (script-unenforced, resident text is their only signal): Ambiguity, Assumption/Units, Claim Strength, Reviewer Simulation, Negative Result, Scope Creep, and Anomaly hooks — honor these by judgment even though no checker fires them.
 
 ## Harness Evaluation
 
-Run or update harness evaluation when a skill is added, `AGENTS.md`/`GEMINI.md`/`PHYSICS.md`/`README.md` changes, the harness is adopted into an existing repository, or a researcher reports skipped/confusing/heavy workflow behavior. Evaluate realistic scenarios, not just file existence.
+Side-effect triggers (run even when unasked): a skill is added, `AGENTS.md`/`GEMINI.md`/`PHYSICS.md`/`README.md` changes, or the harness is adopted into an existing repository. On any trigger, load the `harness-evaluation` skill and evaluate realistic scenarios, not just file existence.
 
 ## Core Principles
 

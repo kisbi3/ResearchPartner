@@ -93,3 +93,11 @@ Directly`.
 This check is structural. It confirms declared evidence paths exist; it does not
 prove that the Lead Agent read them. The Lead remains responsible for direct
 reading before strengthening the claim.
+
+## When NOT to use this skill
+
+- Routine writing, notes, or status updates that make or strengthen no scientific claim.
+- Mapping many existing claims in a manuscript to evidence in one sweep -> use `claim-to-evidence`.
+- Establishing whether a numerical result is reliable in the first place (convergence/stability/conservation) -> use `numerical-validation`.
+- Pure unit or dimensional-consistency checks with no claim being made -> use `dimensional-analysis`.
+- An unexpected or contradictory result needs its cause found before any claim is even considered -> use `anomaly-debugging`.

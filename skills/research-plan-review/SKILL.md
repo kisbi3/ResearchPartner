@@ -63,3 +63,11 @@ Recommend the smallest change that makes the plan executable.
 ### Review Checkpoint
 
 State when the researcher should inspect the next result.
+
+## When NOT to use this skill
+
+- Presenting an intermediate result, comparing iterations, or recording a decision after work has run -> use `researcher-review-loop`.
+- A specific claim or manuscript sentence needs evidence mapping or verification -> use `claim-to-evidence` or `scientific-verification-before-claim`.
+- Validating outputs that already exist (convergence/stability/physical sanity) -> use `numerical-validation`.
+- The very first task intake / Orient classification before any plan exists -> use `task-intake`.
+- Small, well-scoped tasks with an obvious single step and no campaign, figure set, reproduction, or claim strategy to vet.

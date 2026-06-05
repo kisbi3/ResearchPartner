@@ -70,3 +70,11 @@ List the specific questions for the researcher.
 ### Decision Needed
 
 State the concrete decision required before the next iteration.
+
+## When NOT to use this skill
+
+- Routine progress pings or status updates that need no researcher interpretation, prioritization, or decision.
+- Vetting a plan or campaign *before* any result exists -> use `research-plan-review`.
+- Mapping or verifying a specific claim's evidence -> use `claim-to-evidence` or `scientific-verification-before-claim`.
+- Establishing whether the result itself is numerically reliable -> use `numerical-validation`.
+- A PI-owned decision gate is reached (`docs/gates/{orient,interview,model,seed}_decision.md`); record the proposal in the matching note/spec, but only the PI fills `## Decision` -- do not substitute this loop for the brake.

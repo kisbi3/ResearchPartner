@@ -86,3 +86,11 @@ State what cannot yet be claimed.
 ### Next Validation
 
 Recommend the next most important check.
+
+## When NOT to use this skill
+
+- Pure unit, dimension, scaling-law, or nondimensionalization questions with no run to validate -> use `dimensional-analysis`.
+- A result, plot, fit, or reproduction is behaving unexpectedly or contradicting assumptions and the task is to find the cause -> use `anomaly-debugging` (return here once a fix is proposed and needs re-validation).
+- Mapping a finished result onto a written claim or manuscript sentence -> use `claim-to-evidence` or `scientific-verification-before-claim`.
+- Reviewing a plan before any code is run, where there are no numerical outputs yet to check -> use `research-plan-review`.
+- Routine code edits, refactors, or runs with no convergence/stability/physical-sanity question and no result being interpreted scientifically.
