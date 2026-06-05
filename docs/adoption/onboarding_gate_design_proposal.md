@@ -212,6 +212,13 @@ These were identified alongside the gate-sequence gap but are separate changes:
 - **Gap ③ — no claim ceiling on adopted artifacts.** The status labels exist but
   nothing enforces that a manuscript claim citing an `unknown`/`partial` adopted
   artifact is capped until reproduced. Needs wiring into the claim-promotion gate.
+  **STATUS: APPLIED (2026-06-05).** `check_claim_promotion_freshness.py` now, in
+  adoption mode, blocks a promoted claim citing an adopted artifact marked
+  `partial`/`unknown`/`failed`/`deprecated` in `existing_results_inventory.md`
+  (only `validated`/`waived` pass). Wired via the existing `docs/claims/*.md`
+  PreToolUse hook and the standalone audit; documented in `hooks_reference.md`.
+  Verified: live hook blocks (exit 2) an unvalidated-adopted citation; validated
+  citation passes; no-op off adoption mode; template placeholder rows ignored.
 - **Gap ④ — baseline disconnection.** The onboarding skill/docs never reference
   `baseline-strategy` / `baseline-validation` / `baseline_registry`. Option C
   partly closes this by routing the first retrofit through the baseline gate;

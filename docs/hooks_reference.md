@@ -51,6 +51,7 @@ Run before the Lead Agent promotes the run's claim ceiling above `observation`.
 **Enforcement — two layers, only one is wired:**
 
 - **Freshness + finding-lifecycle structure — HARD ENFORCED (wired).** PreToolUse on `Write|Edit` to `docs/claims/*.md` → `scripts/path_check_hooks.py` invokes `scripts/check_claim_promotion_freshness.py`, which blocks (exit 2) a promoted claim whose cited `outputs/` artifacts are stale/missing, or whose mechanism/generalization finding lifecycle is incomplete.
+- **Adopted-artifact ceiling (brownfield, gap ③) — HARD ENFORCED (wired, same checker).** In adoption mode (a signed `docs/gates/adoption_decision.md`), the same freshness checker also blocks a promoted claim that cites an adopted artifact still marked `partial`/`unknown`/`failed`/`deprecated` in `docs/adoption/existing_results_inventory.md` (only `validated` or a PI `waived` status lets a promoted claim lean on it). Fix: reproduce the artifact and record it in `baseline_registry.md` (mark it `validated`), or lower the ceiling to `observation`. No-op on greenfield projects.
 - **Count + diversity — NOT a live hook.** `scripts/check_claim_promotion.py` is a CLI checker the Lead Agent runs before promoting, and CI runs on a fixture (via `evaluate_harness.py`). It is enforced by Lead discipline + CI, *not* by a write-time block — nothing at write time stops a promoted claim that skipped it.
 
 Checker detail (`check_claim_promotion.py`, the non-wired count/diversity layer):

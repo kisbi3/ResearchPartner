@@ -42,6 +42,20 @@ from pathlib import Path
 _SCRIPTS = Path(__file__).resolve().parent
 sys.path.insert(0, str(_SCRIPTS))
 import _project_root as project_root_mod  # noqa: E402
+from check_adoption_recorded import is_adoption_mode  # noqa: E402
+
+# Brownfield adoption (gap ③): adopted artifacts carry a Validation Status in
+# docs/adoption/existing_results_inventory.md. A promoted claim may only lean on
+# an adopted artifact that the PI/lab has marked `validated` (or explicitly
+# `waived`). Citing an adopted artifact still at `partial`/`unknown`/`failed`/
+# `deprecated` caps the claim at observation until it is reproduced and recorded.
+ADOPTION_INVENTORY_REL = "docs/adoption/existing_results_inventory.md"
+_KNOWN_ADOPTION_STATUSES = {
+    "validated", "partial", "unknown", "failed", "waived", "deprecated",
+}
+# Statuses that DO let a promoted claim cite the artifact (validated, or a PI
+# waiver of the risk). Everything else blocks promotion.
+_ALLOWED_ADOPTION_STATUSES = {"validated", "waived"}
 
 # ── Detection patterns ───────────────────────────────────────────────────────
 # A claim is considered "promoted" if it carries any non-observation ceiling.
@@ -67,6 +81,7 @@ class FreshnessResult:
     stale: list[str] = field(default_factory=list)
     missing: list[str] = field(default_factory=list)
     fresh: list[str] = field(default_factory=list)
+    adopted_unvalidated: list[str] = field(default_factory=list)
     reason: str = ""
 
 
@@ -231,6 +246,74 @@ def check_finding_lifecycle(
     )
 
 
+def _extract_inventory_path(cell: str) -> str:
+    """Pull a single artifact path out of an inventory 'Result/Figure' cell."""
+    token = cell.strip().strip("`").strip()
+    link = re.match(r"\[[^\]]+\]\(([^)]+)\)", token)
+    if link:
+        token = link.group(1)
+    return token.strip().strip("`").strip().replace("\\", "/").lstrip("./")
+
+
+def _adopted_artifact_statuses(project: Path) -> dict[str, str]:
+    """Map adopted artifact path → validation status from the results inventory.
+
+    Parses the markdown table in docs/adoption/existing_results_inventory.md,
+    locating the artifact column ("Result"/"Figure"/"Table") and the
+    "Validation Status" column by header name. Rows whose status cell still holds
+    the multi-option template placeholder (more than one known status token) are
+    skipped — they carry no real status yet.
+    """
+    path = project / ADOPTION_INVENTORY_REL
+    if not path.is_file():
+        return {}
+    statuses: dict[str, str] = {}
+    art_col: int | None = None
+    stat_col: int | None = None
+    for line in path.read_text(encoding="utf-8", errors="replace").splitlines():
+        if "|" not in line:
+            continue
+        if set(line.strip()) <= set("|-: "):  # separator row
+            continue
+        cells = [c.strip() for c in line.strip().strip("|").split("|")]
+        lowered = [c.lower() for c in cells]
+        if art_col is None:
+            if any("validation status" in c for c in lowered) and any(
+                ("result" in c or "figure" in c or "table" in c) for c in lowered
+            ):
+                art_col = next(
+                    i for i, c in enumerate(lowered)
+                    if "result" in c or "figure" in c or "table" in c
+                )
+                stat_col = next(i for i, c in enumerate(lowered) if "validation status" in c)
+            continue
+        if stat_col is None or art_col >= len(cells) or stat_col >= len(cells):
+            continue
+        tokens = [t for t in re.split(r"[\s/,]+", lowered[stat_col]) if t in _KNOWN_ADOPTION_STATUSES]
+        if len(tokens) != 1:  # 0 = free text / blank, >1 = template placeholder
+            continue
+        artifact = _extract_inventory_path(cells[art_col])
+        if artifact:
+            statuses[artifact] = tokens[0]
+    return statuses
+
+
+def _blocked_adopted_citations(content: str, project: Path) -> list[str]:
+    """Adopted artifacts a promoted claim cites that are not validated/waived."""
+    statuses = _adopted_artifact_statuses(project)
+    if not statuses:
+        return []
+    haystack = content.replace("\\", "/")
+    blocked: list[str] = []
+    for artifact, status in statuses.items():
+        if status in _ALLOWED_ADOPTION_STATUSES:
+            continue
+        basename = artifact.rsplit("/", 1)[-1]
+        if artifact in haystack or (basename and basename in haystack):
+            blocked.append(f"{artifact} ({status})")
+    return blocked
+
+
 def check_claim_freshness(
     file_path: Path,
     content: str,
@@ -240,6 +323,25 @@ def check_claim_freshness(
     """Return a FreshnessResult for *content* (intended write/edit body)."""
     if not _is_promoted(content):
         return FreshnessResult(status="skip", reason="not a promoted claim")
+
+    # Gap ③: in adoption mode, block promotion that leans on an adopted artifact
+    # not yet validated. Checked before the finding-lifecycle check so the
+    # specific adoption reason surfaces at any promoted ceiling. (No-op for
+    # greenfield projects — is_adoption_mode False.)
+    if is_adoption_mode(project):
+        blocked = _blocked_adopted_citations(content, project)
+        if blocked:
+            return FreshnessResult(
+                status="fail",
+                adopted_unvalidated=blocked,
+                reason=(
+                    "promoted claim cites adopted artifact(s) not yet validated: "
+                    + ", ".join(blocked[:3])
+                    + " — reproduce and record the result in baseline_registry.md "
+                    "(mark it validated in the adoption inventory), or lower the "
+                    "ceiling to observation."
+                ),
+            )
 
     lifecycle = check_finding_lifecycle(file_path, content, project)
     if lifecycle.status == "fail":
@@ -319,6 +421,8 @@ def check_project(
                 detail.append("stale=" + ", ".join(result.stale[:3]))
             if result.missing:
                 detail.append("missing=" + ", ".join(result.missing[:3]))
+            if result.adopted_unvalidated:
+                detail.append("adopted-unvalidated=" + ", ".join(result.adopted_unvalidated[:3]))
             failures.append(
                 f"{path.relative_to(project).as_posix()}: {result.reason}"
                 + (f" [{'; '.join(detail)}]" if detail else "")

@@ -82,7 +82,9 @@ so onboarding uses the **adoption decision gate** instead of re-authoring them:
    reproduced and recorded in `docs/gates/baseline_registry.md` (route the first
    retrofit through baseline-strategy / baseline-validation) before any claim on
    it is validated. Adopted-but-unreproduced artifacts stay at `unknown`/`partial`
-   and must not support strengthened claims.
+   and must not support strengthened claims — this is **enforced**: the
+   claim-promotion gate blocks a promoted claim citing any adopted artifact not
+   yet marked `validated` (or `waived`) in `existing_results_inventory.md`.
 
 ## Output Format
 
