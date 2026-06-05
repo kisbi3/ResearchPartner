@@ -129,7 +129,7 @@ Cross-referential edges (`evolved_from`, `reproduces`, `cites_paper`, `supports`
 
 ## CI Enforcement Gate
 
-`.github/workflows/harness-checks.yml` runs deterministic repo-state checker commands on `push` and `pull_request` across `ubuntu-latest` and `windows-latest`.
+`.github/workflows/harness-checks.yml` runs deterministic repo-state checker commands on `push` and `pull_request` across `ubuntu-latest` and `windows-latest`. CI does not replace live Claude Code hook firing — the hooks still fire in the live runtime; CI only catches repo-state drift.
 
 - **Workflow**: `.github/workflows/harness-checks.yml`
 - **Commands**: `python -m pytest tests -q`; `python scripts/check_harness_manifest.py`; `python scripts/check_spawn_contracts.py`; `python scripts/check_contract_sync.py`; `python scripts/evaluate_harness.py --fail-on-partial`.
