@@ -69,12 +69,13 @@ task-intake -> professor-interview -> literature-review-planning -> model-specif
 4. baseline strategy를 정하고, seed task를 설계하고, baseline을 검증한 뒤 해석을 바꿀 수 있는 가장 작은 iteration을 실행합니다.
 5. evidence를 기록하고 `/sync-workflow`를 실행한 다음, claim promotion gate를 통해서만 claim을 승격합니다.
 
-시나리오 B, 기존 프로젝트:
+시나리오 B, 기존 프로젝트 (brownfield onboarding):
 
 1. `python scripts\audit_existing_project.py <project-root>`로 scripts, figures, outputs, validation gaps를 inventory합니다.
-2. 기존 파일을 보존하면서 하네스를 초기화합니다.
-3. `/sync-workflow`로 artifact에서 live state를 다시 구성합니다.
-4. 오래된 figure나 manuscript 문구를 강화하기 전에 validation, provenance, lineage, claim check를 실행합니다.
+2. 기존 파일을 보존하면서 하네스를 초기화하고, `docs/adoption/*` inventory(intake, results inventory, retrofit plan)를 채웁니다.
+3. PI가 `docs/gates/adoption_decision.md`에 서명하여 기존 모델을 수용하고 기존 결과 하나를 reproduction baseline으로 선택합니다. 이렇게 하면 프로젝트가 adoption 모드로 들어가, model 및 baseline-strategy 게이트가 satisfied-by-adoption 처리됩니다 — 따라서 첫 retrofit을 처음부터 새 model spec을 작성하지 않고 진행할 수 있습니다. 단, baseline 게이트는 면제되지 않으며, 선택한 결과를 실제로 재현해야만 그에 대한 claim이 검증됩니다.
+4. `/sync-workflow`로 artifact에서 live state를 다시 구성합니다.
+5. 오래된 figure나 manuscript 문구를 강화하기 전에 validation, provenance, lineage, claim check를 실행합니다.
 
 선택적 도메인 워크스페이스는 marker가 있는 프로젝트 하나 안에 reproduction, thread, subproblem, integration용 `domains/<name>/` 영역을 둡니다. Step 1에서는 project-level gate, claim check, lineage check, provenance check 동작을 바꾸지 않으며, `domains/`가 없는 프로젝트는 계속 프로젝트 루트가 기본 domain으로 resolve됩니다.
 

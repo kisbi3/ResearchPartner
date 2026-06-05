@@ -69,12 +69,13 @@ Scenario A, new model or simulation:
 4. Choose baseline strategy, design seed tasks, validate the baseline, then execute the smallest iteration that can change interpretation.
 5. Record evidence, run `/sync-workflow`, and promote claims only through the claim-promotion gates.
 
-Scenario B, existing project:
+Scenario B, existing project (brownfield onboarding):
 
 1. Run `python scripts\audit_existing_project.py <project-root>` to inventory scripts, figures, outputs, and validation gaps.
-2. Initialize the harness in place, preserving project files.
-3. Use `/sync-workflow` to rebuild live state from artifacts.
-4. Use validation, provenance, lineage, and claim checks before strengthening old figures or manuscript text.
+2. Initialize the harness in place, preserving project files, and fill the `docs/adoption/*` inventory (intake, results inventory, retrofit plan).
+3. The PI signs `docs/gates/adoption_decision.md`, accepting the existing model and choosing one existing result as the reproduction baseline. This puts the project in adoption mode: the model and baseline-strategy gates become satisfied-by-adoption, so the first retrofit can run without authoring a from-scratch model spec. The baseline gate is not waived — the chosen result must actually be reproduced before any claim on it is validated.
+4. Use `/sync-workflow` to rebuild live state from artifacts.
+5. Use validation, provenance, lineage, and claim checks before strengthening old figures or manuscript text.
 
 Optional domain workspaces let one marked project carry named `domains/<name>/` areas for a reproduction, thread, subproblem, or integration workspace. Step 1 keeps all project-level gates, claim checks, lineage checks, and provenance checks unchanged; a project without `domains/` still resolves to the project root as its default domain.
 

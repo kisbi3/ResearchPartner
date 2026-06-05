@@ -117,6 +117,17 @@ def seed_decision(project: Path) -> Path:
     return gates_dir(project) / "seed_decision.md"
 
 
+def adoption_decision(project: Path) -> Path:
+    """Brownfield onboarding brake — PI accepts the existing model + baseline.
+
+    Present only when the harness is attached to research already in progress.
+    A signed ``## Decision`` here puts the project in adoption mode, which makes
+    the Model and Baseline-strategy gates satisfied-by-adoption (see
+    scripts/check_adoption_recorded.py).
+    """
+    return gates_dir(project) / "adoption_decision.md"
+
+
 # ── Process completion markers  (docs/process/) ───────────────────────────────
 
 def execution_complete(project: Path) -> Path:

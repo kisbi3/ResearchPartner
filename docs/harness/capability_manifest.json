@@ -53,6 +53,16 @@
       "workflow_gate_keys": ["baseline"]
     },
     {
+      "id": "adoption-gate",
+      "title": "Adoption Decision Gate",
+      "kind": "gate",
+      "enforcement": "hard",
+      "scripts": ["scripts/check_adoption_recorded.py"],
+      "docs": ["skills/existing-research-onboarding/SKILL.md", "docs/run_templates/adoption_decision_template.md"],
+      "artifact_paths": ["docs/gates/adoption_decision.md"],
+      "workflow_gate_keys": []
+    },
+    {
       "id": "baseline-validation-gate",
       "title": "Baseline Validation Gate",
       "kind": "gate",

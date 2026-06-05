@@ -328,8 +328,16 @@ SCENARIOS = [
             "docs/adoption/existing_results_inventory.md",
             "docs/adoption/retrofit_validation_plan.md",
             "docs/adoption/adoption_log.md",
+            "docs/adoption/onboarding_gate_design_proposal.md",
+            "docs/run_templates/adoption_decision_template.md",
         ),
-        rule_terms=("existing research", "inventory", "retrofit"),
+        rule_terms=(
+            "existing research",
+            "inventory",
+            "retrofit",
+            "adoption decision",
+            "satisfied-by-adoption",
+        ),
     ),
     Scenario(
         name="manuscript_overclaim",

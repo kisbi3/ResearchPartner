@@ -56,6 +56,30 @@ Choose one narrow target:
 
 Avoid whole-project rewrites as the first step.
 
+## Adoption Gate (how onboarding satisfies the gate chain)
+
+The harness gate chain is greenfield-shaped — it normally expects a freshly
+authored model spec and baseline strategy. An existing project already has both,
+so onboarding uses the **adoption decision gate** instead of re-authoring them:
+
+1. **Inventory first.** Run `python scripts/audit_existing_project.py <root>` and
+   fill `docs/adoption/existing_project_intake.md`,
+   `existing_results_inventory.md`, and `retrofit_validation_plan.md`. This is the
+   lab's proposal — do not interpret or rerun yet.
+2. **PI signs `docs/gates/adoption_decision.md`** (`## Decision`), recording the
+   accepted existing model, the existing result chosen as the reproduction
+   baseline, the first retrofit target, and a status for every adopted artifact.
+   This file is write-blocked for agents — only the PI signs it (the brake).
+3. A signed decision puts the project in **adoption mode**: the Model and
+   Baseline-strategy gates become **satisfied-by-adoption**, so the first
+   retrofit (e.g. a graduate-student reproducing the chosen figure) may run
+   without a from-scratch model spec.
+4. The **Baseline gate is NOT waived.** The chosen result must actually be
+   reproduced and recorded in `docs/gates/baseline_registry.md` (route the first
+   retrofit through baseline-strategy / baseline-validation) before any claim on
+   it is validated. Adopted-but-unreproduced artifacts stay at `unknown`/`partial`
+   and must not support strengthened claims.
+
 ## Output Format
 
 ### Existing State

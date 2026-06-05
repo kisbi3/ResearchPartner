@@ -73,6 +73,7 @@ _HUMAN_OWNED_DECISIONS = frozenset({
     "docs/gates/interview_decision.md",
     "docs/gates/model_decision.md",
     "docs/gates/seed_decision.md",
+    "docs/gates/adoption_decision.md",
     "docs/plan/model_skip_waiver.md",
     "docs/literature/literature_skip_waiver.md",
 })

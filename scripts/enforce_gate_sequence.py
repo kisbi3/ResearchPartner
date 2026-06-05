@@ -84,6 +84,28 @@ GATE_ARTIFACTS: dict[str, str] = {
 # waived by RESEARCH_HARNESS_BYPASS_GATE_SEQUENCE — only quality/sequence gates are.
 HUMAN_GATES = {"orient", "interview", "model"}
 
+# Brownfield onboarding: when the PI signs docs/gates/adoption_decision.md the
+# project enters ADOPTION MODE (see scripts/check_adoption_recorded.py). The
+# existing model and the chosen reproduction baseline are accepted by that signed
+# decision, so these two gates are satisfied-by-adoption — the harness does not
+# force a fresh greenfield model spec / baseline strategy onto already-existing
+# work. The `baseline` gate (a real reproduction record) and the human
+# orient/interview gates are NOT in this set: a claim is still validated only
+# after the chosen result is actually reproduced.
+ADOPTION_SATISFIED_GATES = {"model", "baseline_strategy"}
+
+
+def _adoption_mode_active(project: Path) -> bool:
+    """True iff a signed adoption_decision.md puts the project in adoption mode."""
+    try:
+        mod = importlib.import_module("check_adoption_recorded")
+    except ImportError:
+        return False
+    try:
+        return mod.is_adoption_mode(project)
+    except Exception:
+        return False
+
 
 # ── Skill → prerequisite gate mapping ────────────────────────────────────────
 # Keys are logical skill names (for readability only).
@@ -317,9 +339,15 @@ def main() -> int:
     except project_root_mod.ProjectRootNotFoundError:
         return 0  # Not inside a research project — don't block
 
+    # Brownfield onboarding: a signed adoption_decision.md accepts the existing
+    # model + reproduction baseline, so those two gates are satisfied-by-adoption.
+    adoption = _adoption_mode_active(project)
+
     # ── Check prerequisites in order ──────────────────────────────────────────
     failures: list[tuple[str, list[str]]] = []
     for step in required_gates:
+        if adoption and step in ADOPTION_SATISFIED_GATES:
+            continue  # satisfied-by-adoption (existing model/baseline PI-accepted)
         if bypass and step not in HUMAN_GATES:
             continue  # quality/sequence gate waived by the bypass env var
         code, messages = run_gate_check(project, step)

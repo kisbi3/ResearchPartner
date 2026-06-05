@@ -52,6 +52,8 @@ ORIENT_DECISION_TEMPLATE = ROOT / "docs" / "run_templates" / "orient_decision_te
 INTERVIEW_DECISION_TEMPLATE = ROOT / "docs" / "run_templates" / "interview_decision_template.md"
 MODEL_DECISION_TEMPLATE = ROOT / "docs" / "run_templates" / "model_decision_template.md"
 SEED_DECISION_TEMPLATE = ROOT / "docs" / "run_templates" / "seed_decision_template.md"
+# Brownfield onboarding brake (present but blank on greenfield projects).
+ADOPTION_DECISION_TEMPLATE = ROOT / "docs" / "run_templates" / "adoption_decision_template.md"
 BASELINE_STRATEGY_TEMPLATE = (
     ROOT / "docs" / "run_templates" / "baseline_strategy_template.md"
 )
@@ -257,6 +259,7 @@ def scaffold_project(project: Path | str = ".") -> Path:
     _copy_if_absent(INTERVIEW_DECISION_TEMPLATE, gates / "interview_decision.md")
     _copy_if_absent(MODEL_DECISION_TEMPLATE, gates / "model_decision.md")
     _copy_if_absent(SEED_DECISION_TEMPLATE, gates / "seed_decision.md")
+    _copy_if_absent(ADOPTION_DECISION_TEMPLATE, gates / "adoption_decision.md")
 
     # ── Copy template files → docs/plan/ ─────────────────────────────────────
     plan = layout.plan_dir(project)
