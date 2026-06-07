@@ -4,7 +4,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-SCRIPT = ROOT / "scripts" / "evaluate_harness.py"
+SCRIPT = ROOT / ".harness" / "scripts" / "evaluate_harness.py"
 
 
 def load_evaluator():
@@ -48,7 +48,7 @@ def test_orchestration_scenarios_require_run_templates():
         in scenarios["completion_conference_reporting"].docs
     )
     assert (
-        "scripts/init_research_project.py"
+        ".harness/scripts/init_research_project.py"
         in scenarios["live_workflow_diagram_agent"].rule_terms
     )
 
@@ -187,11 +187,11 @@ def test_literature_replanning_loop_scenario_is_evaluated():
     assert "docs/literature/paper_review_index_template.md" in scenario.docs
     assert "docs/literature/literature_review_template.md" in scenario.docs
     assert "docs/literature/replanning_memo_template.md" in scenario.docs
-    assert "scripts/scaffold_paper_review.py" in scenario.docs
-    assert "scripts/extract_paper_text.py" in scenario.docs
-    assert "scripts/draft_paper_review.py" in scenario.docs
-    assert "scripts/process_paper_for_review.py" in scenario.docs
-    assert "scripts/check_paper_review_quality.py" in scenario.docs
+    assert ".harness/scripts/scaffold_paper_review.py" in scenario.docs
+    assert ".harness/scripts/extract_paper_text.py" in scenario.docs
+    assert ".harness/scripts/draft_paper_review.py" in scenario.docs
+    assert ".harness/scripts/process_paper_for_review.py" in scenario.docs
+    assert ".harness/scripts/check_paper_review_quality.py" in scenario.docs
     assert "Literature Replanning Hook" in scenario.rule_terms
     assert "researcher-provided PDFs" in scenario.rule_terms
     assert "novelty map" in scenario.rule_terms
@@ -212,8 +212,8 @@ def test_computation_checkpoint_scenario_is_evaluated():
     assert "computation_checkpoint_resumption" in scenarios
     scenario = scenarios["computation_checkpoint_resumption"]
     assert "skills/graduate-student/SKILL.md" in scenario.skills
-    assert "scripts/run_with_checkpoint.py" in scenario.docs
-    assert "scripts/check_computation_resumable.py" in scenario.docs
+    assert ".harness/scripts/run_with_checkpoint.py" in scenario.docs
+    assert ".harness/scripts/check_computation_resumable.py" in scenario.docs
     assert "Computation Checkpoint Hook" in scenario.rule_terms
     assert "CheckpointManager" in scenario.rule_terms
     assert "check_computation_resumable.py" in scenario.rule_terms
@@ -229,7 +229,7 @@ def test_capability_manifest_scenario_is_evaluated():
     assert "capability_manifest_and_hook_registry" in scenarios
     scenario = scenarios["capability_manifest_and_hook_registry"]
     assert "docs/harness/capability_manifest.json" in scenario.docs
-    assert "scripts/check_harness_manifest.py" in scenario.docs
+    assert ".harness/scripts/check_harness_manifest.py" in scenario.docs
     assert "Capability Manifest Hook" in scenario.rule_terms
     assert "hook registry" in scenario.rule_terms
     assert "workflow_gate_keys" in scenario.rule_terms
@@ -262,7 +262,7 @@ def test_spawn_contracts_scenario_is_evaluated():
     assert "spawn_contracts_and_agent_definitions" in scenarios
     scenario = scenarios["spawn_contracts_and_agent_definitions"]
     assert "docs/harness/spawn_contracts.json" in scenario.docs
-    assert "scripts/check_spawn_contracts.py" in scenario.docs
+    assert ".harness/scripts/check_spawn_contracts.py" in scenario.docs
     assert "Spawn Contract Consistency Gate" in scenario.rule_terms
     assert "single-spawner model" in scenario.rule_terms
     assert "subagent_type" in scenario.rule_terms
@@ -363,9 +363,9 @@ def test_ci_enforcement_uses_fail_on_partial_workflow_gate():
         encoding="utf-8"
     )
 
-    assert "python scripts/evaluate_harness.py --fail-on-partial" in workflow
-    assert "python scripts/check_domain_manifest.py" in workflow
-    assert "python scripts/check_harness_version.py" in workflow
+    assert "python .harness/scripts/evaluate_harness.py --fail-on-partial" in workflow
+    assert "python .harness/scripts/check_domain_manifest.py" in workflow
+    assert "python .harness/scripts/check_harness_version.py" in workflow
 
 
 def test_ci_enforcement_checker_accepts_fail_on_partial_workflow():

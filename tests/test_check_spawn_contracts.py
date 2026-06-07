@@ -9,7 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def load_checker():
-    module_path = ROOT / "scripts" / "check_spawn_contracts.py"
+    module_path = ROOT / ".harness" / "scripts" / "check_spawn_contracts.py"
     spec = importlib.util.spec_from_file_location("check_spawn_contracts", module_path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)

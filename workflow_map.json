@@ -16,7 +16,7 @@
             {"label": "Existing research onboarding", "path": "skills/existing-research-onboarding/SKILL.md"},
             {"label": "Project intake", "path": "docs/adoption/existing_project_intake.md"},
             {"label": "Adoption log", "path": "docs/adoption/adoption_log.md"},
-            {"label": "Audit existing project script", "path": "scripts/audit_existing_project.py"}
+            {"label": "Audit existing project script", "path": ".harness/scripts/audit_existing_project.py"}
           ],
           "checks": [
             "Do not reorganize old artifacts before inventory.",
@@ -34,7 +34,7 @@
           "responsible": [
             {"label": "Task intake", "path": "skills/task-intake/SKILL.md"},
             {"label": "Orient note template", "path": "docs/run_templates/orient_note_template.md"},
-            {"label": "Orient gate checker", "path": "scripts/check_orient_recorded.py"}
+            {"label": "Orient gate checker", "path": ".harness/scripts/check_orient_recorded.py"}
           ],
           "checks": [
             "The run has an orient note before Seed, Execute, or Evaluate work starts.",
@@ -52,7 +52,7 @@
           "responsible": [
             {"label": "Professor interview", "path": "skills/professor-interview/SKILL.md"},
             {"label": "Interview notes template", "path": "docs/run_templates/interview_notes_template.md"},
-            {"label": "Interview gate checker", "path": "scripts/check_interview_recorded.py"}
+            {"label": "Interview gate checker", "path": ".harness/scripts/check_interview_recorded.py"}
           ],
           "checks": [
             "Research object, observable, and review checkpoint are not ambiguous.",
@@ -70,7 +70,7 @@
           "responsible": [
             {"label": "Literature review planning", "path": "skills/literature-review-planning/SKILL.md"},
             {"label": "Literature review plan template", "path": "docs/literature/literature_review_template.md"},
-            {"label": "Literature gate checker", "path": "scripts/check_literature_reviewed.py"}
+            {"label": "Literature gate checker", "path": ".harness/scripts/check_literature_reviewed.py"}
           ],
           "checks": [
             "Prior-work, metric, or reproduction choices are recorded before model specification relies on them.",

@@ -5,11 +5,11 @@ description: Load this skill when you are spawned as a Cache-Log Auditor by the 
 
 # Cache-Log Auditor Skill
 
-You have been spawned by the Lead Agent to verify that a research script produced sufficient runtime artifacts. Your job is mechanical: run `scripts/audit_run_outputs.py`, read its verdict, and report back.
+You have been spawned by the Lead Agent to verify that a research script produced sufficient runtime artifacts. Your job is mechanical: run `.harness/scripts/audit_run_outputs.py`, read its verdict, and report back.
 
 ## What You Own
 
-- Running `scripts/audit_run_outputs.py` with the parameters in your spawn prompt.
+- Running `.harness/scripts/audit_run_outputs.py` with the parameters in your spawn prompt.
 - Reporting the structured PASS / WARN / FAIL verdict back to the Lead Agent.
 - Writing the audit result to the designated evidence file.
 
@@ -25,13 +25,13 @@ You have been spawned by the Lead Agent to verify that a research script produce
 ### Step 1: Run the auditor script
 
 ```bash
-python scripts/audit_run_outputs.py <run_dir> <script_stem> \
+python .harness/scripts/audit_run_outputs.py <run_dir> <script_stem> \
     [--log <log_path>] \
     [--expect-cache <rel_path> ...] \
     [--min-numeric <N>]
 ```
 
-The script reuses `scripts/_layout.py` for all path resolution. Pass the log path from the Scientific Validator's report when available — this avoids ambiguity when multiple runs of the same script exist.
+The script reuses `.harness/scripts/_layout.py` for all path resolution. Pass the log path from the Scientific Validator's report when available — this avoids ambiguity when multiple runs of the same script exist.
 
 ### Step 2: Read the output
 
@@ -45,7 +45,7 @@ Append to `docs/gates/validation_log.md`:
 ## Cache-Log Audit — <YYYY-MM-DD-HHMM>
 
 - **Script stem**: `<stem>`
-- **Command**: `python scripts/audit_run_outputs.py <run_dir> <stem> [options]`
+- **Command**: `python .harness/scripts/audit_run_outputs.py <run_dir> <stem> [options]`
 - **Log checked**: `<path or NOT FOUND>`
 - **Error file**: `<path or NOT FOUND>`
 - **Cache files checked**: `<list or N/A>`

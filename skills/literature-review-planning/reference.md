@@ -4,17 +4,17 @@ This is the reference companion to `skills/literature-review-planning/SKILL.md`.
 
 ## Literature Helper Scripts
 
-Use `scripts/scaffold_paper_review.py` to initialize a detailed review note and append it to `literature/index.md` when a paper enters the review set.
+Use `.harness/scripts/scaffold_paper_review.py` to initialize a detailed review note and append it to `literature/index.md` when a paper enters the review set.
 
-Use `scripts/extract_paper_text.py` to create an extracted-text artifact and link it from the review note. PDF text extraction is a reading aid, not evidence by itself; verify equations, figures, captions, tables, and claims against the PDF.
+Use `.harness/scripts/extract_paper_text.py` to create an extracted-text artifact and link it from the review note. PDF text extraction is a reading aid, not evidence by itself; verify equations, figures, captions, tables, and claims against the PDF.
 
-Use `scripts/draft_paper_review.py` only to insert a `Machine-Assisted Draft From Extracted Text` section with provisional candidates. This does not establish novelty or validate claims; the Lead Agent must require human/PDF verification before any candidate text affects the replanning memo.
+Use `.harness/scripts/draft_paper_review.py` only to insert a `Machine-Assisted Draft From Extracted Text` section with provisional candidates. This does not establish novelty or validate claims; the Lead Agent must require human/PDF verification before any candidate text affects the replanning memo.
 
-Use `scripts/process_paper_for_review.py` when the PDF is already inside the project and the researcher wants the standard scaffold, extracted-text artifact, and provisional draft in one step.
+Use `.harness/scripts/process_paper_for_review.py` when the PDF is already inside the project and the researcher wants the standard scaffold, extracted-text artifact, and provisional draft in one step.
 
 Maintain clickable links across the literature graph. The paper index should link to PDFs and review notes, each review note should link to the paper index and replanning memo, and extracted text artifacts should link back to the source PDF and review note. Keep project-relative code paths alongside Markdown links so future agents can inspect artifacts without guessing locations.
 
-Run `scripts/check_paper_review_quality.py` on important review notes before using them to update `docs/literature/replanning_memo.md`. If the check fails, either complete the review or record an explicit waiver and keep novelty/reproduction claims provisional.
+Run `.harness/scripts/check_paper_review_quality.py` on important review notes before using them to update `docs/literature/replanning_memo.md`. If the check fails, either complete the review or record an explicit waiver and keep novelty/reproduction claims provisional.
 
 ## Review Agent Rules
 

@@ -15,7 +15,7 @@ Multiple graduate students may be running in parallel on sibling tasks. Stay str
 
 - **Proposing the approach.** The professor gives you the question and the criteria; you decide *how* — the algorithm, the numerical method, parameter ranges, data structures. If you see a better route than the spawn prompt implies, take it and say why in your report (or flag it first if it changes scope).
 - **Writing the code** under `src/` — you implement it yourself (you have Write/Edit/Bash).
-- **Running it** at seed/stage-1 scale via `scripts/run_with_capture.py` to confirm it executes and to produce evidence.
+- **Running it** at seed/stage-1 scale via `.harness/scripts/run_with_capture.py` to confirm it executes and to produce evidence.
 - **Interpreting your results — as hypotheses.** Read your own output and say what you think it means (e.g. "R⁺=0.82 vs R⁻=0.15 — looks like the visibility graph separates the two regimes; worth checking the degree distribution"). Mark it explicitly as a hypothesis/observation, never as a settled conclusion.
 - **Noticing and raising.** Surprises, anomalies, "I expected X but got Y", results that flip between runs — treat these as scientific findings to surface, not nuisances to smooth over.
 - **Discussion points for the professor.** Open questions, alternative explanations, suggested next experiments. The professor discusses the results *with* you — arrive with thoughts, not just numbers.
@@ -32,7 +32,7 @@ Multiple graduate students may be running in parallel on sibling tasks. Stay str
 
 ## Spawn Log (append BEFORE writing code)
 
-The cross-tier hook `scripts/check_src_write_authorization.py` blocks any `src/*.py`/`.ipynb` write that lacks a matching spawn-log row. **Append your row to `docs/gates/agent_spawn_log.md` before your first Write/Edit** (create the file with the header if absent):
+The cross-tier hook `.harness/scripts/check_src_write_authorization.py` blocks any `src/*.py`/`.ipynb` write that lacks a matching spawn-log row. **Append your row to `docs/gates/agent_spawn_log.md` before your first Write/Edit** (create the file with the header if absent):
 
 ```
 | Date | Role | File | Task | Status |
@@ -56,11 +56,11 @@ Use `complete` on success or `failed: <reason>` on failure.
   delta_R = 0.669
   elapsed_s = 42.1
   ```
-- Write expensive intermediates to `cache/` (use `scripts/_layout.py → cache_dir()`); print the cache path.
-- For loops expected > 2 min, use `CheckpointManager` from `scripts/run_with_checkpoint.py` (`ckpt.load()` / `ckpt.maybe_save(state)` / `ckpt.clear()`).
+- Write expensive intermediates to `cache/` (use `.harness/scripts/_layout.py → cache_dir()`); print the cache path.
+- For loops expected > 2 min, use `CheckpointManager` from `.harness/scripts/run_with_checkpoint.py` (`ckpt.load()` / `ckpt.maybe_save(state)` / `ckpt.clear()`).
 
 ### Reuse & fidelity
-- Before writing a utility, check existing `src/` scripts, `scripts/_layout.py`, and `scripts/run_with_capture.py`; import rather than duplicate. Shared helpers go in `src/utils.py`.
+- Before writing a utility, check existing `src/` scripts, `.harness/scripts/_layout.py`, and `.harness/scripts/run_with_capture.py`; import rather than duplicate. Shared helpers go in `src/utils.py`.
 - Implement the exact equations given; comment each with its source. If the spec is ambiguous, apply the most conservative interpretation and flag it — do not guess silently.
 
 ## Execution Protocol
@@ -69,7 +69,7 @@ Use `complete` on success or `failed: <reason>` on failure.
 2. **Decide your approach**: pick the method and note it (a sentence in your report, or a comment at the top of the script). This is your scientific contribution, not boilerplate.
 3. **Write the code** (append the spawn-log row first).
 4. **Self-check** against the Code Rules above — make the reviewers' job easy.
-5. **Seed run**: `python scripts/run_with_capture.py --quiet <project_dir> src/<script>.py` at small scale. Read the log; capture the observable values exactly.
+5. **Seed run**: `python .harness/scripts/run_with_capture.py --quiet <project_dir> src/<script>.py` at small scale. Read the log; capture the observable values exactly.
 6. **Interpret + record evidence** (format below) — include your hypotheses.
 7. **Report back to the professor.**
 
@@ -86,7 +86,7 @@ Write to the designated evidence file:
 
 - **Code**: `src/<script>.py` (graduate-student)
 - **Approach**: (one line — the method you chose and why)
-- **Seed run command**: `python scripts/run_with_capture.py --quiet <project_dir> src/<script>.py`
+- **Seed run command**: `python .harness/scripts/run_with_capture.py --quiet <project_dir> src/<script>.py`
 - **Observed values**: (key numbers, exact — raw, no verdict)
 - **Pass criterion**: (what was required — for the validator to apply, not you)
 - **Hypotheses**: (what you think the result means — explicitly tentative)

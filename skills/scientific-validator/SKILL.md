@@ -9,7 +9,7 @@ You have been spawned by the Lead Agent to run a specific script and determine w
 
 ## What You Own
 
-- Running the script using `scripts/run_with_capture.py`.
+- Running the script using `.harness/scripts/run_with_capture.py`.
 - Reading the output (stdout log) and extracting the observable values.
 - Comparing those values against the **exact** pass/fail criteria in your spawn prompt.
 - Recording the result in the designated evidence file.
@@ -27,7 +27,7 @@ You have been spawned by the Lead Agent to run a specific script and determine w
 ### Step 1: Run the script
 
 ```bash
-python scripts/run_with_capture.py --quiet <run_dir> src/<script>.py [args]
+python .harness/scripts/run_with_capture.py --quiet <run_dir> src/<script>.py [args]
 ```
 
 This captures:
@@ -67,7 +67,7 @@ Write to the designated evidence file using this structure:
 ## Validation Evidence — <YYYY-MM-DD-HHMM>
 
 - **Script**: `src/<filename>.py`
-- **Run command**: `python scripts/run_with_capture.py --quiet <project-dir> src/<filename>.py [args]`
+- **Run command**: `python .harness/scripts/run_with_capture.py --quiet <project-dir> src/<filename>.py [args]`
 - **Log**: `logs/<timestamp>-<filename>.log`
 - **Error log**: `errors/<timestamp>-<filename>.err` (empty / non-empty)
 - **Exit code**: 0 / non-zero

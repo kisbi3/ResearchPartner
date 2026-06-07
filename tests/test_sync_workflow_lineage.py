@@ -1,4 +1,4 @@
-"""Unit tests for lineage-specific behavior in scripts/sync_workflow.py.
+"""Unit tests for lineage-specific behavior in .harness/scripts/sync_workflow.py.
 
 Covers:
   - find_broken_edges(): broken graph_links.to and dangling edges
@@ -18,7 +18,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def _load_sync():
     spec = importlib.util.spec_from_file_location(
-        "sync_workflow", ROOT / "scripts" / "sync_workflow.py"
+        "sync_workflow", ROOT / ".harness" / "scripts" / "sync_workflow.py"
     )
     module = importlib.util.module_from_spec(spec)
     sys.modules["sync_workflow"] = module

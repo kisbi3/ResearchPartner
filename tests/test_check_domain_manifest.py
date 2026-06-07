@@ -19,11 +19,11 @@ def _load_module(name: str, rel_path: str):
 
 
 def _load_scaffold_domain():
-    return _load_module("scaffold_domain", "scripts/scaffold_domain.py")
+    return _load_module("scaffold_domain", ".harness/scripts/scaffold_domain.py")
 
 
 def _load_check_domain_manifest():
-    return _load_module("check_domain_manifest", "scripts/check_domain_manifest.py")
+    return _load_module("check_domain_manifest", ".harness/scripts/check_domain_manifest.py")
 
 
 def _mark_project(project: Path) -> None:

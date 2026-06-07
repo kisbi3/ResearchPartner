@@ -6,7 +6,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-SCRIPT = ROOT / "scripts" / "generate_workflow_map.py"
+SCRIPT = ROOT / ".harness" / "scripts" / "generate_workflow_map.py"
 
 
 def load_generator():
@@ -109,7 +109,7 @@ def test_live_map_uses_run_root_for_current_process_layout(tmp_path, monkeypatch
     assert actions[0]["status"] == "Needs researcher decision"
     assert actions[0]["linked_document"]["label"] == "Orient Note"
     assert actions[0]["linked_document"]["status"] == "Needs researcher decision"
-    assert actions[0]["suggested_command"] == "python scripts/check_orient_recorded.py --project <project-dir>"
+    assert actions[0]["suggested_command"] == "python .harness/scripts/check_orient_recorded.py --project <project-dir>"
     assert actions[0]["why"] == "Confirm the run has a recorded task classification and first researcher-facing question."
     assert {
         action["linked_document"]["label"]: action["status"]
@@ -227,7 +227,7 @@ def test_static_research_workflow_includes_interview_gate():
     assert nodes["interview_gate"]["title"] == "3. Interview Gate"
     assert nodes["interview_gate"]["edges"] == ["literature_gate"]
     assert any(
-        item["path"] == "scripts/check_interview_recorded.py"
+        item["path"] == ".harness/scripts/check_interview_recorded.py"
         for item in nodes["interview_gate"]["responsible"]
     )
 

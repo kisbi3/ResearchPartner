@@ -19,7 +19,7 @@ Do NOT invoke after every single file edit. The skill is on-demand by design —
 ## How to Invoke
 
 ```bash
-python scripts/sync_workflow.py [--project <project-dir>]
+python .harness/scripts/sync_workflow.py [--project <project-dir>]
 ```
 
 Defaults: walks up from cwd to find the `.research-harness` marker. Pass `--project <path>` to target a specific project.
@@ -156,7 +156,7 @@ When `docs/gates/adoption_decision.md` is PI-signed (the project is in **adoptio
 
 ## Companion: the Agent-spawn hook
 
-`scripts/workflow_hooks.py` (registered on `PreToolUse:Agent` / `PostToolUse:Agent`) maintains the *In-Flight Tasks* table in real time:
+`.harness/scripts/workflow_hooks.py` (registered on `PreToolUse:Agent` / `PostToolUse:Agent`) maintains the *In-Flight Tasks* table in real time:
 
 - On `Agent()` spawn: append a row with status `spawned`, deterministic task id derived from the tool input.
 - On `Agent()` completion or error: mark the row `acknowledged`.

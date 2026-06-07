@@ -10,7 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def load_installer():
-    module_path = ROOT / "scripts" / "install.py"
+    module_path = ROOT / ".harness" / "scripts" / "install.py"
     spec = importlib.util.spec_from_file_location("install_harness", module_path)
     module = importlib.util.module_from_spec(spec)
     assert spec.loader is not None
@@ -19,7 +19,7 @@ def load_installer():
 
 
 def load_updater():
-    module_path = ROOT / "scripts" / "update_harness.py"
+    module_path = ROOT / ".harness" / "scripts" / "update_harness.py"
     spec = importlib.util.spec_from_file_location("update_harness", module_path)
     module = importlib.util.module_from_spec(spec)
     assert spec.loader is not None
@@ -33,7 +33,7 @@ def sha256(path: Path) -> str:
 
 def make_source_tree(root: Path) -> None:
     for directory in [
-        "scripts",
+        ".harness/scripts",
         "skills/example",
         "docs/harness",
         "docs/run_templates",
@@ -43,7 +43,7 @@ def make_source_tree(root: Path) -> None:
         (root / directory).mkdir(parents=True, exist_ok=True)
     for file_name in ["AGENTS.md", "GEMINI.md", "PHYSICS.md"]:
         (root / file_name).write_text(f"{file_name} v1\n", encoding="utf-8")
-    (root / "scripts/tool.py").write_text("print('tool v1')\n", encoding="utf-8")
+    (root / ".harness/scripts/tool.py").write_text("print('tool v1')\n", encoding="utf-8")
     (root / "skills/example/SKILL.md").write_text("skill v1\n", encoding="utf-8")
     (root / ".claude/agents/implementation-agent.md").write_text("agent v1\n", encoding="utf-8")
     (root / "docs/run_templates/template.md").write_text("template v1\n", encoding="utf-8")
@@ -55,7 +55,7 @@ def make_source_tree(root: Path) -> None:
             {
                 "schema_version": 1,
                 "owned": [
-                    "scripts/**/*.py",
+                    ".harness/scripts/**/*.py",
                     "skills/**/*",
                     ".claude/agents/**/*",
                     "AGENTS.md",
@@ -149,8 +149,8 @@ def test_apply_upgrade_hooks_merges_project_hook_settings(tmp_path, capsys):
     make_source_tree(source)
     install_project(source, project)
     (project / ".claude").mkdir(exist_ok=True)
-    (project / "scripts" / "init_research_project.py").write_text(
-        (ROOT / "scripts" / "init_research_project.py").read_text(encoding="utf-8"),
+    (project / ".harness" / "scripts" / "init_research_project.py").write_text(
+        (ROOT / ".harness" / "scripts" / "init_research_project.py").read_text(encoding="utf-8"),
         encoding="utf-8",
     )
     settings = project / ".claude" / "settings.local.json"
@@ -287,8 +287,8 @@ def test_adopt_stamps_legacy_project_without_updating_files(tmp_path, capsys):
     make_source_tree(source)
     project.mkdir()
     (project / "AGENTS.md").write_text("legacy local\n", encoding="utf-8")
-    (project / "scripts").mkdir()
-    (project / "scripts/tool.py").write_text("legacy tool\n", encoding="utf-8")
+    (project / ".harness" / "scripts").mkdir(parents=True)
+    (project / ".harness/scripts/tool.py").write_text("legacy tool\n", encoding="utf-8")
 
     assert updater.main(["--project", str(project), "--source", str(source), "--adopt"]) == 0
 
@@ -297,7 +297,7 @@ def test_adopt_stamps_legacy_project_without_updating_files(tmp_path, capsys):
     assert (project / "AGENTS.md").read_text(encoding="utf-8") == "legacy local\n"
     lock = read_lock(project)
     assert lock["files"]["AGENTS.md"] == sha256(project / "AGENTS.md")
-    assert lock["files"]["scripts/tool.py"] == sha256(project / "scripts/tool.py")
+    assert lock["files"][".harness/scripts/tool.py"] == sha256(project / ".harness/scripts/tool.py")
 
 
 def test_missing_lock_without_adopt_is_nonzero(tmp_path, capsys):

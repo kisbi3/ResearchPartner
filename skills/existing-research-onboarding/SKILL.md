@@ -62,7 +62,7 @@ The harness gate chain is greenfield-shaped — it normally expects a freshly
 authored model spec and baseline strategy. An existing project already has both,
 so onboarding uses the **adoption decision gate** instead of re-authoring them:
 
-1. **Inventory first.** Run `python scripts/audit_existing_project.py <root>
+1. **Inventory first.** Run `python .harness/scripts/audit_existing_project.py <root>
    --write-drafts`. It drafts the adoption inventory — one row per detected
    figure with a guessed generating script, input data, seed/RNG sites, and git
    recency — into `docs/adoption/*.draft.md`. **Correct the draft** (every field
@@ -79,7 +79,7 @@ so onboarding uses the **adoption decision gate** instead of re-authoring them:
    retrofit (e.g. a graduate-student reproducing the chosen figure) may run
    without a from-scratch model spec.
 4. **Bridge the chosen baseline into the baseline machinery.** Run
-   `python scripts/seed_adoption_baseline.py`. It reads the signed decision's
+   `python .harness/scripts/seed_adoption_baseline.py`. It reads the signed decision's
    `## Reproduction Baseline` and drafts a baseline-strategy *Variation* note
    (`docs/plan/baseline_strategy.md`) plus a `reproduction` row in
    `docs/gates/baseline_registry.md` with `Status=planned` — turning the chosen

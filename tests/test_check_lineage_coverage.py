@@ -1,4 +1,4 @@
-"""Unit tests for scripts/check_lineage_coverage.py.
+"""Unit tests for .harness/scripts/check_lineage_coverage.py.
 
 Coverage rules under test:
   1. claim node must carry outgoing supports/contradicts edge
@@ -37,7 +37,7 @@ def _write_live(run: Path, nodes: list[dict]) -> None:
 
 
 def _check(run: Path) -> list[dict]:
-    clc = load("check_lineage_coverage", ROOT / "scripts" / "check_lineage_coverage.py")
+    clc = load("check_lineage_coverage", ROOT / ".harness" / "scripts" / "check_lineage_coverage.py")
     return clc.check(run)
 
 

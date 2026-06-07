@@ -4,9 +4,9 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-EXTRACT_SCRIPT = ROOT / "scripts" / "extract_paper_text.py"
-SCAFFOLD_SCRIPT = ROOT / "scripts" / "scaffold_paper_review.py"
-INIT_SCRIPT = ROOT / "scripts" / "init_research_project.py"
+EXTRACT_SCRIPT = ROOT / ".harness" / "scripts" / "extract_paper_text.py"
+SCAFFOLD_SCRIPT = ROOT / ".harness" / "scripts" / "scaffold_paper_review.py"
+INIT_SCRIPT = ROOT / ".harness" / "scripts" / "init_research_project.py"
 
 
 def load_module(name: str, path: Path):

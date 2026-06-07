@@ -18,7 +18,7 @@ The dialogue must not end until both parties agree on the path and the specific 
 
 ## Prerequisites
 
-Confirm the Model Gate passes: `python scripts/check_model_specified.py --project <project-dir>`. If not, complete model-specification first.
+Confirm the Model Gate passes: `python .harness/scripts/check_model_specified.py --project <project-dir>`. If not, complete model-specification first.
 
 ## Dialogue Format
 
@@ -66,7 +66,7 @@ This step has no skip waiver. A baseline strategy decision is required before se
 
 Write the output to `docs/plan/baseline_strategy.md` at the project root using the template at `docs/run_templates/baseline_strategy_template.md`.
 
-The Baseline Strategy Gate (`python scripts/check_baseline_strategy.py --project <project-dir>`) reads this file and checks that:
+The Baseline Strategy Gate (`python .harness/scripts/check_baseline_strategy.py --project <project-dir>`) reads this file and checks that:
 
 1. `## Decision` is set to `variation` or `new model`
 2. The corresponding target section has non-placeholder content

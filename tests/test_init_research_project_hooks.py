@@ -9,7 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def load_init_module():
-    module_path = ROOT / "scripts" / "init_research_project.py"
+    module_path = ROOT / ".harness" / "scripts" / "init_research_project.py"
     spec = importlib.util.spec_from_file_location("init_research_project", module_path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
@@ -36,8 +36,8 @@ def test_init_project_writes_project_dir_based_hook_commands(tmp_path):
     settings = json.loads((project / ".claude" / "settings.local.json").read_text())
     commands = _hook_commands(settings)
     assert commands
-    assert all('$CLAUDE_PROJECT_DIR/scripts/' in command for command in commands)
-    assert not any(command.startswith("python scripts/") for command in commands)
+    assert all('$CLAUDE_PROJECT_DIR/.harness/scripts/' in command for command in commands)
+    assert not any(command.startswith("python .harness/scripts/") for command in commands)
 
 
 def test_scaffold_merges_hooks_into_existing_settings(tmp_path):

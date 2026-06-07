@@ -9,7 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def load_installer():
-    module_path = ROOT / "scripts" / "install.py"
+    module_path = ROOT / ".harness" / "scripts" / "install.py"
     spec = importlib.util.spec_from_file_location("install_harness", module_path)
     module = importlib.util.module_from_spec(spec)
     assert spec.loader is not None
@@ -18,7 +18,7 @@ def load_installer():
 
 
 def load_checker():
-    module_path = ROOT / "scripts" / "check_harness_version.py"
+    module_path = ROOT / ".harness" / "scripts" / "check_harness_version.py"
     spec = importlib.util.spec_from_file_location("check_harness_version", module_path)
     module = importlib.util.module_from_spec(spec)
     assert spec.loader is not None
@@ -27,11 +27,11 @@ def load_checker():
 
 
 def make_source_tree(root: Path) -> None:
-    for directory in ["scripts", "skills/example", "docs/harness", "docs/run_templates", ".claude/agents"]:
+    for directory in [".harness/scripts", "skills/example", "docs/harness", "docs/run_templates", ".claude/agents"]:
         (root / directory).mkdir(parents=True, exist_ok=True)
     for file_name in ["AGENTS.md", "GEMINI.md", "PHYSICS.md"]:
         (root / file_name).write_text(f"{file_name}\n", encoding="utf-8")
-    (root / "scripts/tool.py").write_text("print('tool')\n", encoding="utf-8")
+    (root / ".harness/scripts/tool.py").write_text("print('tool')\n", encoding="utf-8")
     (root / "skills/example/SKILL.md").write_text("skill\n", encoding="utf-8")
     (root / ".claude/agents/implementation-agent.md").write_text("agent\n", encoding="utf-8")
     (root / "docs/run_templates/template.md").write_text("template\n", encoding="utf-8")
@@ -42,7 +42,7 @@ def make_source_tree(root: Path) -> None:
             {
                 "schema_version": 1,
                 "owned": [
-                    "scripts/**/*.py",
+                    ".harness/scripts/**/*.py",
                     "skills/**/*",
                     ".claude/agents/**/*",
                     "AGENTS.md",

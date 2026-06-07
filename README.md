@@ -32,7 +32,7 @@ Prerequisites:
 Install into the current project root:
 
 ```powershell
-python -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/kisbi3/ResearchPartner/main/scripts/install.py').read())"
+python -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/kisbi3/ResearchPartner/main/.harness/scripts/install.py').read())"
 python scripts\init_research_project.py
 ```
 
@@ -118,11 +118,11 @@ Commands:
 
 | Need | Command | Purpose |
 |---|---|---|
-| Install harness | `python -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/kisbi3/ResearchPartner/main/scripts/install.py').read())"` | Install managed harness files into the current project |
+| Install harness | `python -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/kisbi3/ResearchPartner/main/.harness/scripts/install.py').read())"` | Install managed harness files into the current project |
 | Init project | `python scripts\init_research_project.py --project <project-dir>` | Mark and scaffold a research project |
 | Scaffold domain workspace | `python scripts\scaffold_domain.py --project <project-dir> --name <slug> --type reproduction` | Add an optional `domains\<slug>\` workspace and typed manual without moving project-level gates |
 | Check domain manifest | `python scripts\check_domain_manifest.py --project <project-dir>` | Validate opted-in domain manuals; dormant when `domains/` is absent |
-| Audit existing project | `python scripts\audit_existing_project.py <project-root>` | Inventory scripts/figures/outputs/gaps and draft the adoption inventory (guessed figure→script→data, seed sites, git recency); `--write-drafts` for `docs/adoption/*.draft.md` |
+| Audit existing project | `python scripts\audit_existing_project.py <project-root>` | Inventory .harness/scripts/figures/outputs/gaps and draft the adoption inventory (guessed figure→script→data, seed sites, git recency); `--write-drafts` for `docs/adoption/*.draft.md` |
 | Seed adoption baseline | `python scripts\seed_adoption_baseline.py` | In adoption mode, turn the signed decision's reproduction baseline into a baseline-strategy Variation note + a `planned` `reproduction` row in `baseline_registry.md` |
 | Evaluate harness | `python scripts\evaluate_harness.py --fail-on-partial` | Check scenario coverage; partial now fails CI |
 | Check harness stamp | `python scripts\check_harness_version.py --project <project-dir>` | Report installed harness stamp and locally modified owned files |

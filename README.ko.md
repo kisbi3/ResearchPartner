@@ -32,7 +32,7 @@ Orient -> Interview -> Specify -> Seed -> Validate -> Execute -> Evaluate -> Rev
 현재 프로젝트 루트에 설치:
 
 ```powershell
-python -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/kisbi3/ResearchPartner/main/scripts/install.py').read())"
+python -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/kisbi3/ResearchPartner/main/.harness/scripts/install.py').read())"
 python scripts\init_research_project.py
 ```
 
@@ -118,11 +118,11 @@ Lead Agent는 별도 agent가 아니라 mental mode로 9개 stance를 사용합�
 
 | 필요 | 명령어 | 목적 |
 |---|---|---|
-| 하네스 설치 | `python -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/kisbi3/ResearchPartner/main/scripts/install.py').read())"` | 현재 프로젝트에 관리되는 하네스 파일 설치 |
+| 하네스 설치 | `python -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/kisbi3/ResearchPartner/main/.harness/scripts/install.py').read())"` | 현재 프로젝트에 관리되는 하네스 파일 설치 |
 | 프로젝트 초기화 | `python scripts\init_research_project.py --project <project-dir>` | 연구 프로젝트 marker와 기본 구조 생성 |
 | domain workspace scaffold | `python scripts\scaffold_domain.py --project <project-dir> --name <slug> --type reproduction` | project-level gate를 이동하지 않고 선택적 `domains\<slug>\` workspace와 typed manual 추가 |
 | domain manifest 검증 | `python scripts\check_domain_manifest.py --project <project-dir>` | `domains/`가 있을 때 domain manual 구조를 검증하고 없으면 dormant 통과 |
-| 기존 프로젝트 감사 | `python scripts\audit_existing_project.py <project-root>` | scripts/figures/outputs/gaps inventory + adoption inventory 초안(figure→script→data 추정, seed 사이트, git 최근성); `--write-drafts`로 `docs/adoption/*.draft.md` 생성 |
+| 기존 프로젝트 감사 | `python scripts\audit_existing_project.py <project-root>` | .harness/scripts/figures/outputs/gaps inventory + adoption inventory 초안(figure→script→data 추정, seed 사이트, git 최근성); `--write-drafts`로 `docs/adoption/*.draft.md` 생성 |
 | adoption baseline 시드 | `python scripts\seed_adoption_baseline.py` | adoption 모드에서 서명된 결정의 reproduction baseline을 baseline-strategy Variation 노트 + `baseline_registry.md`의 `planned` `reproduction` 행으로 변환 |
 | 하네스 평가 | `python scripts\evaluate_harness.py --fail-on-partial` | scenario coverage 확인; partial도 이제 CI 실패 |
 | harness stamp 확인 | `python scripts\check_harness_version.py --project <project-dir>` | 설치된 harness stamp와 로컬에서 수정된 owned file 보고 |

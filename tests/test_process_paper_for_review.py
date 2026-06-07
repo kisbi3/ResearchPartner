@@ -4,8 +4,8 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-PROCESS_SCRIPT = ROOT / "scripts" / "process_paper_for_review.py"
-INIT_SCRIPT = ROOT / "scripts" / "init_research_project.py"
+PROCESS_SCRIPT = ROOT / ".harness" / "scripts" / "process_paper_for_review.py"
+INIT_SCRIPT = ROOT / ".harness" / "scripts" / "init_research_project.py"
 
 
 def load_module(name: str, path: Path):

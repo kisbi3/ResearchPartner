@@ -11,7 +11,7 @@ Use this skill after literature-review-planning completes (or is waived).
 
 Before starting:
 
-1. Confirm the Literature Gate passes: `python scripts/check_literature_reviewed.py --project <project-dir>`. If not, either complete the literature-review-planning skill or create `docs/literature/literature_skip_waiver.md` with a one-line reason.
+1. Confirm the Literature Gate passes: `python .harness/scripts/check_literature_reviewed.py --project <project-dir>`. If not, either complete the literature-review-planning skill or create `docs/literature/literature_skip_waiver.md` with a one-line reason.
 
 ## Skipping This Step
 
@@ -21,11 +21,11 @@ If the model is already fully specified from prior work (e.g. continuing an exis
 Skipping model specification: continuing prior work — model unchanged from docs/plan/model_spec.md dated 2026-05-10.
 ```
 
-The Model Gate (`python scripts/check_model_specified.py --project <project-dir>`) passes on either a completed model_spec.md or a waiver file with content. A skip lowers the claim ceiling to at most `observation` for this iteration.
+The Model Gate (`python .harness/scripts/check_model_specified.py --project <project-dir>`) passes on either a completed model_spec.md or a waiver file with content. A skip lowers the claim ceiling to at most `observation` for this iteration.
 
 ## Artifact
 
-Write the model specification output into `docs/plan/model_spec.md` at the project root. This file is the gate artifact checked by `scripts/check_model_specified.py`. Use the template at `docs/run_templates/model_spec_template.md` as the starting structure.
+Write the model specification output into `docs/plan/model_spec.md` at the project root. This file is the gate artifact checked by `.harness/scripts/check_model_specified.py`. Use the template at `docs/run_templates/model_spec_template.md` as the starting structure.
 
 ## Goal
 
@@ -102,7 +102,7 @@ Using `###` or renaming the headings will cause the Model Gate to fail.
 <set to `ready` when all required components above are filled>
 ```
 
-The Model Gate (`python scripts/check_model_specified.py --project <project-dir>`) checks this file before seed-design or execute work begins. The canonical template lives at `docs/run_templates/model_spec_template.md`.
+The Model Gate (`python .harness/scripts/check_model_specified.py --project <project-dir>`) checks this file before seed-design or execute work begins. The canonical template lives at `docs/run_templates/model_spec_template.md`.
 
 ## Lineage Front-Matter
 

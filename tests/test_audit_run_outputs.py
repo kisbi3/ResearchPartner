@@ -1,4 +1,4 @@
-"""Tests for scripts/audit_run_outputs.py.
+"""Tests for .harness/scripts/audit_run_outputs.py.
 
 Covers: log-not-found, empty log, thin log (WARN), good log (PASS),
         non-empty error file (FAIL), missing expected cache (FAIL),
@@ -10,7 +10,7 @@ from pathlib import Path
 
 import pytest
 
-_SCRIPTS = Path(__file__).resolve().parent.parent / "scripts"
+_SCRIPTS = Path(__file__).resolve().parent.parent / ".harness" / "scripts"
 sys.path.insert(0, str(_SCRIPTS))
 
 from audit_run_outputs import audit  # noqa: E402

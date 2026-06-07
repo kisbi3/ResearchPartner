@@ -18,8 +18,8 @@ OPERATIONAL_FILES = [
     ROOT / "docs" / "workflow_overview.md",
     ROOT / "docs" / "run_templates" / "research_run_packet_template.md",
     ROOT / "docs" / "run_templates" / "run_readme_template.md",
-    ROOT / "scripts" / "init_research_project.py",
-    ROOT / "scripts" / "run_baseline_validation.py",
+    ROOT / ".harness" / "scripts" / "init_research_project.py",
+    ROOT / ".harness" / "scripts" / "run_baseline_validation.py",
 ]
 
 SELF_HOSTING_DOC = ROOT / "docs" / "harness" / "self_hosting_development.md"

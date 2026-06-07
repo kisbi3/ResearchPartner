@@ -6,8 +6,8 @@ import pytest
 
 
 ROOT = Path(__file__).resolve().parents[1]
-SCRIPT = ROOT / "scripts" / "scaffold_paper_review.py"
-INIT_SCRIPT = ROOT / "scripts" / "init_research_project.py"
+SCRIPT = ROOT / ".harness" / "scripts" / "scaffold_paper_review.py"
+INIT_SCRIPT = ROOT / ".harness" / "scripts" / "init_research_project.py"
 
 
 def load_module(name: str, path: Path):

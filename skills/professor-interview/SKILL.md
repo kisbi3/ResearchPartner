@@ -62,7 +62,7 @@ Then produce the interview_notes.md artifact as described below.
 
 ## Artifact: `docs/gates/interview_notes.md`
 
-Write the output below into `docs/gates/interview_notes.md` at the project root. This file is the artifact checked by `scripts/check_interview_recorded.py` before Seed or Execute work may begin.
+Write the output below into `docs/gates/interview_notes.md` at the project root. This file is the artifact checked by `.harness/scripts/check_interview_recorded.py` before Seed or Execute work may begin.
 
 Use this structure:
 
@@ -122,4 +122,4 @@ Do not proceed to Specify, Seed, or Execute before:
 
 1. The researcher has confirmed the crystallized research question.
 2. `docs/gates/interview_notes.md` exists and contains the required sections.
-3. If required: `python scripts/check_interview_recorded.py --project <project-dir>` passes.
+3. If required: `python .harness/scripts/check_interview_recorded.py --project <project-dir>` passes.

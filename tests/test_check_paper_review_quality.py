@@ -4,7 +4,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-CHECK_SCRIPT = ROOT / "scripts" / "check_paper_review_quality.py"
+CHECK_SCRIPT = ROOT / ".harness" / "scripts" / "check_paper_review_quality.py"
 
 
 def load_checker():

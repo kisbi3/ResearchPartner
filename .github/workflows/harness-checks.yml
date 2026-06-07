@@ -38,11 +38,11 @@ jobs:
       - name: Run deterministic harness gates
         run: |
           python -m pytest tests -q
-          python scripts/check_harness_manifest.py
-          python scripts/check_spawn_contracts.py
-          python scripts/check_contract_sync.py
-          python scripts/check_domain_manifest.py
-          python scripts/evaluate_harness.py --fail-on-partial
+          python .harness/scripts/check_harness_manifest.py
+          python .harness/scripts/check_spawn_contracts.py
+          python .harness/scripts/check_contract_sync.py
+          python .harness/scripts/check_domain_manifest.py
+          python .harness/scripts/evaluate_harness.py --fail-on-partial
 
       - name: Report harness stamp
-        run: python scripts/check_harness_version.py
+        run: python .harness/scripts/check_harness_version.py

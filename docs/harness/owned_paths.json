@@ -2,7 +2,7 @@
   "schema_version": 1,
   "description": "Harness-owned paths that install/update operations may write. Project-owned research artifacts outside these globs are never removed by force installs.",
   "owned": [
-    "scripts/**/*.py",
+    ".harness/scripts/**/*.py",
     "skills/**/*",
     ".claude/agents/**/*",
     "AGENTS.md",

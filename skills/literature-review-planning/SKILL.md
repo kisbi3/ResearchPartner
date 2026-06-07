@@ -11,7 +11,7 @@ Use this skill between professor-interview and model-specification.
 
 Before starting:
 
-1. Confirm `docs/gates/interview_notes.md` exists and the Interview Gate passes (`python scripts/check_interview_recorded.py --project <project-dir>`). If not, complete the professor-interview skill first.
+1. Confirm `docs/gates/interview_notes.md` exists and the Interview Gate passes (`python .harness/scripts/check_interview_recorded.py --project <project-dir>`). If not, complete the professor-interview skill first.
 
 ## Skipping This Step
 
@@ -21,7 +21,7 @@ If the literature review is genuinely not needed for this iteration (e.g. reprod
 Skipping literature review: reproducing Fourier (1822) heat equation — prior work is fully known and no novelty is claimed.
 ```
 
-The Literature Gate (`python scripts/check_literature_reviewed.py --project <project-dir>`) passes on either a completed review or a waiver file with content. A skip lowers the claim ceiling to at most `interpretation` for this iteration. The goal is not to let an LLM invent a literature review; the goal is to make the researcher's paper access and judgment part of the workflow before simulations, figures, or manuscript claims begin.
+The Literature Gate (`python .harness/scripts/check_literature_reviewed.py --project <project-dir>`) passes on either a completed review or a waiver file with content. A skip lowers the claim ceiling to at most `interpretation` for this iteration. The goal is not to let an LLM invent a literature review; the goal is to make the researcher's paper access and judgment part of the workflow before simulations, figures, or manuscript claims begin.
 
 ## Goal
 
@@ -34,7 +34,7 @@ Repeat this loop until the Lead Agent marks the plan ready or the researcher exp
 1. **Question framing**: state the research question, physical system, observable, and candidate claim.
 2. **Paper request**: ask the researcher to collect specific PDFs that the LLM cannot access directly, using institutional access when needed.
 3. **Paper intake**: record each PDF path, citation metadata, access status, relevance, and whether it has been read.
-4. **Direct review**: create one detailed review note per important paper in `literature/reviews/`. The note must be a section-by-section paper review, not a short abstract summary. It should reconstruct the paper's context, concepts, method, equations, assumptions, units, figures/tables, limitations, and reusable research value. Each review note must fill in the **`Context Summary`** block (between the `<!-- context-summary:start -->` and `<!-- context-summary:end -->` HTML markers) — this block is the compact form the Lead Agent loads during replanning instead of full reviews. Run `python scripts/compile_literature_summary.py --project <project-dir>` after adding or updating a review to regenerate `literature/summary.md`; prefer loading `summary.md` for routine replanning and load a full review only when a specific paper needs deeper inspection.
+4. **Direct review**: create one detailed review note per important paper in `literature/reviews/`. The note must be a section-by-section paper review, not a short abstract summary. It should reconstruct the paper's context, concepts, method, equations, assumptions, units, figures/tables, limitations, and reusable research value. Each review note must fill in the **`Context Summary`** block (between the `<!-- context-summary:start -->` and `<!-- context-summary:end -->` HTML markers) — this block is the compact form the Lead Agent loads during replanning instead of full reviews. Run `python .harness/scripts/compile_literature_summary.py --project <project-dir>` after adding or updating a review to regenerate `literature/summary.md`; prefer loading `summary.md` for routine replanning and load a full review only when a specific paper needs deeper inspection.
 5. **Novelty map**: compare the planned contribution against reviewed papers and mark novelty as supported, weak, contradicted, or unverified.
 6. **Reproduction target selection**: choose the smallest paper result, figure, equation, dataset, or benchmark that should be reproduced before new work.
 7. **Replanning memo**: revise the research plan, validation gates, baselines, observables, and claim ceiling based on the literature.
@@ -111,7 +111,7 @@ cause the gate to fail.
 <one of: `ready` (review complete and plan revised) or `waived` (with explicit reason)>
 ```
 
-The Literature Gate (`python scripts/check_literature_reviewed.py --project <project-dir>`) checks the `## Literature Gate Status` section before model-specification or seed-design work begins.
+The Literature Gate (`python .harness/scripts/check_literature_reviewed.py --project <project-dir>`) checks the `## Literature Gate Status` section before model-specification or seed-design work begins.
 
 ## Lineage Front-Matter
 

@@ -5,7 +5,7 @@ import json
 
 
 def load_installer():
-    module_path = Path(__file__).resolve().parents[1] / "scripts" / "install.py"
+    module_path = Path(__file__).resolve().parents[1] / ".harness" / "scripts" / "install.py"
     spec = importlib.util.spec_from_file_location("install_harness", module_path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
@@ -18,7 +18,7 @@ def make_source_tree(root: Path) -> None:
         "docs/run_templates",
         "docs/harness",
         "docs/literature",
-        "scripts",
+        ".harness/scripts",
         ".claude/agents",
         "outputs",
     ]:
@@ -34,7 +34,7 @@ def make_source_tree(root: Path) -> None:
             {
                 "schema_version": 1,
                 "owned": [
-                    "scripts/**/*.py",
+                    ".harness/scripts/**/*.py",
                     "skills/**/*",
                     ".claude/agents/**/*",
                     "AGENTS.md",
@@ -53,7 +53,7 @@ def make_source_tree(root: Path) -> None:
     )
     (root / "docs/literature/replanning_memo_template.md").write_text("memo\n", encoding="utf-8")
     (root / "docs/literature/paper_request_queue.md").write_text("queue\n", encoding="utf-8")
-    (root / "scripts/init_research_project.py").write_text("print('run')\n", encoding="utf-8")
+    (root / ".harness/scripts/init_research_project.py").write_text("print('run')\n", encoding="utf-8")
     (root / ".claude/agents/implementation-agent.md").write_text("agent\n", encoding="utf-8")
     (root / "outputs/generated.txt").write_text("do not copy\n", encoding="utf-8")
 
@@ -68,7 +68,7 @@ def test_install_from_source_copies_harness_files_only(tmp_path):
 
     installed = installer.install_from_source(source, target, force=False)
 
-    assert installed == [
+    assert sorted(installed) == sorted([
         ".claude/agents/implementation-agent.md",
         "AGENTS.md",
         "GEMINI.md",
@@ -79,13 +79,13 @@ def test_install_from_source_copies_harness_files_only(tmp_path):
         "docs/literature/replanning_memo_template.md",
         "docs/orchestration_protocol.md",
         "docs/run_templates/template.md",
-        "scripts/init_research_project.py",
+        ".harness/scripts/init_research_project.py",
         "skills/example/SKILL.md",
-    ]
+    ])
     assert (target / "AGENTS.md").read_text(encoding="utf-8") == "AGENTS.md\n"
     assert (target / "skills/example/SKILL.md").exists()
     assert (target / "docs/run_templates/template.md").exists()
-    assert (target / "scripts/init_research_project.py").exists()
+    assert (target / ".harness/scripts/init_research_project.py").exists()
     assert (target / ".claude/agents/implementation-agent.md").exists()
     assert (target / "research_code.py").read_text(encoding="utf-8") == "print('keep')\n"
     assert not (target / "outputs/generated.txt").exists()

@@ -1,12 +1,12 @@
 """Regression coverage for the harness's enforcement hooks.
 
 Covers (as subprocess invocations that simulate Claude Code's hook contract):
-- scripts/check_src_write_authorization.py (Write|Edit code-write gate)
-- scripts/check_bash_code_write.py (Bash|PowerShell code-write gate)
-- scripts/check_cross_tier_compliance.py (stage-gate backstop)
-- scripts/check_claim_promotion.py (claim ceiling gate w/ diversity)
-- scripts/check_peer_review_invocation.py (meeting context gate)
-- scripts/check_spawn_log_integrity.py (forged-row detector)
+- .harness/scripts/check_src_write_authorization.py (Write|Edit code-write gate)
+- .harness/scripts/check_bash_code_write.py (Bash|PowerShell code-write gate)
+- .harness/scripts/check_cross_tier_compliance.py (stage-gate backstop)
+- .harness/scripts/check_claim_promotion.py (claim ceiling gate w/ diversity)
+- .harness/scripts/check_peer_review_invocation.py (meeting context gate)
+- .harness/scripts/check_spawn_log_integrity.py (forged-row detector)
 
 Each hook is invoked as a child Python process so the test exercises the
 exact stdin/stdout/exit-code contract Claude Code uses at runtime.
@@ -24,7 +24,7 @@ import pytest
 
 
 ROOT = Path(__file__).resolve().parents[1]
-SCRIPTS = ROOT / "scripts"
+SCRIPTS = ROOT / ".harness" / "scripts"
 
 
 def run_hook(script: str, payload: dict | None = None, *, env: dict | None = None,
@@ -50,7 +50,7 @@ def run_hook(script: str, payload: dict | None = None, *, env: dict | None = Non
 
 
 def load_module(name: str):
-    """Import a scripts/ module by file path for pure-function unit tests."""
+    """Import a .harness/scripts/ module by file path for pure-function unit tests."""
     import importlib.util
     spec = importlib.util.spec_from_file_location(name, SCRIPTS / f"{name}.py")
     module = importlib.util.module_from_spec(spec)

@@ -19,15 +19,15 @@ def _load_module(name: str, rel_path: str):
 
 
 def _load_layout():
-    return _load_module("_layout", "scripts/_layout.py")
+    return _load_module("_layout", ".harness/scripts/_layout.py")
 
 
 def _load_scaffold_domain():
-    return _load_module("scaffold_domain", "scripts/scaffold_domain.py")
+    return _load_module("scaffold_domain", ".harness/scripts/scaffold_domain.py")
 
 
 def _load_sync_workflow():
-    return _load_module("sync_workflow", "scripts/sync_workflow.py")
+    return _load_module("sync_workflow", ".harness/scripts/sync_workflow.py")
 
 
 def _mark_project(project: Path) -> None:
