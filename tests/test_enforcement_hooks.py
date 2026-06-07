@@ -530,6 +530,19 @@ class TestSpawnLogIntegrity:
         rc, _, _ = run_hook(self.SCRIPT, args=["--run", str(run_dir)])
         assert rc == 0
 
+    def test_passes_when_diagram_has_matching_spawn_events(self, run_dir):
+        write_spawn_log(run_dir, [
+            ("2026-06-07", "graduate-student", "src/sim.py", "T1", "complete"),
+        ])
+        diagram = run_dir / "docs" / "live_workflow_diagram.md"
+        diagram.parent.mkdir(parents=True, exist_ok=True)
+        diagram.write_text(
+            "# Live\n\n## Real-Time Event Log\n\n"
+            "🚀 `2026-06-07 12:34 UTC` | `spawn` | **implement the network** | _graduate-student_\n"
+        )
+        rc, _, _ = run_hook(self.SCRIPT, args=["--run", str(run_dir)])
+        assert rc == 0
+
     def test_fails_when_spawn_rows_exceed_events(self, run_dir):
         write_spawn_log(run_dir, [
             ("2026-05-17", "graduate-student", "src/sim.py", "T1", "complete"),

@@ -9,10 +9,10 @@ log entries against the Agent tool-call events recorded automatically by
 the ``## Real-Time Event Log`` section.
 
 A spawn log row is "verified" when there is at least one nearby (within
-``--window-min`` minutes, default 60) `start` event in the diagram event log
-whose description mentions ``graduate`` (the Graduate Student spawn block
-opens with "You are a Graduate Student"). Unverified rows are
-reported with exit 2.
+``--window-min`` minutes, default 60) `start` or `spawn` event in the diagram event log
+whose description or agent role mentions ``graduate`` (e.g., the Graduate Student spawn block
+opens with "You are a Graduate Student", or the agent role is "graduate-student").
+Unverified rows are reported with exit 2.
 
 This is heuristic — the diagram event-log timestamps are minute-precision
 UTC and the spawn log uses local-date strings, so we deliberately give a
@@ -68,20 +68,27 @@ def parse_diagram_events(path: Path) -> list[dict]:
     events: list[dict] = []
     line_re = re.compile(
         r"^[^\s]?\s*`([0-9]{4}-[0-9]{2}-[0-9]{2})\s+[0-9]{2}:[0-9]{2}[^`]*`\s*\|"
-        r"\s*`([^`]+)`\s*\|\s*\*\*([^*]+)\*\*",
+        r"\s*`([^`]+)`\s*\|\s*\*\*([^*]+)\*\*(?:\s*\|\s*_(.*?)_)?",
         re.MULTILINE,
     )
     for m in line_re.finditer(section):
-        events.append({"date": m.group(1), "event": m.group(2), "desc": m.group(3)})
+        events.append({
+            "date": m.group(1),
+            "event": m.group(2),
+            "desc": m.group(3),
+            "agent": m.group(4) or "",
+        })
     return events
 
 
 def graduate_starts_by_date(events: list[dict]) -> dict[str, int]:
     counts: dict[str, int] = {}
     for ev in events:
-        if ev["event"] != "start":
+        if ev["event"] not in ("start", "spawn"):
             continue
-        if "graduate" not in ev["desc"].lower():
+        desc_lower = ev["desc"].lower()
+        agent_lower = ev.get("agent", "").lower()
+        if "graduate" not in desc_lower and "graduate" not in agent_lower:
             continue
         counts[ev["date"]] = counts.get(ev["date"], 0) + 1
     return counts
@@ -143,14 +150,14 @@ def main(argv: list[str] | None = None) -> int:
     if not suspicious:
         print(
             f"spawn log verified: {len(rows)} graduate-student row(s) reconciled "
-            f"against {sum(grad_starts_by_date.values())} Agent() start event(s)"
+            f"against {sum(grad_starts_by_date.values())} Agent() start/spawn event(s)"
         )
         return 0
 
     print("INTEGRITY FAIL: spawn log rows exceed recorded Agent() spawns:", file=sys.stderr)
     for date, count, starts in suspicious:
         print(
-            f"  {date}: {count} graduate-student row(s) but only {starts} Agent() start event(s)",
+            f"  {date}: {count} graduate-student row(s) but only {starts} Agent() start/spawn event(s)",
             file=sys.stderr,
         )
     print(
