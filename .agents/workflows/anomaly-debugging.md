@@ -108,7 +108,7 @@ lineage:
 ---
 ```
 
-The `limits` edge is essential — it shows on the lineage graph which downstream result or claim is at risk. An anomaly with no outbound `limits` edge is flagged by `scripts/check_lineage_coverage.py`.
+The `limits` edge is essential — it shows on the lineage graph which downstream result or claim is at risk. An anomaly with no outbound `limits` edge is flagged by `.harness/scripts/check_lineage_coverage.py`.
 
 ## Finding Lifecycle
 

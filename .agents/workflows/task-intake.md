@@ -88,7 +88,7 @@ Write the output below into `docs/gates/orient_note.md` (i.e.,
 `<project-root>/docs/gates/orient_note.md`, where the project root is the
 directory containing the `.research-harness` marker — created by the
 Project Initialization step above if it did not already exist). This exact
-path is what `scripts/check_orient_recorded.py` checks; writing to any
+path is what `.harness/scripts/check_orient_recorded.py` checks; writing to any
 other location (e.g. `docs/orient_note.md` at the project root, without the
 `gates/` subdirectory) will leave the Orient gate permanently Pending.
 
@@ -141,11 +141,11 @@ For New model, Simulation, Analysis, Manuscript claim, or Reproduction tasks, th
 
 Skipping a step in this order is a workflow violation. The corresponding gate-check script will refuse downstream work:
 
-- `scripts/check_interview_recorded.py` blocks Specify/Seed/Execute until `docs/gates/interview_notes.md` is filled.
-- `scripts/check_literature_reviewed.py` blocks model-spec / seed-design until `docs/literature/literature_review_plan.md` is either `ready` or `waived`.
-- `scripts/check_model_specified.py` blocks seed-design until `docs/plan/model_spec.md` is filled or waived.
-- `scripts/check_baseline_strategy.py` blocks seed-design until `docs/plan/baseline_strategy.md` records a decision (no skip waiver).
-- `scripts/check_baseline_gate.py` blocks Execute / Evaluate until a baseline result is recorded.
+- `.harness/scripts/check_interview_recorded.py` blocks Specify/Seed/Execute until `docs/gates/interview_notes.md` is filled.
+- `.harness/scripts/check_literature_reviewed.py` blocks model-spec / seed-design until `docs/literature/literature_review_plan.md` is either `ready` or `waived`.
+- `.harness/scripts/check_model_specified.py` blocks seed-design until `docs/plan/model_spec.md` is filled or waived.
+- `.harness/scripts/check_baseline_strategy.py` blocks seed-design until `docs/plan/baseline_strategy.md` records a decision (no skip waiver).
+- `.harness/scripts/check_baseline_gate.py` blocks Execute / Evaluate until a baseline result is recorded.
 
 When the researcher seems eager to jump ahead ("just start coding", "skip the lit review"), do not comply. Either run the skipped skill, or surface the explicit waiver file with the reason and risk. Bypassing a gate without a waiver is a workflow violation that the Lead Agent must refuse.
 
