@@ -37,7 +37,7 @@ Orient -> Interview -> Specify -> Seed -> Validate -> Execute -> Evaluate -> Rev
 
 ## Startup And Gate Order
 
-- **Auto-init**: if cwd or ancestors lack `.research-harness`, run `python <harness>/scripts/init_research_project.py` from cwd before classification or questions.
+- **Auto-init**: if cwd or ancestors lack `.research-harness`, run `python <harness>/.harness/scripts/init_research_project.py` from cwd before classification or questions.
 - **Task intake always comes first**: load `skills/task-intake/SKILL.md`, classify the task, assign role, and ask the first professor question.
 - **Required skill order for research tasks**: task-intake -> professor-interview -> literature-review-planning -> model-specification -> baseline-strategy -> seed-design -> baseline-validation. Do not skip because the researcher wants to start coding.
 - **Waiver claim ceilings**: `docs/literature/literature_skip_waiver.md` lowers the claim ceiling to at most `interpretation`; `docs/plan/model_skip_waiver.md` lowers it to at most `observation`; baseline-strategy has no waiver.

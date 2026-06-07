@@ -16,7 +16,7 @@ Classify the research task, assign the responsible research role, and surface th
 Before classifying the task, check whether the current working directory is a marked research project.
 
 1. If a `.research-harness` marker file exists at the project root (cwd or any ancestor), proceed to Task Classification below.
-2. If **no** marker is found, **automatically run** `python scripts/init_research_project.py` from cwd before asking the researcher anything. This is not optional and is not a question — the harness cannot record orient notes, gate artefacts, or lineage state without the project structure.
+2. If **no** marker is found, **automatically run** `python .harness/scripts/init_research_project.py` from cwd before asking the researcher anything. This is not optional and is not a question — the harness cannot record orient notes, gate artefacts, or lineage state without the project structure.
 
 After init completes:
 

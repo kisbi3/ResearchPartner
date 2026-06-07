@@ -18,7 +18,7 @@ Orient -> Interview -> Specify -> Seed -> Validate -> Execute -> Evaluate -> Rev
     +----------------------------- Evolutionary Loop ---------------------------------+
 ```
 
-각 단계는 `docs/`, `literature/`, `outputs/`, 또는 live workflow 파일에 지속 가능한 산출물을 남깁니다. `workflow_hooks.py`는 agent spawn을 자동 기록하고, `/sync-workflow`(`python scripts\sync_workflow.py --project <project-dir>`)가 live workflow 데이터와 `workflow_map.live.json`을 갱신하는 1차 경로입니다. `generate_workflow_map.py`는 필요할 때 HTML 셸을 다시 만드는 용도이며, 주 상태 갱신 경로가 아닙니다.
+각 단계는 `docs/`, `literature/`, `outputs/`, 또는 live workflow 파일에 지속 가능한 산출물을 남깁니다. `workflow_hooks.py`는 agent spawn을 자동 기록하고, `/sync-workflow`(`python .harness\scripts\sync_workflow.py --project <project-dir>`)가 live workflow 데이터와 `workflow_map.live.json`을 갱신하는 1차 경로입니다. `generate_workflow_map.py`는 필요할 때 HTML 셸을 다시 만드는 용도이며, 주 상태 갱신 경로가 아닙니다.
 
 ## 설치
 
@@ -33,25 +33,25 @@ Orient -> Interview -> Specify -> Seed -> Validate -> Execute -> Evaluate -> Rev
 
 ```powershell
 python -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/kisbi3/ResearchPartner/main/.harness/scripts/install.py').read())"
-python scripts\init_research_project.py
+python .harness\scripts\init_research_project.py
 ```
 
 설치 검증:
 
 ```powershell
 python -m pip install -r requirements.txt
-python scripts\evaluate_harness.py --fail-on-partial
-python scripts\check_harness_manifest.py
-python scripts\check_spawn_contracts.py
-python scripts\check_contract_sync.py
-python scripts\check_harness_version.py
+python .harness\scripts\evaluate_harness.py --fail-on-partial
+python .harness\scripts\check_harness_manifest.py
+python .harness\scripts\check_spawn_contracts.py
+python .harness\scripts\check_contract_sync.py
+python .harness\scripts\check_harness_version.py
 ```
 
-설치는 owned-file hash가 들어 있는 `harness.lock.json`을 써서 프로젝트가 설치된 harness stamp와 로컬 harness 수정을 보고할 수 있게 합니다. `install.py --force`는 harness-owned 파일만 갱신하며 `docs/gates/`, `docs/plan/`, `docs/process/` 아래 연구 산출물은 보존합니다. `python scripts\update_harness.py --project <project-dir> --source <harness-source>`는 선택적 업데이트를 dry-run으로 보여주고, `--apply`를 붙이면 harness-owned 업데이트만 쓰며 충돌은 `.harness-new` sidecar로 남깁니다. 적용 후 live hook을 갱신하려면 프로젝트 루트에서 `python scripts\init_research_project.py`를 다시 실행하거나, `--apply`와 함께 `--upgrade-hooks`를 붙여 업데이트 중 hook 등록을 머지합니다. `--adopt`는 stamp가 없는 legacy 프로젝트를 먼저 stamp할 때만 사용합니다.
+설치는 owned-file hash가 들어 있는 `harness.lock.json`을 써서 프로젝트가 설치된 harness stamp와 로컬 harness 수정을 보고할 수 있게 합니다. `install.py --force`는 harness-owned 파일만 갱신하며 `docs/gates/`, `docs/plan/`, `docs/process/` 아래 연구 산출물은 보존합니다. `python .harness\scripts\update_harness.py --project <project-dir> --source <harness-source>`는 선택적 업데이트를 dry-run으로 보여주고, `--apply`를 붙이면 harness-owned 업데이트만 쓰며 충돌은 `.harness-new` sidecar로 남깁니다. 적용 후 live hook을 갱신하려면 프로젝트 루트에서 `python .harness\scripts\init_research_project.py`를 다시 실행하거나, `--apply`와 함께 `--upgrade-hooks`를 붙여 업데이트 중 hook 등록을 머지합니다. `--adopt`는 stamp가 없는 legacy 프로젝트를 먼저 stamp할 때만 사용합니다.
 
 첫 실행은 assistant에게 task intake부터 시작하라고 요청합니다. 초기화는 `.research-harness`, `docs\process\live_workflow_diagram.md`, 문헌 작업 공간, project packet, `outputs/`를 scaffold합니다. gate, evidence, lineage가 바뀌면 `/sync-workflow`를 실행하세요.
 
-live enforcement hook은 `.claude/settings.local.json`에 있습니다. 이 파일이 없으면 초기화가 새로 쓰고, 이미 있으면(이미 Claude Code를 쓰던 프로젝트에 harness를 도입할 때 흔함) harness hook을 그 파일에 **머지**합니다 — 기존 권한과 커스텀 hook은 보존하고, 이미 있는 harness hook은 건너뜁니다(멱등). 이 repo에 tracked되는 harness copy에는 portable hook 등록만 들어가야 하며 machine-local permission은 넣지 않습니다. 파일이 있지만 파싱할 수 없으면 초기화는 파일을 건드리지 않고 hook이 설치되지 않았다는 경고를 출력합니다. 파일을 고친 뒤 `python scripts\init_research_project.py`를 다시 실행하면 설치됩니다.
+live enforcement hook은 `.claude/settings.local.json`에 있습니다. 이 파일이 없으면 초기화가 새로 쓰고, 이미 있으면(이미 Claude Code를 쓰던 프로젝트에 harness를 도입할 때 흔함) harness hook을 그 파일에 **머지**합니다 — 기존 권한과 커스텀 hook은 보존하고, 이미 있는 harness hook은 건너뜁니다(멱등). 이 repo에 tracked되는 harness copy에는 portable hook 등록만 들어가야 하며 machine-local permission은 넣지 않습니다. 파일이 있지만 파싱할 수 없으면 초기화는 파일을 건드리지 않고 hook이 설치되지 않았다는 경고를 출력합니다. 파일을 고친 뒤 `python .harness\scripts\init_research_project.py`를 다시 실행하면 설치됩니다.
 
 ## 사용법
 
@@ -71,10 +71,10 @@ task-intake -> professor-interview -> literature-review-planning -> model-specif
 
 시나리오 B, 기존 프로젝트 (brownfield onboarding):
 
-1. `python scripts\audit_existing_project.py <project-root>`로 scripts, figures, outputs, validation gaps를 inventory합니다. 또한 adoption inventory 초안을 만들어 줍니다 — 감지된 figure마다 생성 스크립트 추정, 입력 데이터, seed/RNG 사이트, git 최근성을 한 행으로 제시합니다(`--write-drafts`는 이를 `docs/adoption/*.draft.md`로 쓰며, 이미 편집된 파일은 덮어쓰지 않습니다).
+1. `python .harness\scripts\audit_existing_project.py <project-root>`로 scripts, figures, outputs, validation gaps를 inventory합니다. 또한 adoption inventory 초안을 만들어 줍니다 — 감지된 figure마다 생성 스크립트 추정, 입력 데이터, seed/RNG 사이트, git 최근성을 한 행으로 제시합니다(`--write-drafts`는 이를 `docs/adoption/*.draft.md`로 쓰며, 이미 편집된 파일은 덮어쓰지 않습니다).
 2. 기존 파일을 보존하면서 하네스를 초기화하고, 초안으로 생성된 `docs/adoption/*` inventory(intake, results inventory, retrofit plan)를 교정합니다.
 3. PI가 `docs/gates/adoption_decision.md`에 서명하여 기존 모델을 수용하고 기존 결과 하나를 reproduction baseline으로 선택합니다. 이렇게 하면 프로젝트가 adoption 모드로 들어가, model 및 baseline-strategy 게이트가 satisfied-by-adoption 처리됩니다 — 따라서 첫 retrofit을 처음부터 새 model spec을 작성하지 않고 진행할 수 있습니다. 단, baseline 게이트는 면제되지 않으며, 선택한 결과를 실제로 재현해야만 그에 대한 claim이 검증됩니다.
-4. `python scripts\seed_adoption_baseline.py`를 실행해 선택한 reproduction baseline을 추적되는 `reproduction` 타깃으로 만듭니다(baseline-strategy Variation 노트 + `baseline_registry.md`의 `planned` 행). 이를 재현한 뒤 행을 `pass`로 전환하고, results inventory에서 해당 산출물을 `validated`로 표시합니다.
+4. `python .harness\scripts\seed_adoption_baseline.py`를 실행해 선택한 reproduction baseline을 추적되는 `reproduction` 타깃으로 만듭니다(baseline-strategy Variation 노트 + `baseline_registry.md`의 `planned` 행). 이를 재현한 뒤 행을 `pass`로 전환하고, results inventory에서 해당 산출물을 `validated`로 표시합니다.
 5. `/sync-workflow`로 artifact에서 live state를 다시 구성합니다. adoption 모드에서는 대시보드에 `Adoption (brownfield)` gate 행이 `pass`로 표시되고 baseline 행에 `strategy satisfied-by-adoption; reproduction still required` 주석이 붙어, 표시가 gate-sequence enforcer와 일치합니다.
 6. 오래된 figure나 manuscript 문구를 강화하기 전에 validation, provenance, lineage, claim check를 실행합니다. adoption 모드에서는 아직 `validated`가 아닌 산출물을 인용하는 promoted claim은 재현될 때까지 차단됩니다.
 
@@ -87,7 +87,7 @@ task-intake -> professor-interview -> literature-review-planning -> model-specif
 | Codex / Copilot 스타일 agent | `AGENTS.md` | 단어수 예산이 걸린 resident contract |
 | Gemini CLI | `GEMINI.md` | `AGENTS.md`와 byte-identical이어야 함 |
 | Claude Code | `AGENTS.md` 또는 프로젝트 `CLAUDE.md` | 설치 시 프로젝트 hooks와 `.claude/agents/<role>.md` 적용 |
-| Slash commands | `python scripts\install_skills.py [--global]` | Claude Code, Gemini/Antigravity-cli, Codex surface에 skill 설치 |
+| Slash commands | `python .harness\scripts\install_skills.py [--global]` | Claude Code, Gemini/Antigravity-cli, Codex surface에 skill 설치 |
 
 ## 연구 모델
 
@@ -119,38 +119,38 @@ Lead Agent는 별도 agent가 아니라 mental mode로 9개 stance를 사용합�
 | 필요 | 명령어 | 목적 |
 |---|---|---|
 | 하네스 설치 | `python -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/kisbi3/ResearchPartner/main/.harness/scripts/install.py').read())"` | 현재 프로젝트에 관리되는 하네스 파일 설치 |
-| 프로젝트 초기화 | `python scripts\init_research_project.py --project <project-dir>` | 연구 프로젝트 marker와 기본 구조 생성 |
-| domain workspace scaffold | `python scripts\scaffold_domain.py --project <project-dir> --name <slug> --type reproduction` | project-level gate를 이동하지 않고 선택적 `domains\<slug>\` workspace와 typed manual 추가 |
-| domain manifest 검증 | `python scripts\check_domain_manifest.py --project <project-dir>` | `domains/`가 있을 때 domain manual 구조를 검증하고 없으면 dormant 통과 |
-| 기존 프로젝트 감사 | `python scripts\audit_existing_project.py <project-root>` | .harness/scripts/figures/outputs/gaps inventory + adoption inventory 초안(figure→script→data 추정, seed 사이트, git 최근성); `--write-drafts`로 `docs/adoption/*.draft.md` 생성 |
-| adoption baseline 시드 | `python scripts\seed_adoption_baseline.py` | adoption 모드에서 서명된 결정의 reproduction baseline을 baseline-strategy Variation 노트 + `baseline_registry.md`의 `planned` `reproduction` 행으로 변환 |
-| 하네스 평가 | `python scripts\evaluate_harness.py --fail-on-partial` | scenario coverage 확인; partial도 이제 CI 실패 |
-| harness stamp 확인 | `python scripts\check_harness_version.py --project <project-dir>` | 설치된 harness stamp와 로컬에서 수정된 owned file 보고 |
-| vendored harness 업데이트 | `python scripts\update_harness.py --project <project-dir> --source <harness-source> [--apply] [--upgrade-hooks]` | 비파괴 harness-owned 업데이트를 dry-run 또는 적용; 충돌은 `.harness-new` sidecar로 남김; `--apply`와 함께 `--upgrade-hooks`를 쓰면 hook도 갱신 |
+| 프로젝트 초기화 | `python .harness\scripts\init_research_project.py --project <project-dir>` | 연구 프로젝트 marker와 기본 구조 생성 |
+| domain workspace scaffold | `python .harness\scripts\scaffold_domain.py --project <project-dir> --name <slug> --type reproduction` | project-level gate를 이동하지 않고 선택적 `domains\<slug>\` workspace와 typed manual 추가 |
+| domain manifest 검증 | `python .harness\scripts\check_domain_manifest.py --project <project-dir>` | `domains/`가 있을 때 domain manual 구조를 검증하고 없으면 dormant 통과 |
+| 기존 프로젝트 감사 | `python .harness\scripts\audit_existing_project.py <project-root>` | .harness/scripts/figures/outputs/gaps inventory + adoption inventory 초안(figure→script→data 추정, seed 사이트, git 최근성); `--write-drafts`로 `docs/adoption/*.draft.md` 생성 |
+| adoption baseline 시드 | `python .harness\scripts\seed_adoption_baseline.py` | adoption 모드에서 서명된 결정의 reproduction baseline을 baseline-strategy Variation 노트 + `baseline_registry.md`의 `planned` `reproduction` 행으로 변환 |
+| 하네스 평가 | `python .harness\scripts\evaluate_harness.py --fail-on-partial` | scenario coverage 확인; partial도 이제 CI 실패 |
+| harness stamp 확인 | `python .harness\scripts\check_harness_version.py --project <project-dir>` | 설치된 harness stamp와 로컬에서 수정된 owned file 보고 |
+| vendored harness 업데이트 | `python .harness\scripts\update_harness.py --project <project-dir> --source <harness-source> [--apply] [--upgrade-hooks]` | 비파괴 harness-owned 업데이트를 dry-run 또는 적용; 충돌은 `.harness-new` sidecar로 남김; `--apply`와 함께 `--upgrade-hooks`를 쓰면 hook도 갱신 |
 | 테스트 의존성 설치 | `python -m pip install -r requirements.txt` | `pytest`, `PyYAML` 설치 |
 | CI 하네스 검사 | `.github/workflows/harness-checks.yml` | push와 pull request에서 deterministic gate 실행 |
-| live workflow 동기화 | `python scripts\sync_workflow.py --project <project-dir> [--validate-edges]` | gate status, lineage, live JSON 갱신 |
-| workflow HTML 재생성 | `python scripts\generate_workflow_map.py [--central]` | 필요할 때 dashboard shell 재생성 |
-| workflow map serve | `python scripts\serve_workflow_map.py --project <project-dir>` | workflow dashboard를 로컬에서 serve |
-| manifest 검증 | `python scripts\check_harness_manifest.py` | capability manifest, hook registry, portable hook path 검증 |
-| spawn contract 검증 | `python scripts\check_spawn_contracts.py` | leaf agent definition, tools, single-spawner contract 검증 |
-| contract sync 검증 | `python scripts\check_contract_sync.py` | `AGENTS.md` == `GEMINI.md` 및 resident word budget 강제 |
-| orient gate 검증 | `python scripts\check_orient_recorded.py --project <project-dir>` | downstream work 전 task-intake artifact 요구 |
-| interview gate 검증 | `python scripts\check_interview_recorded.py --project <project-dir>` | crystallized question과 agreed direction 요구 |
-| literature gate 검증 | `python scripts\check_literature_reviewed.py --project <project-dir>` | ready/waived literature status 요구 |
-| model gate 검증 | `python scripts\check_model_specified.py --project <project-dir>` | model definition 또는 waiver 요구 |
-| baseline strategy 검증 | `python scripts\check_baseline_strategy.py --project <project-dir>` | variation/new-model decision과 target 요구 |
-| baseline gate 검증 | `python scripts\check_baseline_gate.py --project <project-dir>` | baseline pass 또는 명시 waiver 요구 |
-| claim promotion 검증 | `python scripts\check_claim_promotion.py --project <project-dir> --target mechanism` | claim-ceiling promotion gate |
-| claim freshness 검증 | `python scripts\check_claim_promotion_freshness.py --project <project-dir>` | stale 또는 candidate-only claim support 확인 |
-| lineage coverage 검증 | `python scripts\check_lineage_coverage.py --project <project-dir> [--strict]` | unsupported claim과 lineage 기대 위반 탐지 |
-| figure provenance 검증 | `python scripts\check_figure_provenance.py --root <project-dir>` | figure provenance 추적 요구 |
-| session resumption 검증 | `python scripts\check_session_resumable.py --project <project-dir>` | interruption 후 in-flight task와 blocked gate 표면화 |
-| computation checkpoint 검증 | `python scripts\check_computation_resumable.py --project <project-dir>` | orphaned long-run checkpoint 탐지 |
-| stage checkpoint 작성 | `python scripts\write_stage_checkpoint.py --project <project-dir> --stage N` | 연구 stage를 compact하게 요약 |
-| 논문 리뷰 scaffold | `python scripts\scaffold_paper_review.py --project <project-dir> --paper-id P1 --title "Title"` | paper review note와 index entry 생성 |
-| 논문 PDF 처리 | `python scripts\process_paper_for_review.py --project <project-dir> --paper-id P1 --title "Title" --pdf <pdf-path>` | scaffold, text extraction, provisional note draft |
-| 논문 리뷰 품질 검증 | `python scripts\check_paper_review_quality.py <review-path>` | 약한 literature note가 novelty 근거가 되기 전에 차단 |
+| live workflow 동기화 | `python .harness\scripts\sync_workflow.py --project <project-dir> [--validate-edges]` | gate status, lineage, live JSON 갱신 |
+| workflow HTML 재생성 | `python .harness\scripts\generate_workflow_map.py [--central]` | 필요할 때 dashboard shell 재생성 |
+| workflow map serve | `python .harness\scripts\serve_workflow_map.py --project <project-dir>` | workflow dashboard를 로컬에서 serve |
+| manifest 검증 | `python .harness\scripts\check_harness_manifest.py` | capability manifest, hook registry, portable hook path 검증 |
+| spawn contract 검증 | `python .harness\scripts\check_spawn_contracts.py` | leaf agent definition, tools, single-spawner contract 검증 |
+| contract sync 검증 | `python .harness\scripts\check_contract_sync.py` | `AGENTS.md` == `GEMINI.md` 및 resident word budget 강제 |
+| orient gate 검증 | `python .harness\scripts\check_orient_recorded.py --project <project-dir>` | downstream work 전 task-intake artifact 요구 |
+| interview gate 검증 | `python .harness\scripts\check_interview_recorded.py --project <project-dir>` | crystallized question과 agreed direction 요구 |
+| literature gate 검증 | `python .harness\scripts\check_literature_reviewed.py --project <project-dir>` | ready/waived literature status 요구 |
+| model gate 검증 | `python .harness\scripts\check_model_specified.py --project <project-dir>` | model definition 또는 waiver 요구 |
+| baseline strategy 검증 | `python .harness\scripts\check_baseline_strategy.py --project <project-dir>` | variation/new-model decision과 target 요구 |
+| baseline gate 검증 | `python .harness\scripts\check_baseline_gate.py --project <project-dir>` | baseline pass 또는 명시 waiver 요구 |
+| claim promotion 검증 | `python .harness\scripts\check_claim_promotion.py --project <project-dir> --target mechanism` | claim-ceiling promotion gate |
+| claim freshness 검증 | `python .harness\scripts\check_claim_promotion_freshness.py --project <project-dir>` | stale 또는 candidate-only claim support 확인 |
+| lineage coverage 검증 | `python .harness\scripts\check_lineage_coverage.py --project <project-dir> [--strict]` | unsupported claim과 lineage 기대 위반 탐지 |
+| figure provenance 검증 | `python .harness\scripts\check_figure_provenance.py --root <project-dir>` | figure provenance 추적 요구 |
+| session resumption 검증 | `python .harness\scripts\check_session_resumable.py --project <project-dir>` | interruption 후 in-flight task와 blocked gate 표면화 |
+| computation checkpoint 검증 | `python .harness\scripts\check_computation_resumable.py --project <project-dir>` | orphaned long-run checkpoint 탐지 |
+| stage checkpoint 작성 | `python .harness\scripts\write_stage_checkpoint.py --project <project-dir> --stage N` | 연구 stage를 compact하게 요약 |
+| 논문 리뷰 scaffold | `python .harness\scripts\scaffold_paper_review.py --project <project-dir> --paper-id P1 --title "Title"` | paper review note와 index entry 생성 |
+| 논문 PDF 처리 | `python .harness\scripts\process_paper_for_review.py --project <project-dir> --paper-id P1 --title "Title" --pdf <pdf-path>` | scaffold, text extraction, provisional note draft |
+| 논문 리뷰 품질 검증 | `python .harness\scripts\check_paper_review_quality.py <review-path>` | 약한 literature note가 novelty 근거가 되기 전에 차단 |
 
 설치된 skills:
 

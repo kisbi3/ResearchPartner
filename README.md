@@ -33,25 +33,25 @@ Install into the current project root:
 
 ```powershell
 python -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/kisbi3/ResearchPartner/main/.harness/scripts/install.py').read())"
-python scripts\init_research_project.py
+python .harness\scripts\init_research_project.py
 ```
 
 Verify the installation:
 
 ```powershell
 python -m pip install -r requirements.txt
-python scripts\evaluate_harness.py --fail-on-partial
-python scripts\check_harness_manifest.py
-python scripts\check_spawn_contracts.py
-python scripts\check_contract_sync.py
-python scripts\check_harness_version.py
+python .harness\scripts\evaluate_harness.py --fail-on-partial
+python .harness\scripts\check_harness_manifest.py
+python .harness\scripts\check_spawn_contracts.py
+python .harness\scripts\check_contract_sync.py
+python .harness\scripts\check_harness_version.py
 ```
 
-Install writes `harness.lock.json` with owned-file hashes so a project can report its installed harness stamp and local harness edits. `install.py --force` refreshes harness-owned files only; project-owned research artifacts under `docs/gates/`, `docs/plan/`, and `docs/process/` are preserved. Use `python scripts\update_harness.py --project <project-dir> --source <harness-source>` to dry-run a selective update; add `--apply` to write harness-owned updates, review `.harness-new` sidecars for conflicts, then run `python scripts\init_research_project.py` from the project root to refresh live hooks. Or add `--upgrade-hooks` with `--apply` to merge hook registration during the update. Use `--adopt` only to stamp an unstamped legacy project.
+Install writes `harness.lock.json` with owned-file hashes so a project can report its installed harness stamp and local harness edits. `install.py --force` refreshes harness-owned files only; project-owned research artifacts under `docs/gates/`, `docs/plan/`, and `docs/process/` are preserved. Use `python .harness\scripts\update_harness.py --project <project-dir> --source <harness-source>` to dry-run a selective update; add `--apply` to write harness-owned updates, review `.harness-new` sidecars for conflicts, then run `python .harness\scripts\init_research_project.py from the project root to refresh live hooks. Or add `--upgrade-hooks` with `--apply` to merge hook registration during the update. Use `--adopt` only to stamp an unstamped legacy project.
 
 Start the first run by asking the assistant to begin with task intake. The project marker `.research-harness`, `docs\process\live_workflow_diagram.md`, literature workspace, project packet, and `outputs/` are scaffolded by initialization. Use `/sync-workflow` after gate, evidence, or lineage changes.
 
-The live enforcement hooks live in `.claude/settings.local.json`. If that file does not exist, initialization writes it; if it already exists (common when adopting the harness into a project that already uses Claude Code), initialization **merges** the harness hooks into it — preserving your existing permissions and custom hooks, and skipping any harness hook already present (idempotent). The tracked harness copy of this file should contain portable hook registration only, not machine-local permissions. If the file exists but cannot be parsed, initialization leaves it untouched and prints a warning that the hooks were not installed. Re-run `python scripts\init_research_project.py` after editing the file to install them.
+The live enforcement hooks live in `.claude/settings.local.json`. If that file does not exist, initialization writes it; if it already exists (common when adopting the harness into a project that already uses Claude Code), initialization **merges** the harness hooks into it — preserving your existing permissions and custom hooks, and skipping any harness hook already present (idempotent). The tracked harness copy of this file should contain portable hook registration only, not machine-local permissions. If the file exists but cannot be parsed, initialization leaves it untouched and prints a warning that the hooks were not installed. Re-run `python .harness\scripts\init_research_project.py` after editing the file to install them.
 
 ## Using It
 
@@ -119,38 +119,38 @@ Commands:
 | Need | Command | Purpose |
 |---|---|---|
 | Install harness | `python -c "import urllib.request; exec(urllib.request.urlopen('https://raw.githubusercontent.com/kisbi3/ResearchPartner/main/.harness/scripts/install.py').read())"` | Install managed harness files into the current project |
-| Init project | `python scripts\init_research_project.py --project <project-dir>` | Mark and scaffold a research project |
-| Scaffold domain workspace | `python scripts\scaffold_domain.py --project <project-dir> --name <slug> --type reproduction` | Add an optional `domains\<slug>\` workspace and typed manual without moving project-level gates |
-| Check domain manifest | `python scripts\check_domain_manifest.py --project <project-dir>` | Validate opted-in domain manuals; dormant when `domains/` is absent |
-| Audit existing project | `python scripts\audit_existing_project.py <project-root>` | Inventory .harness/scripts/figures/outputs/gaps and draft the adoption inventory (guessed figure→script→data, seed sites, git recency); `--write-drafts` for `docs/adoption/*.draft.md` |
-| Seed adoption baseline | `python scripts\seed_adoption_baseline.py` | In adoption mode, turn the signed decision's reproduction baseline into a baseline-strategy Variation note + a `planned` `reproduction` row in `baseline_registry.md` |
-| Evaluate harness | `python scripts\evaluate_harness.py --fail-on-partial` | Check scenario coverage; partial now fails CI |
-| Check harness stamp | `python scripts\check_harness_version.py --project <project-dir>` | Report installed harness stamp and locally modified owned files |
-| Update vendored harness | `python scripts\update_harness.py --project <project-dir> --source <harness-source> [--apply] [--upgrade-hooks]` | Dry-run or apply non-destructive harness-owned updates; conflicts become `.harness-new` sidecars; use `--upgrade-hooks` with `--apply` to refresh hooks |
+| Init project | `python .harness\scripts\init_research_project.py --project <project-dir>` | Mark and scaffold a research project |
+| Scaffold domain workspace | `python .harness\scripts\scaffold_domain.py --project <project-dir> --name <slug> --type reproduction` | Add an optional `domains\slug\` workspace and typed manual without moving project-level gates |
+| Check domain manifest | `python .harness\scripts\check_domain_manifest.py --project <project-dir>` | Validate opted-in domain manuals; dormant when `domains/` is absent |
+| Audit existing project | `python .harness\scripts\audit_existing_project.py <project-root>` | Inventory .harness/scripts/figures/outputs/gaps and draft the adoption inventory (guessed figure→script→data, seed sites, git recency); `--write-drafts` for `docs/adoption/*.draft.md` |
+| Seed adoption baseline | `python .harness\scripts\seed_adoption_baseline.py` | In adoption mode, turn the signed decision's reproduction baseline into a baseline-strategy Variation note + a `planned` `reproduction` row in `baseline_registry.md` |
+| Evaluate harness | `python .harness\scripts\evaluate_harness.py --fail-on-partial` | Check scenario coverage; partial now fails CI |
+| Check harness stamp | `python .harness\scripts\check_harness_version.py --project <project-dir>` | Report installed harness stamp and locally modified owned files |
+| Update vendored harness | `python .harness\scripts\update_harness.py --project <project-dir> --source <harness-source> [--apply] [--upgrade-hooks]` | Dry-run or apply non-destructive harness-owned updates; conflicts become `.harness-new` sidecars; use `--upgrade-hooks` with `--apply` to refresh hooks |
 | Install test dependencies | `python -m pip install -r requirements.txt` | Install `pytest` and `PyYAML` |
 | CI harness checks | `.github/workflows/harness-checks.yml` | Run deterministic gates on push and pull request |
-| Sync live workflow | `python scripts\sync_workflow.py --project <project-dir> [--validate-edges]` | Refresh gate status, lineage, and live JSON |
-| Rebuild workflow HTML | `python scripts\generate_workflow_map.py [--central]` | Recreate the dashboard shell when needed |
-| Serve workflow map | `python scripts\serve_workflow_map.py --project <project-dir>` | Serve the workflow dashboard locally |
-| Check manifest | `python scripts\check_harness_manifest.py` | Validate capability manifest, hook registry, and portable hook paths |
-| Check spawn contracts | `python scripts\check_spawn_contracts.py` | Validate leaf agent definitions, tools, and single-spawner contract |
-| Check contract sync | `python scripts\check_contract_sync.py` | Enforce `AGENTS.md` == `GEMINI.md` and resident word budget |
-| Check orient gate | `python scripts\check_orient_recorded.py --project <project-dir>` | Require task-intake artifact before downstream work |
-| Check interview gate | `python scripts\check_interview_recorded.py --project <project-dir>` | Require crystallized research question and agreed direction |
-| Check literature gate | `python scripts\check_literature_reviewed.py --project <project-dir>` | Require ready/waived literature status |
-| Check model gate | `python scripts\check_model_specified.py --project <project-dir>` | Require model definition or waiver |
-| Check baseline strategy | `python scripts\check_baseline_strategy.py --project <project-dir>` | Require variation/new-model decision and target |
-| Check baseline gate | `python scripts\check_baseline_gate.py --project <project-dir>` | Require baseline pass or explicit waiver |
-| Check claim promotion | `python scripts\check_claim_promotion.py --project <project-dir> --target mechanism` | Gate claim-ceiling promotion |
-| Check claim freshness | `python scripts\check_claim_promotion_freshness.py --project <project-dir>` | Check claim documents for stale or candidate-only support |
-| Check lineage coverage | `python scripts\check_lineage_coverage.py --project <project-dir> [--strict]` | Find unsupported claims and broken lineage expectations |
-| Check figure provenance | `python scripts\check_figure_provenance.py --root <project-dir>` | Require traceable figure provenance |
-| Check session resumption | `python scripts\check_session_resumable.py --project <project-dir>` | Surface in-flight tasks and blocked gates after interruption |
-| Check computation checkpoints | `python scripts\check_computation_resumable.py --project <project-dir>` | Find orphaned long-run checkpoints |
-| Write stage checkpoint | `python scripts\write_stage_checkpoint.py --project <project-dir> --stage N` | Summarize a research stage compactly |
-| Scaffold paper review | `python scripts\scaffold_paper_review.py --project <project-dir> --paper-id P1 --title "Title"` | Create paper review note and index entry |
-| Process paper PDF | `python scripts\process_paper_for_review.py --project <project-dir> --paper-id P1 --title "Title" --pdf <pdf-path>` | Scaffold, extract text, and draft provisional notes |
-| Check paper review | `python scripts\check_paper_review_quality.py <review-path>` | Block weak literature notes before they support novelty |
+| Sync live workflow | `python .harness\scripts\sync_workflow.py --project <project-dir> [--validate-edges]` | Refresh gate status, lineage, and live JSON |
+| Rebuild workflow HTML | `python .harness\scripts\generate_workflow_map.py [--central]` | Recreate the dashboard shell when needed |
+| Serve workflow map | `python .harness\scripts\serve_workflow_map.py --project <project-dir>` | Serve the workflow dashboard locally |
+| Check manifest | `python .harness\scripts\check_harness_manifest.py` | Validate capability manifest, hook registry, and portable hook paths |
+| Check spawn contracts | `python .harness\scripts\check_spawn_contracts.py` | Validate leaf agent definitions, tools, and single-spawner contract |
+| Check contract sync | `python .harness\scripts\check_contract_sync.py` | Enforce `AGENTS.md` == `GEMINI.md` and resident word budget |
+| Check orient gate | `python .harness\scripts\check_orient_recorded.py --project <project-dir>` | Require task-intake artifact before downstream work |
+| Check interview gate | `python .harness\scripts\check_interview_recorded.py --project <project-dir>` | Require crystallized research question and agreed direction |
+| Check literature gate | `python .harness\scripts\check_literature_reviewed.py --project <project-dir>` | Require ready/waived literature status |
+| Check model gate | `python .harness\scripts\check_model_specified.py --project <project-dir>` | Require model definition or waiver |
+| Check baseline strategy | `python .harness\scripts\check_baseline_strategy.py --project <project-dir>` | Require variation/new-model decision and target |
+| Check baseline gate | `python .harness\scripts\check_baseline_gate.py --project <project-dir>` | Require baseline pass or explicit waiver |
+| Check claim promotion | `python .harness\scripts\check_claim_promotion.py --project <project-dir> --target mechanism` | Gate claim-ceiling promotion |
+| Check claim freshness | `python .harness\scripts\check_claim_promotion_freshness.py --project <project-dir>` | Check claim documents for stale or candidate-only support |
+| Check lineage coverage | `python .harness\scripts\check_lineage_coverage.py --project <project-dir> [--strict]` | Find unsupported claims and broken lineage expectations |
+| Check figure provenance | `python .harness\scripts\check_figure_provenance.py --root <project-dir>` | Require traceable figure provenance |
+| Check session resumption | `python .harness\scripts\check_session_resumable.py --project <project-dir>` | Surface in-flight tasks and blocked gates after interruption |
+| Check computation checkpoints | `python .harness\scripts\check_computation_resumable.py --project <project-dir>` | Find orphaned long-run checkpoints |
+| Write stage checkpoint | `python .harness\scripts\write_stage_checkpoint.py --project <project-dir> --stage N` | Summarize a research stage compactly |
+| Scaffold paper review | `python .harness\scripts\scaffold_paper_review.py --project <project-dir> --paper-id P1 --title "Title"` | Create paper review note and index entry |
+| Process paper PDF | `python .harness\scripts\process_paper_for_review.py --project <project-dir> --paper-id P1 --title "Title" --pdf <pdf-path>` | Scaffold, extract text, and draft provisional notes |
+| Check paper review | `python .harness\scripts\check_paper_review_quality.py <review-path>` | Block weak literature notes before they support novelty |
 
 Installed skills:
 
